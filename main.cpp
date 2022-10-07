@@ -1,5 +1,6 @@
 #include<iostream>
 #include<vector>
+#include<string>
 
 #include "TCanvas.h"
 
@@ -36,6 +37,11 @@ int main(int argc, char **argv)
     //canvas_xyz = graph_draw.drawGraph(data_xyz);
 
 
+
+
+
+    std::cout<<"Press Enter to continue "<<std::endl;
+	getchar();
 
 
     return 0;
