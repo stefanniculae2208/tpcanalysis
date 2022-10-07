@@ -1,6 +1,8 @@
 #include<iostream>
+#include<vector>
 
 #include "../include/convMatData.hpp"
+#include "../include/dataXYZ.hpp"
 
 
 
@@ -11,7 +13,7 @@ int main(int argc, char **argv)
 
     constexpr double driftVelocity = 0.724;
 
-
+    std::vector<dataXYZ> data_xyz;
 
 
 
@@ -22,7 +24,7 @@ int main(int argc, char **argv)
 
 
 
-    
+
 
     return 0;
 

@@ -1,5 +1,5 @@
-#ifndef covvMatData
-#define covvMatData 1
+#ifndef covvMatData_hpp
+#define covvMatData_hpp 1
 
 #define _USE_MATH_DEFINES
 #include <array>
