@@ -8,6 +8,10 @@ viewGraph::~viewGraph(){};
 
 
 
+//Will be used to generate a graph
+//Will return a pointer to a canvas
+//!!!!Drawing will close when the program ends!!!!
+
 std::shared_ptr<TCanvas> viewGraph::drawGraph(std::vector<dataXYZ> &data_xyz)
 {
 

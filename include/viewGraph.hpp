@@ -7,6 +7,8 @@
 #include "TCanvas.h"
 
 
+//This class will be used to draw the graphs needed and everything related to this topic
+
 class viewGraph
 {
 

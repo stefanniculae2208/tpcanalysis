@@ -12,6 +12,7 @@ convMatData::convMatData()
 convMatData::~convMatData(){};
 
 
+//We set the data with the correct values
 
 void convMatData::setMatrix(double newDriftVel)
 {
@@ -50,6 +51,7 @@ void convMatData::setMatrix(double newDriftVel)
 }
 
 
+//Print the matrix for testing purposes
 
 void convMatData::printMatrix()
 {
@@ -70,6 +72,9 @@ void convMatData::printMatrix()
 }
 
 
+
+//Information about how the converison is made is found here http://172.18.7.158/index.php?plugin=attach&refer=Presentations&openfile=NTNPD2021_Fila.pdf page 4
+//We basically solve the system of 4 equations with 3 unknowns
 
 int convMatData::convertCoords(double data_u, double data_v, double data_w, double data_t, dataXYZ &data_xyz)
 {

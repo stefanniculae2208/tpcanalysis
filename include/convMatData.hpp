@@ -15,6 +15,8 @@
 
 
 
+//This class will store the data related to the matrix needed to convert from UVWt to XYZ coordinates and will facilitate the conversion
+
 class convMatData
 {
     public:

@@ -3,6 +3,8 @@
 
 
 
+//This class will help store the useful data in an organised manner
+
 class dataXYZ
 {
 
