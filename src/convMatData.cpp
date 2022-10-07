@@ -13,16 +13,10 @@ convMatData::~convMatData(){};
 
 
 
-void convMatData::setDriftVel(double newDriftVel)
+void convMatData::setMatrix(double newDriftVel)
 {
 
     this->driftVel = newDriftVel;
-
-}
-
-
-void convMatData::setMatrix()
-{
 
     matrixData[0][0] = cos(0);
 
@@ -84,12 +78,12 @@ int convMatData::convertCoords(double data_u, double data_v, double data_w, doub
 
     std::cout<<"x is "<<data_x<<std::endl;
 
+
+
+
     data_y = (data_v + (-1) * matrixData[1][0] * data_x) / matrixData[1][1];
 
-
     double data_y_check = (data_w + (-1) * matrixData[2][0] * data_x) / matrixData[2][1];
-
-
 
     std::cout<<"From first eq y is "<<data_y<<std::endl;
 
@@ -97,9 +91,14 @@ int convMatData::convertCoords(double data_u, double data_v, double data_w, doub
 
     
 
+
+
     data_z = this->driftVel * data_t;
 
     std::cout<<"z is "<<data_z<<std::endl;
+
+
+
 
 
 

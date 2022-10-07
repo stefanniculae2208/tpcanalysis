@@ -16,12 +16,12 @@
 class convMatData
 {
     public:
+
+
     convMatData();
     ~convMatData();
 
-    void setDriftVel(double newDriftVel);
-
-    void setMatrix();
+    void setMatrix(double newDriftVel);
 
     void printMatrix();
 
@@ -30,14 +30,17 @@ class convMatData
 
 
 
-    std::array<std::array<double, 3>, 4> matrixData;
 
-    std::array<std::array<double, 3>, 4> inverseMatrixData;
 
 
 
     private:
+
+
     double driftVel;
+
+    std::array<std::array<double, 3>, 4> matrixData;
+
     
 
 };
