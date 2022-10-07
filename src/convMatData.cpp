@@ -71,21 +71,21 @@ void convMatData::printMatrix()
 
 
 
-int convMatData::convertCoords(double data_u, double data_v, double data_w, double data_t, double &data_x, double &data_y, double &data_z)
+int convMatData::convertCoords(double data_u, double data_v, double data_w, double data_t, dataXYZ &data_xyz)
 {
 
-    data_x = data_u;
+    data_xyz.data_x = data_u;
 
-    std::cout<<"x is "<<data_x<<std::endl;
-
-
+    std::cout<<"x is "<<data_xyz.data_x<<std::endl;
 
 
-    data_y = (data_v + (-1) * matrixData[1][0] * data_x) / matrixData[1][1];
 
-    double data_y_check = (data_w + (-1) * matrixData[2][0] * data_x) / matrixData[2][1];
 
-    std::cout<<"From first eq y is "<<data_y<<std::endl;
+    data_xyz.data_y = (data_v + (-1) * matrixData[1][0] * data_xyz.data_x) / matrixData[1][1];
+
+    double data_y_check = (data_w + (-1) * matrixData[2][0] * data_xyz.data_x) / matrixData[2][1];
+
+    std::cout<<"From first eq y is "<<data_xyz.data_y<<std::endl;
 
     std::cout<<"From second eq y is "<<data_y_check<<std::endl;
 
@@ -93,9 +93,9 @@ int convMatData::convertCoords(double data_u, double data_v, double data_w, doub
 
 
 
-    data_z = this->driftVel * data_t;
+    data_xyz.data_z = this->driftVel * data_t;
 
-    std::cout<<"z is "<<data_z<<std::endl;
+    std::cout<<"z is "<<data_xyz.data_z<<std::endl;
 
 
 
@@ -104,7 +104,7 @@ int convMatData::convertCoords(double data_u, double data_v, double data_w, doub
 
     //check if the difference between y we got from the first equation and the second equation is bigger than 30% of y
     //if so we return the error code -1
-    if(abs((data_y - data_y_check)) > (0.3 * data_y))
+    if(abs((data_xyz.data_y - data_y_check)) > (0.3 * data_xyz.data_y))
         return -1;
 
 

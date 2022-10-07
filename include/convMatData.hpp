@@ -6,6 +6,8 @@
 #include <cmath>
 #include <iostream>
 
+#include "dataXYZ.hpp"
+
 
 #ifndef M_PI
 #define M_PI (3.14159265358979323846)
@@ -25,7 +27,7 @@ class convMatData
 
     void printMatrix();
 
-    int convertCoords(double data_u, double data_v, double data_w, double data_t, double &data_x, double &data_y, double &data_z);
+    int convertCoords(double data_u, double data_v, double data_w, double data_t, dataXYZ &data_xyz);
 
 
 

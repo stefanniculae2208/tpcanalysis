@@ -20,6 +20,10 @@ std::shared_ptr<TCanvas> viewGraph::drawGraph(std::vector<dataXYZ> &data_xyz)
 
     graph_xyz->Draw("surf1");
 
+    canvas_xyz->Update();
+
+
+
     return canvas_xyz;
 
 }
