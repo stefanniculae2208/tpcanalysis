@@ -196,6 +196,33 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/tpcanalexec.dir/build.make CMakeFiles/tpcanalexec.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+src/convMatData.o: src/convMatData.cpp.o
+
+.PHONY : src/convMatData.o
+
+# target to build an object file
+src/convMatData.cpp.o:
+	$(MAKE) -f CMakeFiles/tpcanalexec.dir/build.make CMakeFiles/tpcanalexec.dir/src/convMatData.cpp.o
+.PHONY : src/convMatData.cpp.o
+
+src/convMatData.i: src/convMatData.cpp.i
+
+.PHONY : src/convMatData.i
+
+# target to preprocess a source file
+src/convMatData.cpp.i:
+	$(MAKE) -f CMakeFiles/tpcanalexec.dir/build.make CMakeFiles/tpcanalexec.dir/src/convMatData.cpp.i
+.PHONY : src/convMatData.cpp.i
+
+src/convMatData.s: src/convMatData.cpp.s
+
+.PHONY : src/convMatData.s
+
+# target to generate assembly for a file
+src/convMatData.cpp.s:
+	$(MAKE) -f CMakeFiles/tpcanalexec.dir/build.make CMakeFiles/tpcanalexec.dir/src/convMatData.cpp.s
+.PHONY : src/convMatData.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -212,6 +239,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... src/convMatData.o"
+	@echo "... src/convMatData.i"
+	@echo "... src/convMatData.s"
 .PHONY : help
 
 
