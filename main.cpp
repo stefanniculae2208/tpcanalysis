@@ -5,6 +5,9 @@
 #include "TCanvas.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TH1D.h"
+#include "TH2D.h"
+#include "TApplication.h"
 
 
 
@@ -36,7 +39,7 @@ int main(int argc, char **argv)
 
 
 
-
+    TApplication rApp("Root app", &argc, argv);
 
 
     auto fileName = "./rootdata/stefan2.root";
@@ -57,7 +60,7 @@ int main(int argc, char **argv)
 
 
 
-/*     data_tree->SetBranchAddress("plane", &plane_holder);
+    data_tree->SetBranchAddress("plane", &plane_holder);
     data_tree->SetBranchAddress("channel", &channel_holder);
     data_tree->SetBranchAddress("numberData", &numberData);
     data_tree->SetBranchAddress("signal", signal_holder);
@@ -65,15 +68,84 @@ int main(int argc, char **argv)
 
     auto nEntries = data_tree->GetEntries();
 
-    data_tree->GetEntry(0);
 
-    std::cout<<"plane: "<<plane_holder<<std::endl<<"channel: "<<channel_holder<<std::endl<<"numberData: "<<numberData<<std::endl;
+    std::cout<<"Number of entries is "<<nEntries<<std::endl;
+
+    //data_tree->GetEntry(0);
+
+    //std::cout<<"plane: "<<plane_holder<<std::endl<<"channel: "<<channel_holder<<std::endl<<"numberData: "<<numberData<<std::endl;
+
+
+    TCanvas *canv = new TCanvas("c1","histos");
 
 
 
-    data_tree->ResetBranchAddresses();
 
- */
+
+    
+    canv->Divide(2, 2, 0, 0);
+
+    /* TH2D *hist_1 = new TH2D("h1", "hist1", 100, 0, 100, 512, 1, 513);
+
+    for(auto i = 0; i < nEntries; i++){
+
+        data_tree->GetEntry();
+
+        //if(plane_holder = 0)
+        hist_1->Fill(channel_holder, signal_holder[100]);
+
+    }
+
+    hist_1->Draw(); */
+
+
+
+
+    TH2D *hist_2_u = new TH2D("h2", "hist2", 512, 1, 513, 100, 0, 100);
+
+    TH2D *hist_2_v = new TH2D("h2", "hist2", 512, 1, 513, 100, 0, 100);
+
+    TH2D *hist_2_w = new TH2D("h2", "hist2", 512, 1, 513, 100, 0, 100);
+
+
+    for(auto i = 0; i < nEntries/100; i++){
+
+        data_tree->GetEntry(i);
+
+
+        for(auto j : signal_holder){
+
+            if(plane_holder == 0)
+                hist_2_u->Fill(j, channel_holder);
+            if(plane_holder == 1)
+                hist_2_v->Fill(j, channel_holder);
+            if(plane_holder == 2)
+                hist_2_w->Fill(j, channel_holder);
+
+        }
+    }
+
+
+
+
+
+
+    canv->cd(1);
+    hist_2_u->Draw("COLZ");
+
+    canv->cd(2);
+    hist_2_v->Draw("COLZ");
+
+    canv->cd(3);
+    hist_2_w->Draw("COLZ");
+
+	canv->Update();
+
+
+    rApp.Run();
+    rApp.ReturnFromRun();
+
+
 
 
     //TODO
@@ -82,12 +154,16 @@ int main(int argc, char **argv)
 
 
 
-    iFile->Close();
 
 
 
     std::cout<<"Press Enter to continue "<<std::endl;
 	getchar();
+
+
+    delete(canv);
+
+    iFile->Close();
 
 
     return 0;
