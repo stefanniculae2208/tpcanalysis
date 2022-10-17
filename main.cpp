@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 
 
     auto fileName = "./rootdata/stefan2.root";
-    TFile *iFile = new TFile(fileName, "RECREATE");
+    TFile *iFile = new TFile(fileName, "READ");
 
     TTree *data_tree = iFile->Get<TTree>("tree_data");
 
@@ -53,7 +53,6 @@ int main(int argc, char **argv)
   
 
 
-    //iFile->GetObject("tree_data", data_tree);
 
 
 
