@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     auto fileName = "./rootdata/stefan2.root";
     TFile *iFile = new TFile(fileName, "RECREATE");
 
-
+    TTree *data_tree = iFile->Get<TTree>("tree_data");
 
 
     int plane_holder = 0;
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
     int numberData = 100000;
     double signal_holder[100000]{0};
 
-    TTree *data_tree = iFile->Get<TTree>("tree_data;73");
+  
 
 
     //iFile->GetObject("tree_data", data_tree);
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
 
 
-    data_tree->SetBranchAddress("plane", &plane_holder);
+/*     data_tree->SetBranchAddress("plane", &plane_holder);
     data_tree->SetBranchAddress("channel", &channel_holder);
     data_tree->SetBranchAddress("numberData", &numberData);
     data_tree->SetBranchAddress("signal", signal_holder);
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
     data_tree->ResetBranchAddresses();
 
-
+ */
 
 
     //TODO
