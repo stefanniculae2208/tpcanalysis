@@ -12,7 +12,7 @@ viewGraph::~viewGraph(){};
 //Will return a pointer to a canvas
 //!!!!Drawing will close when the program ends!!!!
 
-std::shared_ptr<TCanvas> viewGraph::drawGraph(std::vector<dataXYZ> &data_xyz)
+std::shared_ptr<TCanvas> viewGraph::drawTrack(std::vector<dataXYZ> &data_xyz)
 {
 
     std::shared_ptr<TCanvas> canvas_xyz = std::make_shared<TCanvas>("my_canvas", "Graph for XYZ axes", 0, 0, 30000, 30000);

@@ -76,7 +76,7 @@ void convMatData::printMatrix()
 //Information about how the converison is made is found here http://172.18.7.158/index.php?plugin=attach&refer=Presentations&openfile=NTNPD2021_Fila.pdf page 4
 //We basically solve the system of 4 equations with 3 unknowns
 
-int convMatData::convertCoords(double data_u, double data_v, double data_w, double data_t, dataXYZ &data_xyz)
+int convMatData::convertCoords(double data_u, double data_v, double data_w, double data_t, double charge, dataXYZ &data_xyz)
 {
 
     data_xyz.data_x = data_u;
@@ -104,7 +104,7 @@ int convMatData::convertCoords(double data_u, double data_v, double data_w, doub
 
 
 
-
+    data_xyz.data_charge = charge;
 
 
     //check if the difference between y we got from the first equation and the second equation is bigger than 30% of y

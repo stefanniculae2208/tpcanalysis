@@ -19,7 +19,7 @@ class viewGraph
     ~viewGraph();
 
 
-    std::shared_ptr<TCanvas> drawGraph(std::vector<dataXYZ> &data_xyz);
+    std::shared_ptr<TCanvas> drawTrack(std::vector<dataXYZ> &data_xyz);
 
 
 

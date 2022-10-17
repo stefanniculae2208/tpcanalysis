@@ -29,7 +29,7 @@ class convMatData
 
     void printMatrix();
 
-    int convertCoords(double data_u, double data_v, double data_w, double data_t, dataXYZ &data_xyz);
+    int convertCoords(double data_u, double data_v, double data_w, double data_t, double charge, dataXYZ &data_xyz);
 
 
 

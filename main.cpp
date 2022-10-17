@@ -3,6 +3,8 @@
 #include<string>
 
 #include "TCanvas.h"
+#include "TFile.h"
+#include "TTree.h"
 
 
 
@@ -33,10 +35,55 @@ int main(int argc, char **argv)
     matrix_data.printMatrix();
 
 
+
+
+
+
+    auto fileName = "./rootdata/stefan2.root";
+    TFile *iFile = new TFile(fileName, "RECREATE");
+
+
+
+
+    int plane_holder = 0;
+    int channel_holder = 0;
+    int numberData = 100000;
+    double signal_holder[100000]{0};
+
+    TTree *data_tree = iFile->Get<TTree>("tree_data;73");
+
+
+    //iFile->GetObject("tree_data", data_tree);
+
+
+
+
+    data_tree->SetBranchAddress("plane", &plane_holder);
+    data_tree->SetBranchAddress("channel", &channel_holder);
+    data_tree->SetBranchAddress("numberData", &numberData);
+    data_tree->SetBranchAddress("signal", signal_holder);
+
+
+    auto nEntries = data_tree->GetEntries();
+
+    data_tree->GetEntry(0);
+
+    std::cout<<"plane: "<<plane_holder<<std::endl<<"channel: "<<channel_holder<<std::endl<<"numberData: "<<numberData<<std::endl;
+
+
+
+    data_tree->ResetBranchAddresses();
+
+
+
+
     //TODO
-    //canvas_xyz = graph_draw.drawGraph(data_xyz);
+    //canvas_xyz = graph_draw.drawTrack(data_xyz);
 
 
+
+
+    iFile->Close();
 
 
 

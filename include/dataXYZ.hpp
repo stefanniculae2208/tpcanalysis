@@ -19,6 +19,8 @@ class dataXYZ
 
     double data_z;
 
+    double data_charge;
+
 
 
 };
