@@ -8,4 +8,6 @@ tpcanalexec
 rootdata/
 .vscode/
 build/*
+!build/.gitkeep
 dict/build/*
+!dict/build/.gitkeep
