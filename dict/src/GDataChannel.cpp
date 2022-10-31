@@ -31,8 +31,8 @@
  *
  */
 
-#include "../dict/include/GDataChannel.h"
-#include "../dict/include/GDataSample.h"
+#include "../include/GDataChannel.h"
+#include "../include/GDataSample.h"
 
 #if ROOT_VERSION_CODE > 393216
 ClassImp(GET::GDataChannel)

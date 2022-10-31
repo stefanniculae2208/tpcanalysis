@@ -21,8 +21,8 @@ include_directories(${PROJECT_SOURCE_DIR}
 
 
 link_directories(${ROOT_LIBRARY_DIR})
-file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hpp ${PROJECT_SOURCE_DIR}/include/*.h)
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cpp)
+file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hpp ${PROJECT_SOURCE_DIR}/include/*.h ${PROJECT_SOURCE_DIR}/dict/include/*.h)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/dict/src/*.cpp)
 
 
 set(exe_name "tpcanalexec")

@@ -31,7 +31,7 @@
  *
  */
 
-#include "../dict/include/GFrameHeader.h"
+#include "../include/GFrameHeader.h"
 
 #if ROOT_VERSION_CODE > 393216
 ClassImp(GET::GFrameHeader)

@@ -31,9 +31,9 @@
  *
  */
 
-#include "../dict/include/GDataFrame.h"
-#include "../dict/include/GDataChannel.h"
-#include "../dict/include/GDataSample.h"
+#include "../include/GDataFrame.h"
+#include "../include/GDataChannel.h"
+#include "../include/GDataSample.h"
 
 #include <TClonesArray.h>
 #include <TCollection.h>

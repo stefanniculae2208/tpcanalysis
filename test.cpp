@@ -1,7 +1,10 @@
 #include <iostream>
 
-#include "include/loadData.hpp"
+
+
 #include "src/loadData.cpp"
+
+
 
 #include "TSystem.h"
 #include "TROOT.h"
@@ -9,10 +12,15 @@
 
 
 // From GET
-#include "dict/include/GDataSample.h"
+/* #include "dict/include/GDataSample.h"
 #include "dict/include/GDataChannel.h"
 #include "dict/include/GFrameHeader.h"
-#include "dict/include/GDataFrame.h"
+#include "dict/include/GDataFrame.h" */
+
+#include "dict/src/GDataSample.cpp"
+#include "dict/src/GDataChannel.cpp"
+#include "dict/src/GFrameHeader.cpp"
+#include "dict/src/GDataFrame.cpp"
 
 
 
@@ -130,6 +138,8 @@ void test_decodeData()
 
     if(err != 0)
         std::cerr << "Error: good tree returned bad code: " << err << std::endl;
+    else   
+        std::cout << "Success! Size of vector is " << goodFileGoodTree.root_raw_data.size() << std::endl;
 
     
 
@@ -150,9 +160,9 @@ void test_decodeData()
 void test_loadData()
 {
 
-    test_openFile();
+/*     test_openFile();
 
-    test_readData();
+    test_readData(); */
 
     test_decodeData();
 
@@ -167,8 +177,8 @@ void test_loadData()
 void test()
 {
 
-    auto getLib = "dict/build/libMyLib.so";
-    gSystem->Load(getLib);
+/*     auto getLib = "dict/build/libMyLib.so";
+    gSystem->Load(getLib); */
 
 
     test_loadData();

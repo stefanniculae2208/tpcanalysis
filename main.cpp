@@ -35,6 +35,10 @@
 
 
 
+
+
+
+
 void alarm_handl(int sig_num)
 {
     std::cout<<"Program is taking too long\n############\nClosing.\n############"<<std::endl;
@@ -53,8 +57,8 @@ int main(int argc, char **argv)
     //Load file
     TApplication rApp("Root app", &argc, argv);
 
-    auto getLib = "dict/build/libMyLib.so";
-    gSystem->Load(getLib);
+/*     auto getLib = "dict/build/libMyLib.so";
+    gSystem->Load(getLib); */
 
     loadData("a", "b");
 
