@@ -4,12 +4,15 @@
 #include<unistd.h>
 #include<csignal>
 
-#include "TCanvas.h"
+
+
+
+
 #include "TFile.h"
 #include "TTree.h"
-#include "TH1D.h"
-#include "TH2D.h"
 #include "TApplication.h"
+#include "TROOT.h"
+#include "TSystem.h"
 
 
 
@@ -17,6 +20,14 @@
 #include "../include/dataXYZ.hpp"
 #include "../include/viewGraph.hpp"
 #include "../include/loadData.hpp"
+
+
+
+// From GET
+#include "dict/include/GDataSample.h"
+#include "dict/include/GDataChannel.h"
+#include "dict/include/GFrameHeader.h"
+#include "dict/include/GDataFrame.h"
 
 
 
@@ -41,6 +52,9 @@ int main(int argc, char **argv)
 
     //Load file
     TApplication rApp("Root app", &argc, argv);
+
+    auto getLib = "dict/build/libMyLib.so";
+    gSystem->Load(getLib);
 
 
 
