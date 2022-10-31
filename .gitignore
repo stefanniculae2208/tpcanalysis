@@ -7,3 +7,5 @@ commit.sh
 tpcanalexec
 rootdata/
 .vscode/
+build/*
+dict/build/*

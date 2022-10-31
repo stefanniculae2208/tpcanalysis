@@ -223,6 +223,33 @@ src/convMatData.cpp.s:
 	$(MAKE) -f CMakeFiles/tpcanalexec.dir/build.make CMakeFiles/tpcanalexec.dir/src/convMatData.cpp.s
 .PHONY : src/convMatData.cpp.s
 
+src/loadData.o: src/loadData.cpp.o
+
+.PHONY : src/loadData.o
+
+# target to build an object file
+src/loadData.cpp.o:
+	$(MAKE) -f CMakeFiles/tpcanalexec.dir/build.make CMakeFiles/tpcanalexec.dir/src/loadData.cpp.o
+.PHONY : src/loadData.cpp.o
+
+src/loadData.i: src/loadData.cpp.i
+
+.PHONY : src/loadData.i
+
+# target to preprocess a source file
+src/loadData.cpp.i:
+	$(MAKE) -f CMakeFiles/tpcanalexec.dir/build.make CMakeFiles/tpcanalexec.dir/src/loadData.cpp.i
+.PHONY : src/loadData.cpp.i
+
+src/loadData.s: src/loadData.cpp.s
+
+.PHONY : src/loadData.s
+
+# target to generate assembly for a file
+src/loadData.cpp.s:
+	$(MAKE) -f CMakeFiles/tpcanalexec.dir/build.make CMakeFiles/tpcanalexec.dir/src/loadData.cpp.s
+.PHONY : src/loadData.cpp.s
+
 src/viewGraph.o: src/viewGraph.cpp.o
 
 .PHONY : src/viewGraph.o
@@ -269,6 +296,9 @@ help:
 	@echo "... src/convMatData.o"
 	@echo "... src/convMatData.i"
 	@echo "... src/convMatData.s"
+	@echo "... src/loadData.o"
+	@echo "... src/loadData.i"
+	@echo "... src/loadData.s"
 	@echo "... src/viewGraph.o"
 	@echo "... src/viewGraph.i"
 	@echo "... src/viewGraph.s"
