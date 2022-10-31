@@ -89,6 +89,12 @@ int convertUVW::makeConversion(std::vector<rawData> &data_vec)
 }
 
 
+
+
+/*
+ Substracts the baseline from the signal.
+ The baseline is calculated as the mean of the first 64 bins from the signal.
+*/
 int convertUVW::substractBl(std::vector<rawData> &data_vec)
 {
 
