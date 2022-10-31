@@ -16,9 +16,8 @@
 
 
 
-#include "../include/convMatData.hpp"
+
 #include "../include/dataXYZ.hpp"
-#include "../include/viewGraph.hpp"
 #include "../include/loadData.hpp"
 
 
@@ -57,8 +56,8 @@ int main(int argc, char **argv)
     //Load file
     TApplication rApp("Root app", &argc, argv);
 
-/*     auto getLib = "dict/build/libMyLib.so";
-    gSystem->Load(getLib); */
+    auto getLib = "dict/build/libMyLib.so";
+    gSystem->Load(getLib);
 
     loadData("a", "b");
 

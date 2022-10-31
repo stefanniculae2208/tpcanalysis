@@ -6,6 +6,8 @@ project(${project_name})
 message("${project_name}")
 set(CMAKE_CXX_FLAGS "-O2 -Wall -fPIC")
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
@@ -22,11 +24,11 @@ include_directories(${PROJECT_SOURCE_DIR}
 
 link_directories(${ROOT_LIBRARY_DIR})
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hpp ${PROJECT_SOURCE_DIR}/include/*.h ${PROJECT_SOURCE_DIR}/dict/include/*.h)
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/dict/src/*.cpp)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 
 set(exe_name "tpcanalexec")
 
 add_executable(${exe_name} main.cpp ${sources} ${headers})
-target_link_libraries(${exe_name} ${ROOT_LIBRARIES})
+target_link_libraries(${exe_name} ${ROOT_LIBRARIES} ${PROJECT_SOURCE_DIR}/dict/build/libMyLib.so)
 install(TARGETS ${exe_name} DESTINATION ${PROJECT_SOURCE_DIR})
