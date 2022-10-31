@@ -46,14 +46,14 @@ int loadData::readData()
     if(rootfile->IsZombie()){
 
         std::cerr << "Error: file is not open." <<std::endl;
-        return -2;
+        return -1;
 
     }
 
     if(!(rootfile->GetListOfKeys()->Contains(treename))){
 
         std::cerr << "Error: file does not contain tree " << treename.Data() << std::endl;
-        return -1;
+        return -2;
 
     }
 
@@ -88,14 +88,14 @@ int loadData::decodeData()
     if(rootfile->IsZombie()){
 
         std::cerr << "Error: file is not open." <<std::endl;
-        return -2;
+        return -1;
 
     }
 
     if(!(rootfile->GetListOfKeys()->Contains(treename))){
 
         std::cerr << "Error: file does not contain tree " << treename.Data() << std::endl;
-        return -1;
+        return -2;
 
     }
 
@@ -128,6 +128,7 @@ int loadData::decodeData()
 	            
             }
             root_raw_data.push_back(loc_data);
+            std::vector<double>().swap(loc_data.signal_val);
         }
 
 

@@ -14,7 +14,6 @@
 #include "TTree.h"
 #include <TSystem.h>
 #include <TROOT.h>
-#include <TH2.h>
 
 
 // From GET

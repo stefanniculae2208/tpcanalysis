@@ -7,4 +7,5 @@ fi
 cd "$DIR"
 cmake ../
 make
+make install
 cd ..

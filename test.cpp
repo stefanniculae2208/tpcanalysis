@@ -3,6 +3,7 @@
 
 
 #include "src/loadData.cpp"
+#include "src/convertUVW.cpp"
 
 
 
@@ -129,12 +130,12 @@ void test_decodeData()
     if(err != -2)
         std::cerr << "Error: file not existing did not return good error code: " << err << std::endl;
 
-    err = goodFileBadTree.readData();
+    err = goodFileBadTree.decodeData();
 
     if(err != -1)
         std::cerr << "Error: bad tree returned bad error code: " << err << std::endl;
 
-    err = goodFileGoodTree.readData();
+    err = goodFileGoodTree.decodeData();
 
     if(err != 0)
         std::cerr << "Error: good tree returned bad code: " << err << std::endl;
@@ -170,6 +171,40 @@ void test_loadData()
 
 
 
+void test_convertUVW()
+{
+
+    auto goodFile = "./rootdata/data.root";
+
+    auto goodTree = "tree";
+
+
+    loadData good_data(goodFile, goodTree);
+
+    auto returned_file = good_data.openFile();
+    auto err = good_data.readData();
+    err = good_data.decodeData();
+
+    convertUVW loc_converter;
+
+    err = loc_converter.openSpecFile();
+
+    if(err != 0)
+        return;
+
+    err = loc_converter.makeConversion(good_data.root_raw_data);
+
+    for(auto i : good_data.root_raw_data){
+
+        std::cout << "Channel is " << i.ch_nr << " chip is " << i.chip_nr << " signal value size is " << i.signal_val.size() <<
+        " decoded plane value is " << i.plane_val << " decoded strip nr is " << i.strip_nr <<std::endl;
+
+    }
+
+}
+
+
+
 
 
 
@@ -181,7 +216,8 @@ void test()
     gSystem->Load(getLib); */
 
 
-    test_loadData();
+    //test_loadData();
+    test_convertUVW();
 
 
 
