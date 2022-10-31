@@ -4,6 +4,9 @@
 
 #include "src/loadData.cpp"
 #include "src/convertUVW.cpp"
+#include "src/convertXYZ.cpp"
+
+#include "generalDataStorage.hpp"
 
 
 
@@ -121,30 +124,32 @@ void test_decodeData()
 
 
 
+    generalDataStorage nofile_data_container;
+    generalDataStorage bad_data_container;
+    generalDataStorage good_data_container;
 
 
-
-    err = noFileNoTree.decodeData();
+    err = noFileNoTree.decodeData(nofile_data_container.root_raw_data);
 
 
     if(err != -2)
         std::cerr << "Error: file not existing did not return good error code: " << err << std::endl;
 
-    err = goodFileBadTree.decodeData();
+    err = goodFileBadTree.decodeData(bad_data_container.root_raw_data);
 
     if(err != -1)
         std::cerr << "Error: bad tree returned bad error code: " << err << std::endl;
 
-    err = goodFileGoodTree.decodeData();
+    err = goodFileGoodTree.decodeData(good_data_container.root_raw_data);
 
     if(err != 0)
         std::cerr << "Error: good tree returned bad code: " << err << std::endl;
     else   
-        std::cout << "Success! Size of vector is " << goodFileGoodTree.root_raw_data.size() << std::endl;
+        std::cout << "Success! Size of vector is " << good_data_container.root_raw_data.size() << std::endl;
 
     
 
-    for(auto i : goodFileGoodTree.root_raw_data){
+    for(auto i : good_data_container.root_raw_data){
 
         std::cout << "Channel is " << i.ch_nr << " chip is " << i.chip_nr << " signal value size is " << i.signal_val.size() <<std::endl;
 
@@ -179,11 +184,14 @@ void test_convertUVW()
     auto goodTree = "tree";
 
 
+    generalDataStorage data_container;
+
+
     loadData good_data(goodFile, goodTree);
 
     auto returned_file = good_data.openFile();
     auto err = good_data.readData();
-    err = good_data.decodeData();
+    err = good_data.decodeData(data_container.root_raw_data);
 
     convertUVW loc_converter;
 
@@ -192,9 +200,9 @@ void test_convertUVW()
     if(err != 0)
         return;
 
-    err = loc_converter.makeConversion(good_data.root_raw_data);
+    err = loc_converter.makeConversion(data_container.root_raw_data);
 
-    for(auto i : good_data.root_raw_data){
+    for(auto i : data_container.root_raw_data){
 
         std::cout << "Channel is " << i.ch_nr << " chip is " << i.chip_nr << " signal value size is " << i.signal_val.size() <<
         " decoded plane value is " << i.plane_val << " decoded strip nr is " << i.strip_nr <<std::endl;
@@ -203,6 +211,46 @@ void test_convertUVW()
 
 }
 
+
+void test_convertXYZ()
+{
+
+
+    convertXYZ loc_conv_xyz;
+    auto err = loc_conv_xyz.buildArray();
+
+    convertUVW loc_conv_uvw;
+
+    generalDataStorage data_container;
+
+
+
+
+    auto goodFile = "./rootdata/data.root";
+
+    auto goodTree = "tree";
+
+
+    loadData good_data(goodFile, goodTree);
+
+    auto returned_file = good_data.openFile();
+    auto err = good_data.readData();
+    err = good_data.decodeData(data_container.root_raw_data);
+
+
+
+    err = loc_conv_uvw.openSpecFile();
+
+    if(err != 0)
+        return;
+
+    err = loc_conv_uvw.makeConversion(data_container.root_raw_data);
+
+
+    err = loc_conv_xyz.makeConversion(data_container.root_raw_data, data_container.converted_data);
+
+
+}
 
 
 
@@ -218,6 +266,7 @@ void test()
 
     //test_loadData();
     test_convertUVW();
+    test_convertXYZ();
 
 
 

@@ -36,10 +36,10 @@ class loadData
     std::shared_ptr<TFile> openFile();
     int readData();
     TTree* returnTree();
-    int decodeData();
+    int decodeData(std::vector<rawData> &root_raw_data);
 
 
-    std::vector<rawData> root_raw_data;
+
 
 
 

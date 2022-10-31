@@ -82,7 +82,7 @@ TTree* loadData::returnTree()
  Decodes the data and saves it in a rawData type vector.
  Returns 0 upon success.
 */
-int loadData::decodeData()
+int loadData::decodeData(std::vector<rawData> &root_raw_data)
 {
 
     if(rootfile->IsZombie()){
