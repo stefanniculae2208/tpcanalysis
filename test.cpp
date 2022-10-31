@@ -1,6 +1,6 @@
 #include <iostream>
 
-
+#include "include/loadData.hpp"
 #include "src/loadData.cpp"
 
 #include "TSystem.h"
@@ -83,6 +83,67 @@ void test_readData()
 }
 
 
+void test_decodeData()
+{
+
+    auto noFile = "./rootdata/stefan23214124.root";
+    auto goodFile = "./rootdata/data.root";
+
+
+    auto badTree = "bad_tree_name";
+    auto goodTree = "tree";
+
+
+    loadData noFileNoTree(noFile, badTree);
+    loadData goodFileBadTree(goodFile, badTree);
+    loadData goodFileGoodTree(goodFile, goodTree);
+
+
+    auto testNoFile = noFileNoTree.openFile();
+    auto testBadTree = goodFileBadTree.openFile();
+    auto testGoodTree = goodFileGoodTree.openFile();
+
+
+    auto err = noFileNoTree.readData();
+
+    err = goodFileBadTree.readData();
+
+    err = goodFileGoodTree.readData();
+
+
+
+
+
+
+    err = noFileNoTree.decodeData();
+
+
+    if(err != -2)
+        std::cerr << "Error: file not existing did not return good error code: " << err << std::endl;
+
+    err = goodFileBadTree.readData();
+
+    if(err != -1)
+        std::cerr << "Error: bad tree returned bad error code: " << err << std::endl;
+
+    err = goodFileGoodTree.readData();
+
+    if(err != 0)
+        std::cerr << "Error: good tree returned bad code: " << err << std::endl;
+
+    
+
+    for(auto i : goodFileGoodTree.root_raw_data){
+
+        std::cout << "Channel is " << i.ch_nr << " chip is " << i.chip_nr << " signal value size is " << i.signal_val.size() <<std::endl;
+
+    }
+
+
+
+}
+
+
 
 
 
@@ -92,6 +153,8 @@ void test_loadData()
     test_openFile();
 
     test_readData();
+
+    test_decodeData();
 
 }
 
@@ -109,5 +172,12 @@ void test()
 
 
     test_loadData();
+
+
+
+
+
+
+
 
 }

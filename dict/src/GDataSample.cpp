@@ -31,7 +31,7 @@
  *
  */
 
-#include "GDataSample.h"
+#include "../dict/include/GDataSample.h"
 
 #if ROOT_VERSION_CODE > 393216
 ClassImp(GET::GDataSample)

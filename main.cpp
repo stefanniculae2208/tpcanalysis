@@ -56,6 +56,8 @@ int main(int argc, char **argv)
     auto getLib = "dict/build/libMyLib.so";
     gSystem->Load(getLib);
 
+    loadData("a", "b");
+
 
 
 

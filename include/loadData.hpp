@@ -5,10 +5,16 @@
 #include <iostream>
 
 
+#include "rawData.hpp"
+
+
 
 #include "TString.h"
 #include "TFile.h"
 #include "TTree.h"
+#include <TSystem.h>
+#include <TROOT.h>
+#include <TH2.h>
 
 
 // From GET
@@ -16,6 +22,8 @@
 #include "../dict/include/GDataChannel.h"
 #include "../dict/include/GFrameHeader.h"
 #include "../dict/include/GDataFrame.h"
+
+using namespace GET;
 
 
 class loadData
@@ -29,6 +37,11 @@ class loadData
     std::shared_ptr<TFile> openFile();
     int readData();
     TTree* returnTree();
+    int decodeData();
+
+
+    std::vector<rawData> root_raw_data;
+
 
 
     private:
@@ -37,6 +50,7 @@ class loadData
 
     std::shared_ptr<TFile> rootfile;
     TTree *roottree;
+
 
 
 };
