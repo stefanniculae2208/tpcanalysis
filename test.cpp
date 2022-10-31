@@ -45,11 +45,11 @@ void test_readData()
 {
 
     auto noFile = "./rootdata/stefan23214124.root";
-    auto goodFile = "./rootdata/stefan2.root";
+    auto goodFile = "./rootdata/data.root";
 
 
     auto badTree = "bad_tree_name";
-    auto goodTree = "tree_data";
+    auto goodTree = "tree";
 
 
     loadData noFileNoTree(noFile, badTree);
