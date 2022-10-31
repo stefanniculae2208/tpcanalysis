@@ -50,7 +50,7 @@ int convertXYZ::buildArray()
 int convertXYZ::makeConversion(std::vector<rawData> &raw_data_vec, std::vector<dataXYZ> &converted_data_vec)
 {
 
-
+    
 
 
     return 0;
