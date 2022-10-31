@@ -32,7 +32,7 @@ class convertXYZ
 
     private:
     const double drift_vel = 0.724;
-    double matrix_params[3][3];
+    double matrix_params[4][3];
 
 
 

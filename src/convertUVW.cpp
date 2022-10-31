@@ -87,3 +87,56 @@ int convertUVW::makeConversion(std::vector<rawData> &data_vec)
     return 0;
 
 }
+
+
+int convertUVW::substractBl(std::vector<rawData> &data_vec)
+{
+
+    const int sampleRegion = 64;
+
+    double baseline;
+
+
+    for(auto &data_el : data_vec){
+
+        baseline = 0;
+
+        for(auto i = 0; i < 64; i++){
+
+            baseline += data_el.signal_val.at(i);
+
+        }
+
+        baseline /= sampleRegion;
+
+        for(auto &sig_el : data_el.signal_val){
+
+            sig_el -= baseline;
+
+            if(sig_el < 0)
+                sig_el = 0;
+
+        }
+
+
+
+        
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return 0;
+
+}

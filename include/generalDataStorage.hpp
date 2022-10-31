@@ -8,6 +8,25 @@
 #include "dataXYZ.hpp"
 
 
+class hitPoints
+{
+    public:
+    hitPoints(){};
+    ~hitPoints(){};
+
+    double mean;
+    int ch;
+    int plane;
+    double sigma;
+
+};
+
+
+
+
+
+
+
 class generalDataStorage
 {
     public:
@@ -19,6 +38,9 @@ class generalDataStorage
 
     std::vector<rawData> root_raw_data;
     std::vector<dataXYZ> converted_data;
+
+    std::vector<hitPoints> hit_data;
+
     
 
 

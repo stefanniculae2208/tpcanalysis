@@ -6,12 +6,13 @@
 #include "src/convertUVW.cpp"
 #include "src/convertXYZ.cpp"
 
-#include "generalDataStorage.hpp"
+#include "include/generalDataStorage.hpp"
 
 
 
 #include "TSystem.h"
 #include "TROOT.h"
+#include "TH2D.h"
 
 
 
@@ -234,7 +235,7 @@ void test_convertXYZ()
     loadData good_data(goodFile, goodTree);
 
     auto returned_file = good_data.openFile();
-    auto err = good_data.readData();
+    err = good_data.readData();
     err = good_data.decodeData(data_container.root_raw_data);
 
 
@@ -247,7 +248,43 @@ void test_convertXYZ()
     err = loc_conv_uvw.makeConversion(data_container.root_raw_data);
 
 
+
+    err = loc_conv_uvw.substractBl(data_container.root_raw_data);
+
+
+
     err = loc_conv_xyz.makeConversion(data_container.root_raw_data, data_container.converted_data);
+
+
+
+
+
+    TH2D *raw_hist = new TH2D("my_hist", "hist", 512, 1, 513, 300, 1, 301);
+    raw_hist->SetDirectory(0);
+
+    int bin = 0;
+    int strip = 1;
+
+    for(auto iter : data_container.root_raw_data){
+        //if(iter.plane_val == 2 && iter.strip_nr == 45)
+        for(auto sig_iter : iter.signal_val)
+            raw_hist->SetBinContent(++bin, strip, sig_iter);
+        bin = 0;
+        strip++;
+    }
+
+    /* raw_hist->Fit("gaus");
+
+    auto mean = raw_hist->GetFunction("gaus")->GetParameter(1);
+    auto sigma = raw_hist->GetFunction("gaus")->GetParameter(2);
+
+    std::cout<<"value is "<<mean<<std::endl;
+    std::cout<<"sigma is "<<sigma<<std::endl; */
+
+    raw_hist->Draw("COLZ");
+
+
+
 
 
 }
@@ -265,7 +302,7 @@ void test()
 
 
     //test_loadData();
-    test_convertUVW();
+    //test_convertUVW();
     test_convertXYZ();
 
 

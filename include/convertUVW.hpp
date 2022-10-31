@@ -33,6 +33,7 @@ class convertUVW
 
     int openSpecFile();
     int makeConversion(std::vector<rawData> &data_vec);
+    int substractBl(std::vector<rawData> &data_vec);
 
 
     private:

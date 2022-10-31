@@ -40,3 +40,19 @@ int convertXYZ::buildArray()
     return 0;
 
 }
+
+
+
+
+/*
+ Makes the conversion from UVW to XYZ.
+*/
+int convertXYZ::makeConversion(std::vector<rawData> &raw_data_vec, std::vector<dataXYZ> &converted_data_vec)
+{
+
+
+
+
+    return 0;
+
+}
