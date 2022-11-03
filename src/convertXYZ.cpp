@@ -2,9 +2,9 @@
 
 
 
-/*
- Builds the array used for conversion.
- The array holds the parameters for each element in the matrix.
+/**
+* Builds the array used for conversion.
+* The array holds the parameters for each element in the matrix.
 */
 int convertXYZ::buildArray()
 {
@@ -44,13 +44,23 @@ int convertXYZ::buildArray()
 
 
 
-/*
- Makes the conversion from UVW to XYZ.
+/**
+* Makes the conversion from UVW to XYZ.
+* @param raw_data_vec contains the data in the UVW format
+* @param converted_data_vec the data is converted to XYZ and saved in this variable
 */
 int convertXYZ::makeConversion(std::vector<rawData> &raw_data_vec, std::vector<dataXYZ> &converted_data_vec)
 {
 
-    
+    dataXYZ loc_conv_data;
+
+    for(auto &loc_raw_data : raw_data_vec){
+
+//TODO
+
+        converted_data_vec.push_back(loc_conv_data);
+
+    }
 
 
     return 0;

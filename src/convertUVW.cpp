@@ -3,9 +3,9 @@
 
 
 
-/*
- Opens the specification file and makes the map.
- Returns 0 upon success and -1 if it fails to open the file.
+/**
+* Opens the specification file and makes the map.
+* Returns 0 upon success and -1 if it fails to open the file.
 */
 int convertUVW::openSpecFile()
 {
@@ -61,9 +61,10 @@ int convertUVW::openSpecFile()
 
 
 
-/*
-Makes the UVW conversion.
-Returns 0 upon success.
+/**
+* Makes the UVW conversion.
+* Returns 0 upon success.
+* @param data_vec uses the data already existing in the chip_br and ch_nr variables and calculates the data for plane_val and strip_nr
 */
 int convertUVW::makeConversion(std::vector<rawData> &data_vec)
 {
@@ -91,9 +92,10 @@ int convertUVW::makeConversion(std::vector<rawData> &data_vec)
 
 
 
-/*
- Substracts the baseline from the signal.
- The baseline is calculated as the mean of the first 64 bins from the signal.
+/**
+* Substracts the baseline from the signal.
+* The baseline is calculated as the mean of the first 64 bins from the signal.
+* @param data_vec contains the signal from which we extract the baseline
 */
 int convertUVW::substractBl(std::vector<rawData> &data_vec)
 {

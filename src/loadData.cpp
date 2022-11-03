@@ -14,9 +14,9 @@ loadData::loadData(TString filename, TString treename)
 
 
 
-/*
- Checks if the file exists and opens it. If file isn't opened returns nullptr.
- On success returns pointer to file.
+/**
+* Checks if the file exists and opens it. If file isn't opened returns nullptr.
+* On success returns pointer to file.
 */
 std::shared_ptr<TFile> loadData::openFile()
 {
@@ -36,9 +36,9 @@ std::shared_ptr<TFile> loadData::openFile()
 
 
 
-/*
- Reads the data from rootfile in roottree.
- Return different codes. Upon success returns 0.
+/**
+* Reads the data from rootfile in roottree.
+* Return different codes. Upon success returns 0.
 */
 int loadData::readData()
 {
@@ -66,8 +66,8 @@ int loadData::readData()
 }
 
 
-/*
- Returns pointer to the tree containing data.
+/**
+* Returns pointer to the tree containing data.
 */
 TTree* loadData::returnTree()
 {
@@ -78,9 +78,10 @@ TTree* loadData::returnTree()
 
 
 
-/*
- Decodes the data and saves it in a rawData type vector.
- Returns 0 upon success.
+/**
+* Decodes the data and saves it in a rawData type vector.
+* Returns 0 upon success.
+* @param root_raw_data the vector in which the data is saved
 */
 int loadData::decodeData(std::vector<rawData> &root_raw_data)
 {
