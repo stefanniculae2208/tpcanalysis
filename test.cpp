@@ -16,6 +16,7 @@
 #include "TCanvas.h"
 #include "TF1.h"
 #include "TSpectrum.h"
+#include "TError.h"
 
 
 
@@ -291,11 +292,12 @@ void test_viewdata()
 
 
 
-
-
+    //ignore Info level messages
+    gErrorIgnoreLevel = 2000;
     print_canv->Print("test_hist01.pdf[");
 
     for(auto hist_iter : data_container.raw_hist_container){
+
 
 
         hist_iter->Draw();
@@ -305,6 +307,9 @@ void test_viewdata()
     }
 
     print_canv->Print("test_hist01.pdf]");
+
+    //reset message level
+    gErrorIgnoreLevel = 0;
 
 
 /*     for(auto hit_iter : data_container.hit_data){
