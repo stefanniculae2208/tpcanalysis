@@ -13,6 +13,9 @@
 #include "TSystem.h"
 #include "TROOT.h"
 #include "TH2D.h"
+#include "TCanvas.h"
+#include "TF1.h"
+#include "TSpectrum.h"
 
 
 
@@ -213,7 +216,7 @@ void test_convertUVW()
 }
 
 
-void test_convertXYZ()
+void test_viewdata()
 {
 
 
@@ -258,17 +261,33 @@ void test_convertXYZ()
 
 
 
+    TCanvas *print_canv = new TCanvas("Test_canvas", "Test_canvas", 1000, 1000);
+
+    //std::vector<TH1D*> hist_container;
 
     TH2D *raw_hist = new TH2D("my_hist", "hist", 512, 1, 513, 300, 1, 301);
     raw_hist->SetDirectory(0);
+
+
+
+
+
 
     int bin = 0;
     int strip = 1;
 
     for(auto iter : data_container.root_raw_data){
+
+        auto loc_hist = new TH1D(Form("hist_at_strip%d_plane%d", iter.strip_nr, iter.plane_val), Form("hist%d", strip), 512, 1, 512);
+
         //if(iter.plane_val == 2 && iter.strip_nr == 45)
-        for(auto sig_iter : iter.signal_val)
+        for(auto sig_iter : iter.signal_val){
             raw_hist->SetBinContent(++bin, strip, sig_iter);
+            loc_hist->SetBinContent(bin, sig_iter);
+        }
+
+        data_container.raw_hist_container.push_back(loc_hist);
+
         bin = 0;
         strip++;
     }
@@ -281,7 +300,74 @@ void test_convertXYZ()
     std::cout<<"value is "<<mean<<std::endl;
     std::cout<<"sigma is "<<sigma<<std::endl; */
 
-    raw_hist->Draw("COLZ");
+    //raw_hist->Draw("COLZ");
+
+
+
+
+
+    
+
+
+
+    //auto gaus_and_pol0 = new TF1("gaus_and_pol0", "gaus(0)+pol0(3)", 1, 512);
+
+    auto spec_analyzer = new TSpectrum();
+
+    Double_t *pos_holder_x;
+    Double_t *pos_holder_y;
+    int npeaks;
+
+
+
+    print_canv->Print("test_hist01.pdf[");
+
+    for(auto hist_iter : data_container.raw_hist_container){
+
+        spec_analyzer->Search(hist_iter, 5, "nodraw", 0.2);
+        npeaks = spec_analyzer->GetNPeaks();
+        pos_holder_x = spec_analyzer->GetPositionX();
+        pos_holder_y = spec_analyzer->GetPositionY();
+
+
+        std::vector<Double_t> peaks_x;//x of valid peaks
+        std::vector<Double_t> peaks_y;//y of valid peaks
+        int n_true_peaks = 0;//number of valid peaks
+        Double_t peak_th = (double)200;//threshold value for valid peaks
+
+        for(auto i = 0; i < npeaks; i++){
+            if(pos_holder_y[i] > peak_th){
+                peaks_x.push_back(pos_holder_x[i]);
+                peaks_y.push_back(pos_holder_y[i]);
+                n_true_peaks++;
+            }
+        }
+                
+
+        TString func_holder("pol0(0)");
+
+        for(auto i = 0; i < n_true_peaks; i++)
+            func_holder.Append(Form("+gaus(%d)", (3*i+1)));
+
+        auto gaus_and_pol0 = new TF1("gaus_and_pol0", func_holder.Data(), 1, 512);
+
+        std::cout<<"Function is "<<func_holder.Data()<<std::endl;
+        gaus_and_pol0->SetParameter(0, 3);
+        for(auto i = 0; i < n_true_peaks; i++){
+            gaus_and_pol0->SetParameter((3*i+1), peaks_y.at(i));
+            gaus_and_pol0->SetParameter((3*i+2), peaks_x.at(i));
+            gaus_and_pol0->SetParameter((3*i+3), 10);
+        }
+
+        hist_iter->Fit("gaus_and_pol0", "Q");
+
+
+        hist_iter->Draw();
+        print_canv->Print("test_hist01.pdf", "Test title");
+
+    }
+
+    print_canv->Print("test_hist01.pdf]");
 
 
 
@@ -303,7 +389,7 @@ void test()
 
     //test_loadData();
     //test_convertUVW();
-    test_convertXYZ();
+    test_viewdata();
 
 
 

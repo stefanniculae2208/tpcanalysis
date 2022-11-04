@@ -17,7 +17,7 @@
 #include "loadData.hpp"
 #include "dataXYZ.hpp"
 
-
+//TODO
 class convertXYZ
 {
     public:

@@ -40,6 +40,7 @@ class generalDataStorage
     std::vector<dataXYZ> converted_data;
 
     std::vector<hitPoints> hit_data;
+    std::vector<TH1D*> raw_hist_container;
 
     
 
