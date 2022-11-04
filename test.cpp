@@ -219,10 +219,6 @@ void test_convertUVW()
 void test_viewdata()
 {
 
-
-    convertXYZ loc_conv_xyz;
-    auto err = loc_conv_xyz.buildArray();
-
     convertUVW loc_conv_uvw;
 
     generalDataStorage data_container;
@@ -254,9 +250,6 @@ void test_viewdata()
 
     err = loc_conv_uvw.substractBl(data_container.root_raw_data);
 
-
-
-    err = loc_conv_xyz.makeConversion(data_container.root_raw_data, data_container.converted_data);
 
 
 
