@@ -292,10 +292,12 @@ void test_viewdata()
 
 
 
-    //ignore Info level messages
-    gErrorIgnoreLevel = kWarning;
+
     print_canv->Print("test_hist01.pdf[");
 
+    //ignore Info level messages
+    //if you don't do this you get spammed with useless messages
+    gErrorIgnoreLevel = kWarning;
     for(auto hist_iter : data_container.raw_hist_container){
 
 
@@ -306,11 +308,11 @@ void test_viewdata()
 
     }
 
-
-    print_canv->Print("test_hist01.pdf]");
-
     //reset message level
     gErrorIgnoreLevel = kPrint;
+    print_canv->Print("test_hist01.pdf]");
+
+
 
 
 /*     for(auto hit_iter : data_container.hit_data){
