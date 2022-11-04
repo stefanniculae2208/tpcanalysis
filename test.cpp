@@ -234,7 +234,7 @@ void test_viewdata()
     loadData good_data(goodFile, goodTree);
 
     auto returned_file = good_data.openFile();
-    err = good_data.readData();
+    auto err = good_data.readData();
     err = good_data.decodeData(data_container.root_raw_data);
 
 
@@ -256,7 +256,7 @@ void test_viewdata()
 
     TCanvas *print_canv = new TCanvas("Test_canvas", "Test_canvas", 1000, 1000);
 
-    //std::vector<TH1D*> hist_container;
+
 
     TH2D *raw_hist = new TH2D("my_hist", "hist", 512, 1, 513, 300, 1, 301);
     raw_hist->SetDirectory(0);
@@ -271,29 +271,17 @@ void test_viewdata()
 
     for(auto iter : data_container.root_raw_data){
 
-        auto loc_hist = new TH1D(Form("hist_at_strip%d_plane%d", iter.strip_nr, iter.plane_val), Form("hist%d", strip), 512, 1, 512);
-
         //if(iter.plane_val == 2 && iter.strip_nr == 45)
         for(auto sig_iter : iter.signal_val){
             raw_hist->SetBinContent(++bin, strip, sig_iter);
-            loc_hist->SetBinContent(bin, sig_iter);
         }
-
-        data_container.raw_hist_container.push_back(loc_hist);
 
         bin = 0;
         strip++;
     }
- */
-    /* raw_hist->Fit("gaus");
 
-    auto mean = raw_hist->GetFunction("gaus")->GetParameter(1);
-    auto sigma = raw_hist->GetFunction("gaus")->GetParameter(2);
 
-    std::cout<<"value is "<<mean<<std::endl;
-    std::cout<<"sigma is "<<sigma<<std::endl; */
-
-    //raw_hist->Draw("COLZ");
+    raw_hist->Draw("COLZ"); */
 
 
 
@@ -303,79 +291,13 @@ void test_viewdata()
 
 
 
-    //auto gaus_and_pol0 = new TF1("gaus_and_pol0", "gaus(0)+pol0(3)", 1, 512);
-
-/*     auto spec_analyzer = new TSpectrum();
-
-    Double_t *pos_holder_x;
-    Double_t *pos_holder_y;
-    int npeaks;
-    hitPoints curr_point;
-
-    int curr_iter = 0;
- */
 
 
     print_canv->Print("test_hist01.pdf[");
 
     for(auto hist_iter : data_container.raw_hist_container){
 
-/*         spec_analyzer->Search(hist_iter, 5, "nodraw", 0.2);
-        npeaks = spec_analyzer->GetNPeaks();
-        pos_holder_x = spec_analyzer->GetPositionX();
-        pos_holder_y = spec_analyzer->GetPositionY();
 
-
-        std::vector<Double_t> peaks_x;//x of valid peaks
-        std::vector<Double_t> peaks_y;//y of valid peaks
-        int n_true_peaks = 0;//number of valid peaks
-        Double_t peak_th = (double)200;//threshold value for valid peaks
-
-        for(auto i = 0; i < npeaks; i++){
-            if(pos_holder_y[i] > peak_th){
-                peaks_x.push_back(pos_holder_x[i]);
-                peaks_y.push_back(pos_holder_y[i]);
-                n_true_peaks++;
-            }
-        }
-                
-
-        TString func_holder("pol0(0)");
-
-        for(auto i = 0; i < n_true_peaks; i++)
-            func_holder.Append(Form("+gaus(%d)", (3*i+1)));
-
-        auto gaus_and_pol0 = new TF1("gaus_and_pol0", func_holder.Data(), 1, 512);
-
-        std::cout<<"Function is "<<func_holder.Data()<<std::endl;
-        gaus_and_pol0->SetParameter(0, 3);
-        for(auto i = 0; i < n_true_peaks; i++){
-            gaus_and_pol0->SetParameter((3*i+1), peaks_y.at(i));
-            gaus_and_pol0->SetParameter((3*i+2), peaks_x.at(i));
-            gaus_and_pol0->SetParameter((3*i+3), 10);
-        }
-
-        hist_iter->Fit("gaus_and_pol0", "Q");
-
-
-        hitPeakInfo curr_peak;
-
-        for(auto i = 0; i < n_true_peaks; i++){
-            curr_peak.peak_x = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+2));
-            curr_peak.peak_y = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+1));
-            curr_peak.fwhm = 2.355 * hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+3));
-        }
-
-        curr_point.npeaks = n_true_peaks;
-        curr_point.peaks_info.push_back(curr_peak);
-        curr_point.plane = data_container.root_raw_data.at(curr_iter).plane_val;
-        curr_point.strip = data_container.root_raw_data.at(curr_iter).strip_nr;
-        curr_point.base_line = hist_iter->GetFunction("gaus_and_pol0")->GetParameter(0);
-
-
-        data_container.hit_data.push_back(curr_point);
-
- */
         hist_iter->Draw();
         print_canv->Print("test_hist01.pdf", "Test title");
 
