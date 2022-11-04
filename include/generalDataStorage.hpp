@@ -8,16 +8,29 @@
 #include "dataXYZ.hpp"
 
 
+struct hitPeakInfo
+{
+
+    Double_t peak_x;
+    Double_t peak_y;
+    Double_t fwhm;//full width at half maximum
+
+};
+
+
 class hitPoints
 {
     public:
     hitPoints(){};
     ~hitPoints(){};
 
-    double mean;
-    int ch;
+
+    int npeaks;//number of peaks
+    int strip;
     int plane;
-    double sigma;
+    int base_line;
+    std::vector<hitPeakInfo> peaks_info;//each element holds info about one peak
+
 
 };
 
@@ -32,6 +45,8 @@ class generalDataStorage
     public:
     generalDataStorage(){};
     ~generalDataStorage(){};
+
+
 
 
 

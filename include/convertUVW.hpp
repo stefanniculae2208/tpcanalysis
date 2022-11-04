@@ -10,6 +10,12 @@
 
 #include "rawData.hpp"
 #include "loadData.hpp"
+#include "generalDataStorage.hpp"
+
+
+#include "TSpectrum.h"
+#include "TH1.h"
+
 
 
 
@@ -34,6 +40,7 @@ class convertUVW
     int openSpecFile();
     int makeConversion(std::vector<rawData> &data_vec);
     int substractBl(std::vector<rawData> &data_vec);
+    int getHitInfo(std::vector<rawData> &raw_data_vec, std::vector<hitPoints> &hit_points_vec, std::vector<TH1D*> &raw_hist_vec);
 
 
     private:

@@ -269,10 +269,10 @@ void test_viewdata()
     raw_hist->SetDirectory(0);
 
 
+    loc_conv_uvw.getHitInfo(data_container.root_raw_data, data_container.hit_data, data_container.raw_hist_container);
 
 
-
-
+/* 
     int bin = 0;
     int strip = 1;
 
@@ -291,7 +291,7 @@ void test_viewdata()
         bin = 0;
         strip++;
     }
-
+ */
     /* raw_hist->Fit("gaus");
 
     auto mean = raw_hist->GetFunction("gaus")->GetParameter(1);
@@ -312,19 +312,22 @@ void test_viewdata()
 
     //auto gaus_and_pol0 = new TF1("gaus_and_pol0", "gaus(0)+pol0(3)", 1, 512);
 
-    auto spec_analyzer = new TSpectrum();
+/*     auto spec_analyzer = new TSpectrum();
 
     Double_t *pos_holder_x;
     Double_t *pos_holder_y;
     int npeaks;
+    hitPoints curr_point;
 
+    int curr_iter = 0;
+ */
 
 
     print_canv->Print("test_hist01.pdf[");
 
     for(auto hist_iter : data_container.raw_hist_container){
 
-        spec_analyzer->Search(hist_iter, 5, "nodraw", 0.2);
+/*         spec_analyzer->Search(hist_iter, 5, "nodraw", 0.2);
         npeaks = spec_analyzer->GetNPeaks();
         pos_holder_x = spec_analyzer->GetPositionX();
         pos_holder_y = spec_analyzer->GetPositionY();
@@ -362,13 +365,42 @@ void test_viewdata()
         hist_iter->Fit("gaus_and_pol0", "Q");
 
 
+        hitPeakInfo curr_peak;
+
+        for(auto i = 0; i < n_true_peaks; i++){
+            curr_peak.peak_x = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+2));
+            curr_peak.peak_y = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+1));
+            curr_peak.fwhm = 2.355 * hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+3));
+        }
+
+        curr_point.npeaks = n_true_peaks;
+        curr_point.peaks_info.push_back(curr_peak);
+        curr_point.plane = data_container.root_raw_data.at(curr_iter).plane_val;
+        curr_point.strip = data_container.root_raw_data.at(curr_iter).strip_nr;
+        curr_point.base_line = hist_iter->GetFunction("gaus_and_pol0")->GetParameter(0);
+
+
+        data_container.hit_data.push_back(curr_point);
+
+ */
         hist_iter->Draw();
         print_canv->Print("test_hist01.pdf", "Test title");
+
 
     }
 
     print_canv->Print("test_hist01.pdf]");
 
+
+/*     for(auto hit_iter : data_container.hit_data){
+
+        std::cout<<"\n\n\n\n"<<hit_iter.npeaks<<" at plane "<<hit_iter.plane<<" and strip "<<hit_iter.strip<<"\n";
+        for(auto p_iter : hit_iter.peaks_info){
+            std::cout<<"X is "<<p_iter.peak_x<<" Y is "<<p_iter.peak_y<<" fwhm is "<<p_iter.fwhm<<"\n";
+        }
+
+    }
+ */
 
 
 
