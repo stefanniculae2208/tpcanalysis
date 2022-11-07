@@ -3,6 +3,7 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <vector>
 
 
 
@@ -13,8 +14,8 @@
 
 
 
-#include "rawData.hpp"
-#include "loadData.hpp"
+#include "dataUVW.hpp"
+#include "hitPoints.hpp"
 #include "dataXYZ.hpp"
 
 //TODO
@@ -23,16 +24,21 @@ class convertXYZ
     public:
     convertXYZ(){};
     ~convertXYZ(){};
+    convertXYZ(std::vector<hitPoints> hit_data);
 
 
     int buildArray();
-    int makeConversion(std::vector<rawData> &raw_data_vec, std::vector<dataXYZ> &converted_data_vec);
+    int makeConversionXY();
+    int makeConversionXYZ();
+
 
     
 
     private:
     const double drift_vel = 0.724;
-    double matrix_params[4][3];
+    double m_matrix_params[4][3];
+    std::vector<hitPoints> m_hit_data;
+    std::vector<dataXYZ> m_xyz_data;
 
 
 

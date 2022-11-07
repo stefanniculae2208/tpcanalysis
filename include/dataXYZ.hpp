@@ -25,7 +25,6 @@ class dataXYZ
 
 };
 
-typedef dataXYZ dataXYZ_t;
 
 
 

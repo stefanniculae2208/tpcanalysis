@@ -365,6 +365,79 @@ void test_viewdata()
 
 
 
+void test_convertXYZ()
+{
+
+
+    generalDataStorage data_container;
+
+
+
+
+
+
+    auto goodFile = "./rootdata/data.root";
+
+    auto goodTree = "tree";
+
+
+    loadData good_data(goodFile, goodTree);
+
+    auto returned_file = good_data.openFile();
+    auto err = good_data.readData();
+    err = good_data.decodeData();
+    data_container.root_raw_data = good_data.returnRawData();
+
+    convertUVW loc_conv_uvw(data_container.root_raw_data);
+
+
+    err = loc_conv_uvw.openSpecFile();
+
+    if(err != 0)
+        return;
+
+    err = loc_conv_uvw.makeConversion();
+    if(err != 0)
+        std::cout<<"Make conversion error code "<<err<<std::endl;
+
+
+
+    err = loc_conv_uvw.substractBl();
+
+    if(err != 0)
+        std::cout<<"Substractbl error code "<<err<<std::endl;
+
+
+    data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+
+
+    convertHitData loc_convert_hit(data_container.uvw_data);
+
+    err = loc_convert_hit.getHitInfo();
+    if(err != 0)
+        std::cout<<"Error get hit info code "<<err<<std::endl;
+
+    data_container.hit_data = loc_convert_hit.returnHitData();
+    data_container.raw_hist_container = loc_convert_hit.returnHistData();
+
+    std::cout<<"Hit data size "<<data_container.hit_data.size()<<std::endl;
+    std::cout<<"Hist data size "<<data_container.raw_hist_container.size()<<std::endl;
+
+
+
+    convertXYZ loc_conv_xyz(data_container.hit_data);
+
+    err = loc_conv_xyz.makeConversionXY();
+
+
+
+}
+
+
+
+
+
 
 void test()
 {
@@ -375,7 +448,8 @@ void test()
 
     //test_loadData();
     //test_convertUVW();
-    test_viewdata();
+    //test_viewdata();
+    test_convertXYZ();
 
 
 

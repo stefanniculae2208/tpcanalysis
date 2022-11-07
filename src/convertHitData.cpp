@@ -117,7 +117,7 @@ int convertHitData::getHitInfo()
 
     for(auto &hist_iter : m_raw_hist_data){
 
-        hitPoints curr_point;
+
 
         //find the peaks in the histogram with TSpectrum
         spec_analyzer->Search(hist_iter, 5, "nodraw", 0.2);
@@ -129,7 +129,7 @@ int convertHitData::getHitInfo()
         //find which peaks are good
         std::vector<Double_t> peaks_x;//x of valid peaks
         std::vector<Double_t> peaks_y;//y of valid peaks
-        curr_point.npeaks = 0;//number of valid peaks set to 0
+        int nrealpeaks = 0;//number of valid peaks set to 0
         Double_t peak_th = (double)200;//threshold value for valid peaks
 
 
@@ -138,7 +138,7 @@ int convertHitData::getHitInfo()
             if(pos_holder_y[i] > peak_th){
                 peaks_x.push_back(pos_holder_x[i]);
                 peaks_y.push_back(pos_holder_y[i]);
-                curr_point.npeaks++;
+                nrealpeaks++;
             }
         }
 
@@ -148,14 +148,14 @@ int convertHitData::getHitInfo()
         //build the function based on the number of valid peaks found
         TString func_holder("pol0(0)");
 
-        for(auto i = 0; i < curr_point.npeaks; i++)
+        for(auto i = 0; i < nrealpeaks; i++)
             func_holder.Append(Form("+gaus(%d)", (3*i+1)));
 
         auto gaus_and_pol0 = new TF1("gaus_and_pol0", func_holder.Data(), 1, 512);
 
         //std::cout<<"Function is "<<func_holder.Data()<<std::endl;
         gaus_and_pol0->SetParameter(0, 3);
-        for(auto i = 0; i < curr_point.npeaks; i++){
+        for(auto i = 0; i < nrealpeaks; i++){
             gaus_and_pol0->SetParameter((3*i+1), peaks_y.at(i));
             gaus_and_pol0->SetParameter((3*i+2), peaks_x.at(i));
             gaus_and_pol0->SetParameter((3*i+3), 10);
@@ -164,22 +164,26 @@ int convertHitData::getHitInfo()
         hist_iter->Fit("gaus_and_pol0", "Q");
 
 
-        //save the hit data obtained from fitting
-        hitPeakInfo curr_peak;
 
-        for(auto i = 0; i < curr_point.npeaks; i++){
-            curr_peak.peak_x = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+2));
-            curr_peak.peak_y = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+1));
-            curr_peak.fwhm = 2.355 * hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+3));
-            curr_point.peaks_info.push_back(curr_peak);
+
+        for(auto i = 0; i < nrealpeaks; i++){
+
+            hitPoints curr_point;
+
+
+            curr_point.peak_x = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+2));
+            curr_point.peak_y = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+1));
+            curr_point.fwhm = 2.355 * hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+3));
+            curr_point.plane = m_uvw_data.at(curr_iter).plane_val;
+            curr_point.strip = m_uvw_data.at(curr_iter).strip_nr;
+            curr_point.base_line = hist_iter->GetFunction("gaus_and_pol0")->GetParameter(0);
+
+            m_hit_data.push_back(curr_point);
         }
 
-        curr_point.plane = m_uvw_data.at(curr_iter).plane_val;
-        curr_point.strip = m_uvw_data.at(curr_iter).strip_nr;
-        curr_point.base_line = hist_iter->GetFunction("gaus_and_pol0")->GetParameter(0);
 
 
-        m_hit_data.push_back(curr_point);
+
 
 
         curr_iter++;
