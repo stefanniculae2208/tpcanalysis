@@ -1,5 +1,5 @@
 #ifndef convertHitData_hpp
-#define convertHitData_hpp 
+#define convertHitData_hpp 1
 
 
 

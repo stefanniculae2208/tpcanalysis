@@ -1,5 +1,5 @@
 #ifndef hitPoints_hpp
-#define hitPoints_hpp 
+#define hitPoints_hpp 1
 
 
 #include <vector>

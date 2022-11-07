@@ -1,5 +1,5 @@
 #ifndef loadData_hpp
-#define loadData_hpp 
+#define loadData_hpp 1
 
 
 #include <iostream>

@@ -1,5 +1,5 @@
 #ifndef dataUVW_hpp
-#define dataUVW_hpp 
+#define dataUVW_hpp 1
 
 #include <cstdint>
 #include <vector>

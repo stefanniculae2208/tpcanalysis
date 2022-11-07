@@ -1,5 +1,5 @@
 #ifndef convertXYZ_hpp
-#define convertXYZ_hpp 
+#define convertXYZ_hpp 1
 
 #define _USE_MATH_DEFINES
 #include <cmath>

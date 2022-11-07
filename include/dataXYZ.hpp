@@ -1,5 +1,5 @@
 #ifndef dataXYZ_hpp
-#define dataXYZ_hpp 
+#define dataXYZ_hpp 1
 
 
 

@@ -6,6 +6,7 @@
 #include "src/convertUVW.cpp"
 #include "src/convertXYZ.cpp"
 #include "src/convertHitData.cpp"
+#include "include/ErrorCodesMap.hpp"
 
 #include "include/generalDataStorage.hpp"
 

@@ -1,5 +1,5 @@
 #ifndef convertUVW_hpp
-#define convertUVW_hpp 
+#define convertUVW_hpp 1
 
 
 

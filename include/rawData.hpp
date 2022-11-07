@@ -1,5 +1,5 @@
 #ifndef rawData_hpp
-#define rawData_hpp 
+#define rawData_hpp 1
 
 #include <cstdint>
 #include <vector>

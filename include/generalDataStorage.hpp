@@ -1,5 +1,5 @@
 #ifndef generalDataStorage_hpp
-#define generalDataStorage_hpp
+#define generalDataStorage_hpp 1
 
 #include <vector>
 
