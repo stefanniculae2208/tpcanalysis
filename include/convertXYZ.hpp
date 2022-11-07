@@ -32,6 +32,7 @@ class convertXYZ
     int makeConversionXYZ();
 
 
+
     
 
     private:
@@ -39,6 +40,19 @@ class convertXYZ
     double m_matrix_params[4][3];
     std::vector<hitPoints> m_hit_data;
     std::vector<dataXYZ> m_xyz_data;
+    std::vector<std::vector<hitPoints>> m_group_data;
+    std::vector<std::vector<dataXYZ>> m_group_xyz;
+
+
+    std::map<std::pair<int, int>, int> relationVW_U;
+
+
+
+
+    void sortHitData();
+    void groupHitData();
+    void buildMap();
+    void calculateXY();
 
 
 
