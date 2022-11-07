@@ -5,6 +5,7 @@
 #include "src/loadData.cpp"
 #include "src/convertUVW.cpp"
 #include "src/convertXYZ.cpp"
+#include "src/convertHitData.cpp"
 
 #include "include/generalDataStorage.hpp"
 
@@ -134,18 +135,21 @@ void test_decodeData()
     generalDataStorage good_data_container;
 
 
-    err = noFileNoTree.decodeData(nofile_data_container.root_raw_data);
+    err = noFileNoTree.decodeData();
+    nofile_data_container.root_raw_data = noFileNoTree.returnRawData();
 
 
     if(err != -2)
         std::cerr << "Error: file not existing did not return good error code: " << err << std::endl;
 
-    err = goodFileBadTree.decodeData(bad_data_container.root_raw_data);
+    err = goodFileBadTree.decodeData();
+    bad_data_container.root_raw_data = goodFileBadTree.returnRawData();
 
     if(err != -1)
         std::cerr << "Error: bad tree returned bad error code: " << err << std::endl;
 
-    err = goodFileGoodTree.decodeData(good_data_container.root_raw_data);
+    err = goodFileGoodTree.decodeData();
+    good_data_container.root_raw_data = goodFileGoodTree.returnRawData();
 
     if(err != 0)
         std::cerr << "Error: good tree returned bad code: " << err << std::endl;
@@ -196,20 +200,21 @@ void test_convertUVW()
 
     auto returned_file = good_data.openFile();
     auto err = good_data.readData();
-    err = good_data.decodeData(data_container.root_raw_data);
+    err = good_data.decodeData();
+    data_container.root_raw_data = good_data.returnRawData();
 
-    convertUVW loc_converter;
+    convertUVW loc_converter(data_container.root_raw_data);
 
     err = loc_converter.openSpecFile();
 
     if(err != 0)
         return;
 
-    err = loc_converter.makeConversion(data_container.root_raw_data);
+    err = loc_converter.makeConversion();
 
-    for(auto i : data_container.root_raw_data){
+    for(auto i : data_container.uvw_data){
 
-        std::cout << "Channel is " << i.ch_nr << " chip is " << i.chip_nr << " signal value size is " << i.signal_val.size() <<
+        std::cout << "Signal value size is " << i.signal_val.size() <<
         " decoded plane value is " << i.plane_val << " decoded strip nr is " << i.strip_nr <<std::endl;
 
     }
@@ -220,9 +225,11 @@ void test_convertUVW()
 void test_viewdata()
 {
 
-    convertUVW loc_conv_uvw;
+
 
     generalDataStorage data_container;
+
+
 
 
 
@@ -236,8 +243,10 @@ void test_viewdata()
 
     auto returned_file = good_data.openFile();
     auto err = good_data.readData();
-    err = good_data.decodeData(data_container.root_raw_data);
+    err = good_data.decodeData();
+    data_container.root_raw_data = good_data.returnRawData();
 
+    convertUVW loc_conv_uvw(data_container.root_raw_data);
 
 
     err = loc_conv_uvw.openSpecFile();
@@ -245,11 +254,20 @@ void test_viewdata()
     if(err != 0)
         return;
 
-    err = loc_conv_uvw.makeConversion(data_container.root_raw_data);
+    err = loc_conv_uvw.makeConversion();
+    if(err != 0)
+        std::cout<<"Make conversion error code "<<err<<std::endl;
 
 
 
-    err = loc_conv_uvw.substractBl(data_container.root_raw_data);
+    err = loc_conv_uvw.substractBl();
+
+    if(err != 0)
+        std::cout<<"Substractbl error code "<<err<<std::endl;
+
+
+    data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
 
 
 
@@ -263,7 +281,19 @@ void test_viewdata()
     raw_hist->SetDirectory(0);
 
 
-    loc_conv_uvw.getHitInfo(data_container.root_raw_data, data_container.hit_data, data_container.raw_hist_container);
+    //err = loc_conv_uvw.getHitInfo(data_container.root_raw_data, data_container.hit_data, data_container.raw_hist_container);
+
+    convertHitData loc_convert_hit(data_container.uvw_data);
+
+    err = loc_convert_hit.getHitInfo();
+    if(err != 0)
+        std::cout<<"Error get hit info code "<<err<<std::endl;
+
+    data_container.hit_data = loc_convert_hit.returnHitData();
+    data_container.raw_hist_container = loc_convert_hit.returnHistData();
+
+    std::cout<<"Hit data size "<<data_container.hit_data.size()<<std::endl;
+    std::cout<<"Hist data size "<<data_container.raw_hist_container.size()<<std::endl;
 
 
 /* 

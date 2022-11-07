@@ -11,6 +11,7 @@
 #include "rawData.hpp"
 #include "loadData.hpp"
 #include "generalDataStorage.hpp"
+#include "dataUVW.hpp"
 
 
 #include "TSpectrum.h"
@@ -35,16 +36,23 @@ class convertUVW
     public:
 
     convertUVW(){};
+    convertUVW(std::vector<rawData> data_vec);
     ~convertUVW(){};
 
+
+    int setRawData(std::vector<rawData> data_vec);
     int openSpecFile();
-    int makeConversion(std::vector<rawData> &data_vec);
-    int substractBl(std::vector<rawData> &data_vec);
-    int getHitInfo(std::vector<rawData> &raw_data_vec, std::vector<hitPoints> &hit_points_vec, std::vector<TH1D*> &raw_hist_vec);
+    int makeConversion();
+    int substractBl();
+    std::vector<dataUVW> returnDataUVW();
+
 
 
     private:
     std::map<std::pair<int, int>, std::pair<GEM, int>> fPositionMap;
+    std::vector<rawData> m_data_vec;
+    std::vector<dataUVW> m_uvw_vec;
+
     
 
 

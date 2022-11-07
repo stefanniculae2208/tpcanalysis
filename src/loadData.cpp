@@ -2,12 +2,17 @@
 
 
 
-
+/**
+ * @brief Construct a new load Data::load Data object
+ * 
+ * @param filename name of the file to be opened
+ * @param treename name of the tree in the file
+ */
 loadData::loadData(TString filename, TString treename)
 {
 
-    this->filename = filename;
-    this->treename = treename;
+    m_filename = filename;
+    m_treename = treename;
 
 }
 
@@ -15,16 +20,17 @@ loadData::loadData(TString filename, TString treename)
 
 
 /**
-* Checks if the file exists and opens it. If file isn't opened returns nullptr.
-* On success returns pointer to file.
-*/
+ * @brief Checks if the file exists and opens it.
+ * 
+ * @return std::shared_ptr<TFile> On success returns pointer to file. If file isn't opened returns nullptr.
+ */
 std::shared_ptr<TFile> loadData::openFile()
 {
 
-    rootfile = std::make_shared<TFile> (filename, "READ");
+    m_rootfile = std::make_shared<TFile> (m_filename, "READ");
 
-    if(rootfile->IsOpen())
-        return rootfile;
+    if(m_rootfile->IsOpen())
+        return m_rootfile;
 
 
     
@@ -37,28 +43,29 @@ std::shared_ptr<TFile> loadData::openFile()
 
 
 /**
-* Reads the data from rootfile in roottree.
-* Return different codes. Upon success returns 0.
-*/
+ * @brief reads the tree from the file
+ * 
+ * @return int error codes. 0 is success
+ */
 int loadData::readData()
 {
 
-    if(rootfile->IsZombie()){
+    if(m_rootfile->IsZombie()){
 
         std::cerr << "Error: file is not open." <<std::endl;
         return -1;
 
     }
 
-    if(!(rootfile->GetListOfKeys()->Contains(treename))){
+    if(!(m_rootfile->GetListOfKeys()->Contains(m_treename))){
 
-        std::cerr << "Error: file does not contain tree " << treename.Data() << std::endl;
+        std::cerr << "Error: file does not contain tree " << m_treename.Data() << std::endl;
         return -2;
 
     }
 
 
-    roottree = rootfile->Get<TTree>(treename);
+    m_roottree = m_rootfile->Get<TTree>(m_treename);
 
 
     return 0;
@@ -66,36 +73,39 @@ int loadData::readData()
 }
 
 
+
 /**
-* Returns pointer to the tree containing data.
-*/
+ * @brief returns the tree
+ * 
+ * @return TTree* the tree from the file
+ */
 TTree* loadData::returnTree()
 {
 
-    return roottree;
+    return m_roottree;
 
 }
 
 
 
 /**
-* Decodes the data and saves it in a rawData type vector.
-* Returns 0 upon success.
-* @param root_raw_data the vector in which the data is saved
-*/
-int loadData::decodeData(std::vector<rawData> &root_raw_data)
+ * @brief decodes the data using the dictionary and saves it in a rawData vector
+ * 
+ * @return int error codes
+ */
+int loadData::decodeData()
 {
 
-    if(rootfile->IsZombie()){
+    if(m_rootfile->IsZombie()){
 
         std::cerr << "Error: file is not open." <<std::endl;
         return -1;
 
     }
 
-    if(!(rootfile->GetListOfKeys()->Contains(treename))){
+    if(!(m_rootfile->GetListOfKeys()->Contains(m_treename))){
 
-        std::cerr << "Error: file does not contain tree " << treename.Data() << std::endl;
+        std::cerr << "Error: file does not contain tree " << m_treename.Data() << std::endl;
         return -2;
 
     }
@@ -103,15 +113,15 @@ int loadData::decodeData(std::vector<rawData> &root_raw_data)
 
 
     auto data = new GDataFrame();
-    roottree->SetBranchAddress("GDataFrame", &data);
+    m_roottree->SetBranchAddress("GDataFrame", &data);
 
-    const auto nEvents = roottree->GetEntries();
+    const auto nEvents = m_roottree->GetEntries();
 
     rawData loc_data;
 
     for(auto i = 0; i<1; i++){
 
-        roottree->GetEntry(i);
+        m_roottree->GetEntry(i);
 
 
         TIter channelIT((TCollection *)data->GetChannels());
@@ -128,7 +138,7 @@ int loadData::decodeData(std::vector<rawData> &root_raw_data)
 
 	            
             }
-            root_raw_data.push_back(loc_data);
+            m_root_raw_data.push_back(loc_data);
             std::vector<double>().swap(loc_data.signal_val);
         }
 
@@ -139,4 +149,15 @@ int loadData::decodeData(std::vector<rawData> &root_raw_data)
 
     return 0;
 
+}
+
+
+/**
+ * @brief returns the raw data vector
+ * 
+ * @return std::vector<rawData> the vector
+ */
+std::vector<rawData> loadData::returnRawData()
+{
+    return m_root_raw_data;
 }

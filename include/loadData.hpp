@@ -36,19 +36,20 @@ class loadData
     std::shared_ptr<TFile> openFile();
     int readData();
     TTree* returnTree();
-    int decodeData(std::vector<rawData> &root_raw_data);
-
+    int decodeData();
+    std::vector<rawData> returnRawData();
 
 
 
 
 
     private:
-    TString filename;
-    TString treename;
+    TString m_filename;
+    TString m_treename;
 
-    std::shared_ptr<TFile> rootfile;
-    TTree *roottree;
+    std::shared_ptr<TFile> m_rootfile;
+    TTree *m_roottree;
+    std::vector<rawData> m_root_raw_data;
 
 
 
