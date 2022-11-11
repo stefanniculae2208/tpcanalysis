@@ -112,7 +112,7 @@ void convertXYZ::groupHitData()
 
                 continue;
 
-             }
+            }
 
             
             loc_group.push_back(m_hit_data.at(j));
@@ -205,7 +205,6 @@ void convertXYZ::calculateXY()
         std::cout<<"Point "<<nr_point<<std::endl;
 
         for(auto pos_iter : ptr_iter){
-
             std::cout<<"    X is "<<pos_iter.data_x<<" and Y is "<<pos_iter.data_y<<std::endl;
 
         }
@@ -225,7 +224,6 @@ void convertXYZ::buildMap()
 {
 
     //TODO
-
 
 }
 
