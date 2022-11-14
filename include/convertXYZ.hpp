@@ -45,7 +45,7 @@ class convertXYZ
     std::vector<std::vector<dataXYZ>> m_group_xyz;
 
 
-    std::map<std::pair<int, int>, int> relationVW_U;
+    std::map<std::pair<int, int>, std::vector<int>>relationVW_U;
 
 
 
