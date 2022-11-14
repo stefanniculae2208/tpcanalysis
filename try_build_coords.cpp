@@ -9,6 +9,8 @@
 
 #include "TF1.h"
 #include "TLine.h"
+#include "TCanvas.h"
+#include "TH2.h"
 
 
 struct padsInfo{
@@ -30,14 +32,7 @@ struct coordVal{
     bool operator==(const coordVal &a) const
     {
 
-        return ((a.x < (x + 0.1)) && (a.x > (x - 0.1)) && (a.y < (y + 0.1)) && (a.y > (y - 0.1)));
-
-
-/*         if((a.x < (x + 0.1)) && (a.x > (x - 0.1)) && (a.y < (y + 0.1)) && (a.y > (y - 0.1))){
-            return true;
-        }
-
-        return false; */
+        return ((a.x < (x + 1)) && (a.x > (x - 1)) && (a.y < (y + 1)) && (a.y >     (y - 1)));
 
 
     }
@@ -204,7 +199,32 @@ std::vector<coordVal> buildVcoords(std::string file_name, bool verbose_opt)
         lineV->SetParameters(4.33 + 2*(0.866 * v), tan(-M_PI/6));
 
 
-        double x_max = 8.250 + 1.5 * v;
+        //need to find out the x_max for each strip
+        double x_max = 0;
+
+        if(v < 30){
+
+            //lowest element of the first strip is at 8.25
+            //the difference between the lowest elements of each strip sis 2*1.5 for the first 30 strips
+            x_max = 8.250 + 2 * 1.5 * v;
+
+        }else if(v > 29 && v < 35){
+
+            //the 31st element is at 98.25 and the rest increase by 1.5 each time
+            //we decrease by 59 because conter starts at 0
+            x_max = 98.25 + 1.5 * (v - 29);
+
+        }else{
+
+            //all the elements here have the same x
+            x_max = 105.75;
+
+        }
+
+
+
+
+        //std::cout<<"\n\n\nFor v "<<v<<": \n";
 
         //need to use the number of pads per strip and decrease x_max by 1.5 each time
         for(auto i = 0; i < pads_arr[v].nr_pads; i++){
@@ -213,7 +233,7 @@ std::vector<coordVal> buildVcoords(std::string file_name, bool verbose_opt)
 
             out_csv << std::fixed << std::setprecision(2) << v << "," << pads_arr[v].nr_pads - i - 1 << "," << x_max << "," << lineV->Eval(x_max) << "\n";
 
-            x_max -= 1.5;
+
 
 
             loc_coord .strip = v;
@@ -222,8 +242,12 @@ std::vector<coordVal> buildVcoords(std::string file_name, bool verbose_opt)
             loc_coord.y = lineV->Eval(x_max);
 
 
+/*             if(v > 50 && v < 60)
+                std::cout<<"    For i "<<i<<" x is "<<x_max<<"\n"; */
 
 
+
+            x_max -= 1.5;
             loc_vect.push_back(loc_coord);
 
         }
@@ -271,11 +295,13 @@ std::vector<coordVal> buildWcoords(std::string file_name, bool verbose_opt)
         }else if(i >= 61 && i < 92){
             pads_arr[i].nr_pads = 5 + 2 * (91 - i);
         }else if(i >= 35 && i < 56){
-            pads_arr[i].nr_pads = 71;
+            pads_arr[i].nr_pads = 73;
         }else if(i >= 31 && i < 35){
             pads_arr[i].nr_pads = pads_arr[i-1].nr_pads+1;
-        }else if(i >= 56 && i < 61){
+        }else if(i > 56 && i < 61){
             pads_arr[i].nr_pads = pads_arr[i-1].nr_pads-1;
+        }else if(i == 56){
+            pads_arr[i].nr_pads = 71;
         }
 
         if(verbose_opt)
@@ -300,25 +326,45 @@ std::vector<coordVal> buildWcoords(std::string file_name, bool verbose_opt)
         lineW->SetParameters(99.593 - 2*(0.866 * w), tan(M_PI/6));
 
 
-        double x_max = 9.750 + 1.5 * w;
+
+
+        //need to find out the x_min for each strip
+        double x_min = 0;
+
+        if(w < 55){
+
+            x_min = 0.75;
+
+        }else if(w > 54 && w < 61){
+
+            x_min = 0.75 + (w - 54) * 1.5;
+
+        }else{
+
+            x_min = 9.75 + (w - 60) * 3;
+
+        }
+
+
+
 
         for(auto i = 0; i < pads_arr[w].nr_pads; i++){
 
             coordVal loc_coord;
 
-            out_csv << std::fixed << std::setprecision(2) << w << "," << pads_arr[w].nr_pads - i - 1 << "," << x_max << "," << lineW->Eval(x_max) << "\n";
+            out_csv << std::fixed << std::setprecision(2) << w << "," << pads_arr[w].nr_pads - i - 1 << "," << x_min << "," << lineW->Eval(x_min) << "\n";
 
-            x_max -= 1.5;
+
 
 
 
             loc_coord .strip = w;
             loc_coord.pad = pads_arr[w].nr_pads - i - 1;
-            loc_coord.x = x_max;
-            loc_coord.y = lineW->Eval(x_max);
+            loc_coord.x = x_min;
+            loc_coord.y = lineW->Eval(x_min);
 
 
-
+            x_min += 1.5;
             loc_vect.push_back(loc_coord);
 
         }
@@ -395,6 +441,132 @@ void drawLines()
 
 
 
+void drawPoints(std::vector<coordVal> &val_u, std::vector<coordVal> &val_v, std::vector<coordVal> &val_w, bool opt_u, bool opt_v, bool opt_w)
+{
+
+
+    auto loc_hist_u = new TH2D("hist_name_u", "hist_title_u", 301, -100, 200, 301, -100, 200);
+
+
+    if(opt_u){
+
+        for(auto &u : val_u){
+
+            loc_hist_u->Fill(u.x, u.y);
+
+        }
+
+        loc_hist_u->SetMarkerStyle(8);
+        loc_hist_u->SetMarkerColor(kBlue); 
+        loc_hist_u->Draw("SAME");
+
+    }
+
+
+
+
+    auto loc_hist_v = new TH2D("hist_name_v", "hist_title_v", 301, -100, 200, 301, -100, 200);
+
+    if(opt_v){
+
+
+
+        for(auto &v : val_v){
+
+            loc_hist_v->Fill(v.x, v.y);
+
+        }
+
+        loc_hist_v->SetMarkerStyle(8);
+        loc_hist_v->SetMarkerColor(kRed);
+        loc_hist_v->Draw("SAME");
+
+
+    }
+
+
+
+
+    auto loc_hist_w = new TH2D("hist_name_w", "hist_title_w", 301, -100, 200, 301, -100, 200);
+
+
+    if(opt_w){
+
+
+
+        for(auto &w : val_w){
+
+            loc_hist_w->Fill(w.x, w.y);
+
+        }
+
+        loc_hist_w->SetMarkerStyle(8);
+        loc_hist_w->SetMarkerColor(kGreen);
+        loc_hist_w->Draw("SAME");
+
+    }
+
+
+
+
+
+
+
+}
+
+
+
+void makeMap(std::map<std::pair<int, int>, std::vector<int>> &relationVW_U, std::vector<coordVal> val_u, std::vector<coordVal> val_v, std::vector<coordVal> val_w)
+{
+
+
+    for(auto &u : val_u){
+
+        for(auto &v : val_v){
+
+            if(u == v){
+
+                for(auto &w : val_w){
+
+                    if(u == w && v == w){
+
+
+                        if(relationVW_U.count({v.strip, w.strip}) == 0){
+
+                            std::vector<int> loc_vector_u;
+                            loc_vector_u.push_back(u.strip);
+                            relationVW_U.insert({{v.strip, w.strip}, loc_vector_u});
+
+                        }else{
+
+                            std::cerr << "Error, key already exists, " << relationVW_U.at({v.strip, w.strip}).size() << " values found at "
+                                <<v.strip<< " " << w.strip << "; current value for u is " << u.strip << std::endl;
+                            relationVW_U.at({v.strip, w.strip}).push_back(u.strip);
+
+                        }
+
+
+                    }
+
+                }
+
+
+            }
+
+
+        }
+
+    }
+
+
+
+}
+
+
+
+
+
+
 void try_build_coords()
 {
 
@@ -403,6 +575,8 @@ void try_build_coords()
     std::vector<coordVal> val_v;
 
     std::vector<coordVal> val_w;
+
+    std::map<std::pair<int, int>, std::vector<int>>relationVW_U;
 
     val_u = buildUcoords("point_coords_u.csv", 0);
 
@@ -414,6 +588,21 @@ void try_build_coords()
 
 
     std::cout<<"Vectors have the elements "<<val_u.size()<<"; "<<val_v.size()<<"; "<<val_w.size()<<";"<<std::endl;
+
+
+    auto loc_canv = new TCanvas("name", "title");
+
+
+
+    drawPoints(val_u, val_v, val_w, 1, 1, 1);
+
+
+    makeMap(relationVW_U, val_u, val_v, val_w);
+
+
+    std::cout<<"Map size is "<<relationVW_U.size()<<std::endl;
+
+
 
 
 
