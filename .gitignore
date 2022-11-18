@@ -11,3 +11,6 @@ build/*
 !build/.gitkeep
 dict/build/*
 !dict/build/.gitkeep
+point_coords_u.csv
+point_coords_v.csv
+point_coords_w.csv
