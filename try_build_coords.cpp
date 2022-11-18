@@ -597,6 +597,8 @@ std::map<std::pair<int, int>, std::vector<int>> try_build_coords()
 
     drawPoints(val_u, val_v, val_w, 1, 1, 1);
 
+    loc_canv->Update();
+
 
     makeMap(relationVW_U, val_u, val_v, val_w, 0);
 

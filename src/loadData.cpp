@@ -115,7 +115,7 @@ int loadData::decodeData()
     auto data = new GDataFrame();
     m_roottree->SetBranchAddress("GDataFrame", &data);
 
-    const auto nEvents = m_roottree->GetEntries();
+    //const auto nEvents = m_roottree->GetEntries();
 
     rawData loc_data;
 
@@ -129,7 +129,7 @@ int loadData::decodeData()
         while ((channel = (GDataChannel *)channelIT.Next())) {
             TIter sampleIT((TCollection *)&channel->fSamples);
             GDataSample *sample = nullptr;
-            auto counter = 0;
+            //auto counter = 0;
             while ((sample = (GDataSample *)sampleIT.Next())) {
 
                 loc_data.chip_nr = channel->fAgetIdx;
