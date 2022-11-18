@@ -106,7 +106,7 @@ void test_decodeData()
 {
 
     auto noFile = "./rootdata/stefan23214124.root";
-    auto goodFile = "./rootdata/data.root";
+    auto goodFile = "./rootdata/data2.root";
 
 
     auto badTree = "bad_tree_name";
@@ -235,7 +235,7 @@ void test_viewdata()
 
 
 
-    auto goodFile = "./rootdata/data.root";
+    auto goodFile = "./rootdata/data2.root";
 
     auto goodTree = "tree";
 
@@ -279,7 +279,15 @@ void test_viewdata()
 
 
     TH2D *raw_hist = new TH2D("my_hist", "hist", 512, 1, 513, 300, 1, 301);
-    raw_hist->SetDirectory(0);
+    //raw_hist->SetDirectory(0);
+
+
+    TH2D *u_hists = new TH2D("u_hists", "u_hist", 512, 1, 513, 100, 1, 101);
+    TH2D *v_hists = new TH2D("v_hists", "v_hist", 512, 1, 513, 100, 1, 101);
+    TH2D *w_hists = new TH2D("w_hists", "w_hist", 512, 1, 513, 100, 1, 101);
+
+
+
 
 
     //err = loc_conv_uvw.getHitInfo(data_container.root_raw_data, data_container.hit_data, data_container.raw_hist_container);
@@ -297,23 +305,74 @@ void test_viewdata()
     std::cout<<"Hist data size "<<data_container.raw_hist_container.size()<<std::endl;
 
 
-/* 
+
     int bin = 0;
     int strip = 1;
 
+
+
     for(auto iter : data_container.root_raw_data){
 
-        //if(iter.plane_val == 2 && iter.strip_nr == 45)
         for(auto sig_iter : iter.signal_val){
             raw_hist->SetBinContent(++bin, strip, sig_iter);
+
+            
         }
+
+
+
+
+
 
         bin = 0;
         strip++;
     }
 
 
-    raw_hist->Draw("COLZ"); */
+
+
+
+    for(auto iter : data_container.uvw_data){
+
+        bin = 0;
+
+
+        if(iter.plane_val == 0){
+
+            for(auto sig_iter : iter.signal_val){
+
+                u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 1){
+
+            for(auto sig_iter : iter.signal_val){
+
+                v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 2){
+
+            for(auto sig_iter : iter.signal_val){
+
+                w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+    }
+
+
 
 
 
@@ -329,6 +388,27 @@ void test_viewdata()
     //ignore Info level messages
     //if you don't do this you get spammed with useless messages
     gErrorIgnoreLevel = kWarning;
+
+
+    //draw 2d hists
+    raw_hist->Draw("COLZ");
+    print_canv->Print("test_hist01.pdf", "Test title");
+
+
+    u_hists->Draw("COLZ");
+    print_canv->Print("test_hist01.pdf", "Test title");
+
+    v_hists->Draw("COLZ");
+    print_canv->Print("test_hist01.pdf", "Test title");
+
+    w_hists->Draw("COLZ");
+    print_canv->Print("test_hist01.pdf", "Test title");
+
+
+
+
+
+
     for(auto hist_iter : data_container.raw_hist_container){
 
 
@@ -359,6 +439,13 @@ void test_viewdata()
 
 
 
+
+
+
+
+
+
+
 }
 
 
@@ -376,7 +463,7 @@ void test_convertXYZ()
 
 
 
-    auto goodFile = "./rootdata/data.root";
+    auto goodFile = "./rootdata/data2.root";
 
     auto goodTree = "tree";
 

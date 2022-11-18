@@ -119,7 +119,7 @@ int loadData::decodeData()
 
     rawData loc_data;
 
-    for(auto i = 0; i<1; i++){
+    for(auto i = 210; i<211; i++){
 
         m_roottree->GetEntry(i);
 

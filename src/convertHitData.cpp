@@ -103,7 +103,6 @@ int convertHitData::getHitInfo()
 
 
 
-
     //the calculate the hit data
     auto spec_analyzer = new TSpectrum();
 
@@ -130,7 +129,7 @@ int convertHitData::getHitInfo()
         std::vector<Double_t> peaks_x;//x of valid peaks
         std::vector<Double_t> peaks_y;//y of valid peaks
         int nrealpeaks = 0;//number of valid peaks set to 0
-        Double_t peak_th = (double)200;//threshold value for valid peaks
+        Double_t peak_th = (double)50;//threshold value for valid peaks
 
 
 

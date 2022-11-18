@@ -516,7 +516,7 @@ void drawPoints(std::vector<coordVal> &val_u, std::vector<coordVal> &val_v, std:
 
 
 
-void makeMap(std::map<std::pair<int, int>, std::vector<int>> &relationVW_U, std::vector<coordVal> val_u, std::vector<coordVal> val_v, std::vector<coordVal> val_w)
+void makeMap(std::map<std::pair<int, int>, std::vector<int>> &relationVW_U, std::vector<coordVal> val_u, std::vector<coordVal> val_v, std::vector<coordVal> val_w, bool verbose)
 {
 
 
@@ -539,8 +539,9 @@ void makeMap(std::map<std::pair<int, int>, std::vector<int>> &relationVW_U, std:
 
                         }else{
 
-                            std::cerr << "Error, key already exists, " << relationVW_U.at({v.strip, w.strip}).size() << " values found at "
-                                <<v.strip<< " " << w.strip << "; current value for u is " << u.strip << std::endl;
+                            if(verbose)
+                                std::cerr << "Error, key already exists, " << relationVW_U.at({v.strip, w.strip}).size() << " values found at "
+                                    <<v.strip<< " " << w.strip << "; current value for u is " << u.strip << std::endl;
                             relationVW_U.at({v.strip, w.strip}).push_back(u.strip);
 
                         }
@@ -567,7 +568,7 @@ void makeMap(std::map<std::pair<int, int>, std::vector<int>> &relationVW_U, std:
 
 
 
-void try_build_coords()
+std::map<std::pair<int, int>, std::vector<int>> try_build_coords()
 {
 
     std::vector<coordVal> val_u;
@@ -597,13 +598,13 @@ void try_build_coords()
     drawPoints(val_u, val_v, val_w, 1, 1, 1);
 
 
-    makeMap(relationVW_U, val_u, val_v, val_w);
+    makeMap(relationVW_U, val_u, val_v, val_w, 0);
 
 
-    std::cout<<"Map size is "<<relationVW_U.size()<<std::endl;
+    //std::cout<<"Map size is "<<relationVW_U.size()<<std::endl;
 
 
-
+    return relationVW_U;
 
 
 

@@ -23,6 +23,12 @@ class hitPoints
     Double_t peak_y;
     Double_t fwhm;
 
+
+
+
+
+
+
 };
 
 

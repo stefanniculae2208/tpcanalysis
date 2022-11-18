@@ -28,7 +28,7 @@ class convertXYZ
     convertXYZ(std::vector<hitPoints> hit_data);
 
 
-    int buildArray();
+
     int makeConversionXY();
     int makeConversionXYZ();
 
