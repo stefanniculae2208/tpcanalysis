@@ -205,13 +205,13 @@ void convertXYZ::calculateXY()
 
         for(auto i = 0; i < grp_iter.size(); i++){
 
-            if(grp_iter.at(i).plane != 1)
+            if(grp_iter.at(i).plane != 0)
                 continue;
 
 
             for(auto j = 0; j < grp_iter.size(); j++){
 
-                if(grp_iter.at(j).plane != 2)
+                if(grp_iter.at(j).plane != 1)
                     continue;
 
 

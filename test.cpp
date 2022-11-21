@@ -246,6 +246,7 @@ void test_viewdata()
     auto err = good_data.readData();
     err = good_data.decodeData();
     data_container.root_raw_data = good_data.returnRawData();
+    data_container.n_entries = good_data.returnNEntries();
 
     convertUVW loc_conv_uvw(data_container.root_raw_data);
 
@@ -282,9 +283,6 @@ void test_viewdata()
     //raw_hist->SetDirectory(0);
 
 
-    TH2D *u_hists = new TH2D("u_hists", "u_hist", 512, 1, 513, 100, 1, 101);
-    TH2D *v_hists = new TH2D("v_hists", "v_hist", 512, 1, 513, 100, 1, 101);
-    TH2D *w_hists = new TH2D("w_hists", "w_hist", 512, 1, 513, 100, 1, 101);
 
 
 
@@ -311,7 +309,7 @@ void test_viewdata()
 
 
 
-    for(auto iter : data_container.root_raw_data){
+/*     for(auto iter : data_container.root_raw_data){
 
         for(auto sig_iter : iter.signal_val){
             raw_hist->SetBinContent(++bin, strip, sig_iter);
@@ -326,51 +324,11 @@ void test_viewdata()
 
         bin = 0;
         strip++;
-    }
+    } */
 
 
 
 
-
-    for(auto iter : data_container.uvw_data){
-
-        bin = 0;
-
-
-        if(iter.plane_val == 0){
-
-            for(auto sig_iter : iter.signal_val){
-
-                u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
-
-            }
-
-        }
-
-
-        if(iter.plane_val == 1){
-
-            for(auto sig_iter : iter.signal_val){
-
-                v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
-
-            }
-
-        }
-
-
-        if(iter.plane_val == 2){
-
-            for(auto sig_iter : iter.signal_val){
-
-                w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
-
-            }
-
-        }
-
-
-    }
 
 
 
@@ -391,18 +349,109 @@ void test_viewdata()
 
 
     //draw 2d hists
-    raw_hist->Draw("COLZ");
-    print_canv->Print("test_hist01.pdf", "Test title");
+/*     raw_hist->Draw("COLZ");
+    print_canv->Print("test_hist01.pdf", "Test title"); */
 
 
-    u_hists->Draw("COLZ");
-    print_canv->Print("test_hist01.pdf", "Test title");
+    std::map<int, TH2D*> map_u;
+    std::map<int, TH2D*> map_v;
+    std::map<int, TH2D*> map_w;
 
-    v_hists->Draw("COLZ");
-    print_canv->Print("test_hist01.pdf", "Test title");
 
-    w_hists->Draw("COLZ");
-    print_canv->Print("test_hist01.pdf", "Test title");
+    //make map for hists for each entry
+    for(auto i_entries = 0; i_entries < data_container.n_entries; i_entries++){
+
+
+        TH2D *u_hists = new TH2D(Form("u_hists_%d", i_entries), "u_hist", 512, 1, 513, 100, 1, 101);
+        TH2D *v_hists = new TH2D(Form("v_hists_%d", i_entries), "v_hist", 512, 1, 513, 100, 1, 101);
+        TH2D *w_hists = new TH2D(Form("w_hists_%d", i_entries), "w_hist", 512, 1, 513, 100, 1, 101);
+
+
+        map_u.insert({210 + i_entries, u_hists});
+        map_v.insert({210 + i_entries, v_hists});
+        map_w.insert({210 + i_entries, w_hists});
+
+    }
+
+
+
+
+
+
+    for(auto iter : data_container.uvw_data){
+
+        bin = 0;
+
+
+
+
+        if(iter.plane_val == 0){
+
+            for(auto sig_iter : iter.signal_val){
+
+                map_u.at(iter.entry_nr)->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 1){
+
+            for(auto sig_iter : iter.signal_val){
+
+                map_v.at(iter.entry_nr)->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 2){
+
+            for(auto sig_iter : iter.signal_val){
+
+                map_w.at(iter.entry_nr)->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+    }
+
+
+
+
+    for(auto i_entries = 0; i_entries < data_container.n_entries; i_entries++){
+
+
+        TH2D *u_hists = map_u.at(210 + i_entries);
+        TH2D *v_hists = map_v.at(210 + i_entries);
+        TH2D *w_hists = map_w.at(210 + i_entries);
+
+
+
+
+
+
+        u_hists->Draw("COLZ");
+        print_canv->Print("test_hist01.pdf", "Test title");
+
+        v_hists->Draw("COLZ");
+        print_canv->Print("test_hist01.pdf", "Test title");
+
+        w_hists->Draw("COLZ");
+        print_canv->Print("test_hist01.pdf", "Test title");
+
+
+    }
+
+
+
+
+
+
 
 
 
@@ -535,8 +584,8 @@ void test()
 
     //test_loadData();
     //test_convertUVW();
-    //test_viewdata();
-    test_convertXYZ();
+    test_viewdata();
+    //test_convertXYZ();
 
 
 

@@ -85,7 +85,8 @@ int convertHitData::getHitInfo()
 
     for(auto &iter : m_uvw_data){
 
-        auto loc_hist = new TH1D(Form("hist_at_strip%d_plane%d", iter.strip_nr, iter.plane_val), Form("hist%d", strip), 512, 1, 512);
+        auto loc_hist = new TH1D(Form("entry%d_hist_at_strip%d_plane%d"
+                                    ,iter.entry_nr, iter.strip_nr, iter.plane_val), Form("hist%d", strip), 512, 1, 512);
 
 
         for(auto &sig_iter : iter.signal_val){
@@ -175,6 +176,7 @@ int convertHitData::getHitInfo()
             curr_point.fwhm = 2.355 * hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+3));
             curr_point.plane = m_uvw_data.at(curr_iter).plane_val;
             curr_point.strip = m_uvw_data.at(curr_iter).strip_nr;
+            curr_point.entry_nr = m_uvw_data.at(curr_iter).entry_nr;
             curr_point.base_line = hist_iter->GetFunction("gaus_and_pol0")->GetParameter(0);
 
             m_hit_data.push_back(curr_point);

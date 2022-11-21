@@ -38,6 +38,7 @@ class loadData
     TTree* returnTree();
     int decodeData();
     std::vector<rawData> returnRawData();
+    Long64_t returnNEntries();
 
 
 
@@ -50,6 +51,8 @@ class loadData
     std::shared_ptr<TFile> m_rootfile;
     TTree *m_roottree;
     std::vector<rawData> m_root_raw_data;
+
+    Long64_t m_nEntries = 0;
 
 
 

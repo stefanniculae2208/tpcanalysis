@@ -117,6 +117,7 @@ int convertUVW::makeConversion()
             loc_data_uvw.plane_val = int(uvwPosition.first);
             loc_data_uvw.strip_nr = int(uvwPosition.second);
             loc_data_uvw.signal_val = data_inst.signal_val;
+            loc_data_uvw.entry_nr = data_inst.entry_nr;
             m_uvw_vec.push_back(loc_data_uvw);
         }catch(...){
             std::cout << "AGET: " << data_inst.chip_nr << "\tChannel: " << data_inst.ch_nr << " is not assigned." << std::endl;

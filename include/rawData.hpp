@@ -14,6 +14,7 @@ class rawData
 
     int  ch_nr;
     int chip_nr;
+    int entry_nr;
     std::vector<double> signal_val;
 
 

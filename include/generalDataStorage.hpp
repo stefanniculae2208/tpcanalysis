@@ -33,6 +33,9 @@ class generalDataStorage
     std::vector<hitPoints> hit_data;
     std::vector<TH1D*> raw_hist_container;
 
+    //number of entries from the tree
+    Long64_t n_entries;
+
     
 
 

@@ -115,11 +115,12 @@ int loadData::decodeData()
     auto data = new GDataFrame();
     m_roottree->SetBranchAddress("GDataFrame", &data);
 
-    //const auto nEvents = m_roottree->GetEntries();
+    //m_nEntries = m_roottree->GetEntries();
+    m_nEntries = 5;
 
     rawData loc_data;
 
-    for(auto i = 210; i<211; i++){
+    for(auto i = 210; i<215; i++){
 
         m_roottree->GetEntry(i);
 
@@ -134,6 +135,7 @@ int loadData::decodeData()
 
                 loc_data.chip_nr = channel->fAgetIdx;
                 loc_data.ch_nr = channel->fChanIdx;
+                loc_data.entry_nr = i;
                 loc_data.signal_val.push_back(sample->fValue);
 
 	            
@@ -153,11 +155,23 @@ int loadData::decodeData()
 
 
 /**
- * @brief returns the raw data vector
+ * @brief returns the raw data vector. To be called only after the decodeData function
  * 
  * @return std::vector<rawData> the vector
  */
 std::vector<rawData> loadData::returnRawData()
 {
     return m_root_raw_data;
+}
+
+
+
+/**
+ * @brief returns the number of entries. Only called agter the decodeData function.
+ * 
+ * @return Long64_t the number of entries taken from the file
+ */
+Long64_t loadData::returnNEntries()
+{
+    return m_nEntries;
 }

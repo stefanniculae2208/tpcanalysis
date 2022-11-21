@@ -18,6 +18,7 @@ class hitPoints
     int strip;
     int plane;
     int base_line;
+    int entry_nr;
     //std::vector<hitPeakInfo> peaks_info;//each element holds info about one peak
     Double_t peak_x;
     Double_t peak_y;
