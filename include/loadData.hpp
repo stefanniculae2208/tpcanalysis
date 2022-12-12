@@ -36,7 +36,7 @@ class loadData
     std::shared_ptr<TFile> openFile();
     int readData();
     TTree* returnTree();
-    int decodeData();
+    int decodeData(int entryNr);
     std::vector<rawData> returnRawData();
     Long64_t returnNEntries();
 

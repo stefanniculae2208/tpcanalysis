@@ -136,20 +136,20 @@ void test_decodeData()
     generalDataStorage good_data_container;
 
 
-    err = noFileNoTree.decodeData();
+    err = noFileNoTree.decodeData(210);
     nofile_data_container.root_raw_data = noFileNoTree.returnRawData();
 
 
     if(err != -2)
         std::cerr << "Error: file not existing did not return good error code: " << err << std::endl;
 
-    err = goodFileBadTree.decodeData();
+    err = goodFileBadTree.decodeData(210);
     bad_data_container.root_raw_data = goodFileBadTree.returnRawData();
 
     if(err != -1)
         std::cerr << "Error: bad tree returned bad error code: " << err << std::endl;
 
-    err = goodFileGoodTree.decodeData();
+    err = goodFileGoodTree.decodeData(210);
     good_data_container.root_raw_data = goodFileGoodTree.returnRawData();
 
     if(err != 0)
@@ -201,7 +201,7 @@ void test_convertUVW()
 
     auto returned_file = good_data.openFile();
     auto err = good_data.readData();
-    err = good_data.decodeData();
+    err = good_data.decodeData(210);
     data_container.root_raw_data = good_data.returnRawData();
 
     convertUVW loc_converter(data_container.root_raw_data);
@@ -244,7 +244,7 @@ void test_viewdata()
 
     auto returned_file = good_data.openFile();
     auto err = good_data.readData();
-    err = good_data.decodeData();
+    err = good_data.decodeData(210);
     data_container.root_raw_data = good_data.returnRawData();
     data_container.n_entries = good_data.returnNEntries();
 
@@ -508,7 +508,7 @@ void test_convertXYZ()
     generalDataStorage data_container;
 
 
-
+    //std::vector<generalDataStorage> data_cont_vect;
 
 
 
@@ -521,7 +521,7 @@ void test_convertXYZ()
 
     auto returned_file = good_data.openFile();
     auto err = good_data.readData();
-    err = good_data.decodeData();
+    err = good_data.decodeData(210);
     data_container.root_raw_data = good_data.returnRawData();
 
     convertUVW loc_conv_uvw(data_container.root_raw_data);

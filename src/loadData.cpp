@@ -89,11 +89,14 @@ TTree* loadData::returnTree()
 
 
 /**
- * @brief decodes the data using the dictionary and saves it in a rawData vector
+ * @brief decodes the data from an entry in the tree using the dictionary and saves it in a rawData vector
+ * if multiple entries are to be read then you should have a vector and each element calls this function
+ * with a different entryNr
  * 
+ * @param entryNr the number of the entry from the tree to be decoded
  * @return int error codes
  */
-int loadData::decodeData()
+int loadData::decodeData(int entryNr)
 {
 
     if(m_rootfile->IsZombie()){
@@ -120,32 +123,32 @@ int loadData::decodeData()
 
     rawData loc_data;
 
-    for(auto i = 210; i<215; i++){
+    //for(auto i = 210; i<211; i++){
 
-        m_roottree->GetEntry(i);
+    m_roottree->GetEntry(entryNr);
 
 
-        TIter channelIT((TCollection *)data->GetChannels());
-        GDataChannel *channel = nullptr;
-        while ((channel = (GDataChannel *)channelIT.Next())) {
-            TIter sampleIT((TCollection *)&channel->fSamples);
-            GDataSample *sample = nullptr;
-            //auto counter = 0;
-            while ((sample = (GDataSample *)sampleIT.Next())) {
+    TIter channelIT((TCollection *)data->GetChannels());
+    GDataChannel *channel = nullptr;
+    while ((channel = (GDataChannel *)channelIT.Next())) {
+        TIter sampleIT((TCollection *)&channel->fSamples);
+        GDataSample *sample = nullptr;
+        //auto counter = 0;
+        while ((sample = (GDataSample *)sampleIT.Next())) {
 
-                loc_data.chip_nr = channel->fAgetIdx;
-                loc_data.ch_nr = channel->fChanIdx;
-                loc_data.entry_nr = i;
-                loc_data.signal_val.push_back(sample->fValue);
+            loc_data.chip_nr = channel->fAgetIdx;
+            loc_data.ch_nr = channel->fChanIdx;
+            loc_data.entry_nr = entryNr;
+            loc_data.signal_val.push_back(sample->fValue);
 
 	            
-            }
-            m_root_raw_data.push_back(loc_data);
-            std::vector<double>().swap(loc_data.signal_val);
         }
-
-
+        m_root_raw_data.push_back(loc_data);
+        std::vector<double>().swap(loc_data.signal_val);
     }
+
+
+    //}
 
 
 

@@ -242,7 +242,7 @@ void convertXYZ::calculateXY()
                 dataXYZ loc_xyz;
 
 
-                double y_part_from_v = 4.33 + grp_iter.at(j).strip * (1.5 / cos(M_PI/6));
+                double y_part_from_v = 4.33 + (grp_iter.at(j).strip - 1) * (1.5 / cos(M_PI/6));
 
                 //106.5 is the width on x of the plate. 1.5 is the distance between strips
                 //since the strips are between 1 and 72 we substract 1 so the first strip is at 106.5 and the last is at 0

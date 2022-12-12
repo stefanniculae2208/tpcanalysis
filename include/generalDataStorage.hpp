@@ -14,7 +14,12 @@
 
 
 
-
+/**
+ * @brief a general data storage class that contains object of different types
+ * each object of generalDataStorage type must only contain 1 entry from the tree
+ * when reading multiple entries you should have a std::vector<generalDataStorage>
+ * 
+ */
 class generalDataStorage
 {
     public:
