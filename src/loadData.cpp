@@ -124,11 +124,11 @@ int loadData::decodeData(int entryNr)
     m_roottree->SetBranchAddress("GDataFrame", &data);
 
     //m_nEntries = m_roottree->GetEntries();
-    m_nEntries = 5;
+
 
     rawData loc_data;
 
-    //for(auto i = 210; i<211; i++){
+
 
     m_roottree->GetEntry(entryNr);
 
@@ -153,7 +153,7 @@ int loadData::decodeData(int entryNr)
     }
 
 
-    //}
+
 
 
 
@@ -181,5 +181,5 @@ std::vector<rawData> loadData::returnRawData()
  */
 Long64_t loadData::returnNEntries()
 {
-    return m_nEntries;
+    return m_roottree->GetEntries();
 }

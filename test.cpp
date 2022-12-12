@@ -521,7 +521,7 @@ void test_convertXYZ()
 
     auto returned_file = good_data.openFile();
     auto err = good_data.readData();
-    err = good_data.decodeData(210);
+    err = good_data.decodeData(271);
     data_container.root_raw_data = good_data.returnRawData();
 
     convertUVW loc_conv_uvw(data_container.root_raw_data);
@@ -605,7 +605,7 @@ void test_convertXYZ()
     //loc_canv->Print("peaksxyz.png");
 
 
-
+    sleep(10);
 
 
 
@@ -632,8 +632,10 @@ void test_convert_multiple_entries()
     auto returned_file = good_data.openFile();
     auto err = good_data.readData();
 
+    std::cout<<"Tree has "<<good_data.returnNEntries()<<" entries.\n\n\n\n";
 
-    for(auto i = 210; i < 216; i++){
+
+    for(auto i = 210; i < 300; i++){
 
         generalDataStorage loc_data_storage;
 
