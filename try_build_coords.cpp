@@ -32,7 +32,7 @@ struct coordVal{
     bool operator==(const coordVal &a) const
     {
 
-        return ((a.x < (x + 1)) && (a.x > (x - 1)) && (a.y < (y + 1)) && (a.y >     (y - 1)));
+        return ((a.x < (x + 1)) && (a.x > (x - 1)) && (a.y < (y + 1)) && (a.y > (y - 1)));
 
 
     }
@@ -516,7 +516,7 @@ void drawPoints(std::vector<coordVal> &val_u, std::vector<coordVal> &val_v, std:
 
 
 
-void makeMap(std::map<std::pair<int, int>, std::vector<int>> &relationVW_U, std::vector<coordVal> val_u, std::vector<coordVal> val_v, std::vector<coordVal> val_w, bool verbose)
+/* void makeMap(std::map<std::pair<int, int>, std::vector<int>> &relationVW_U, std::vector<coordVal> val_u, std::vector<coordVal> val_v, std::vector<coordVal> val_w, bool verbose)
 {
 
 
@@ -561,6 +561,72 @@ void makeMap(std::map<std::pair<int, int>, std::vector<int>> &relationVW_U, std:
 
 
 
+} */
+
+
+void makeMap(std::map<int, std::vector<std::pair<int, int>>> &relationU_VW, std::vector<coordVal> val_u, std::vector<coordVal> val_v, std::vector<coordVal> val_w, bool verbose)
+{
+
+    for(auto &u : val_u){
+
+        for(auto &v : val_v){
+
+            if(u == v){
+
+                for(auto &w : val_w){
+
+                    if(u == w && v == w){
+
+                        //std::cout<<"For u "<<u.strip<<" we have "<<v.strip<<" and "<<w.strip<<"\n";
+
+
+                        if(relationU_VW.count(u.strip) == 0){
+
+                            std::vector<std::pair<int, int>> loc_vector_vw;
+
+                            loc_vector_vw.push_back({v.strip, w.strip});
+
+                            if(v.strip != 0 && w.strip != 0)
+                                loc_vector_vw.push_back({v.strip - 1, w.strip - 1});
+
+                            if(v.strip != 91 && w.strip != 91)
+                                loc_vector_vw.push_back({v.strip + 1, w.strip + 1});
+
+                            relationU_VW.insert({u.strip, loc_vector_vw});
+
+                        }else{
+
+                            relationU_VW.at(u.strip).push_back({v.strip, w.strip});
+
+                            if(v.strip != 91 && w.strip != 91)
+                                relationU_VW.at(u.strip).push_back({v.strip + 1, w.strip + 1});
+
+                            if(v.strip != 0 && w.strip != 0)
+                                relationU_VW.at(u.strip).push_back({v.strip - 1, w.strip - 1});
+
+                        }
+
+
+
+
+
+
+
+
+                    }
+
+
+                }
+
+
+            }
+
+
+        }
+
+    }
+
+
 }
 
 
@@ -568,7 +634,11 @@ void makeMap(std::map<std::pair<int, int>, std::vector<int>> &relationVW_U, std:
 
 
 
-std::map<std::pair<int, int>, std::vector<int>> try_build_coords()
+
+
+
+
+std::map<int, std::vector<std::pair<int, int>>> try_build_coords()
 {
 
     std::vector<coordVal> val_u;
@@ -577,7 +647,12 @@ std::map<std::pair<int, int>, std::vector<int>> try_build_coords()
 
     std::vector<coordVal> val_w;
 
-    std::map<std::pair<int, int>, std::vector<int>>relationVW_U;
+    //std::map<std::pair<int, int>, std::vector<int>>relationVW_U;
+
+
+    std::map<int, std::vector<std::pair<int, int>>>relationU_VW;
+
+
 
     val_u = buildUcoords("point_coords_u.csv", 0);
 
@@ -591,22 +666,33 @@ std::map<std::pair<int, int>, std::vector<int>> try_build_coords()
     std::cout<<"Vectors have the elements "<<val_u.size()<<"; "<<val_v.size()<<"; "<<val_w.size()<<";"<<std::endl;
 
 
-    auto loc_canv = new TCanvas("name", "title");
+/*     auto loc_canv = new TCanvas("name", "title");
 
 
 
     drawPoints(val_u, val_v, val_w, 1, 1, 1);
 
-    loc_canv->Update();
+    loc_canv->Update(); */
 
 
-    makeMap(relationVW_U, val_u, val_v, val_w, 0);
+    //makeMap(relationVW_U, val_u, val_v, val_w, 0);
+
+    makeMap(relationU_VW, val_u, val_v, val_w, 0);
 
 
-    //std::cout<<"Map size is "<<relationVW_U.size()<<std::endl;
+    std::cout<<"Map size is "<<relationU_VW.size()<<std::endl;
+
+    for(auto m : relationU_VW){
+
+        std::cout<<"For u "<<m.first<<" we have "<<m.second.size()<<" elements.\n";
+
+    }
 
 
-    return relationVW_U;
+    //return relationVW_U;
+
+    return relationU_VW;
+
 
 
 

@@ -13,11 +13,13 @@
 #endif
 
 
+#include "TGraph.h"
 
 
 #include "dataUVW.hpp"
 #include "hitPoints.hpp"
 #include "dataXYZ.hpp"
+
 
 //TODO
 class convertXYZ
@@ -45,7 +47,8 @@ class convertXYZ
     std::vector<std::vector<dataXYZ>> m_group_xyz;
 
 
-    std::map<std::pair<int, int>, std::vector<int>>relationVW_U;
+    //std::map<std::pair<int, int>, std::vector<int>>relationVW_U;
+    std::map<int, std::vector<std::pair<int, int>>> relationU_VW;
 
 
 

@@ -566,6 +566,10 @@ void test_convertXYZ()
 
     err = loc_conv_xyz.makeConversionXY();
 
+ 
+
+
+
 
 
 }
@@ -584,8 +588,8 @@ void test()
 
     //test_loadData();
     //test_convertUVW();
-    test_viewdata();
-    //test_convertXYZ();
+    //test_viewdata();
+    test_convertXYZ();
 
 
 
