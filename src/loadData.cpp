@@ -113,6 +113,11 @@ int loadData::decodeData(int entryNr)
 
     }
 
+    //clear the rawData vector so we don't collect old data
+    std::vector<rawData>().swap(m_root_raw_data);
+
+
+
 
 
     auto data = new GDataFrame();

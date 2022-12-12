@@ -71,6 +71,8 @@ std::vector<TH1D*> convertHitData::returnHistData()
 int convertHitData::getHitInfo()
 {
 
+    auto loc_canv = new TCanvas("canvas from hit info", "hit info canvas");
+
     if(m_uvw_data.size() == 0)
         return -3;//invalid size
 
@@ -197,8 +199,10 @@ int convertHitData::getHitInfo()
 
 
 
-
-
+    if(loc_canv){
+        loc_canv->Close();
+        gSystem->ProcessEvents();
+    }
 
 
     return 0;

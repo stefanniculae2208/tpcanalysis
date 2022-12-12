@@ -1,5 +1,4 @@
 #include "../include/convertXYZ.hpp"
-#include "../try_build_coords.cpp"
 
 
 
@@ -16,37 +15,23 @@ convertXYZ::convertXYZ(std::vector<hitPoints> hit_data)
 
 
 
-int convertXYZ::makeConversionXY()
-{
 
+int convertXYZ::makeConversionXYZ()
+{
 
     sortHitData();
 
-    buildMap();
+    compareXY();
 
-
-/*     for(auto map_iter : relationVW_U){
-
-        for(auto vect_iter : map_iter.second){
-
-            if(map_iter.first.first == 41)
-                std::cout<<"{ "<<map_iter.first.first<<", "<<map_iter.first.second<<": "<<vect_iter<<" }\n";
-
-        }
-
-    } */
-
-
-
-
-    groupHitData();
-
-    calculateXY();
 
 
     return 0;
 
 }
+
+
+
+
 
 
 
@@ -69,10 +54,11 @@ void convertXYZ::sortHitData()
 }
 
 
-void convertXYZ::groupHitData()
+
+void convertXYZ::compareXY()
 {
 
-    //is not good but it should work for now
+        //is not good but it should work for now
     //first we only care for u plane
     for(auto i = 0; i < m_hit_data.size(); i++){
 
@@ -122,95 +108,33 @@ void convertXYZ::groupHitData()
 
                 }
 
+                std::pair<double, double> xy_from_uv;
+                std::pair<double, double> xy_from_vw;
+                std::pair<double, double> xy_from_uw;
 
-                //if all 3 are at the same location we check to see if the 3 strips actually intersect in the same point using the map
-                try{
-                    /* for(auto u_iter : relationVW_U.at({m_hit_data.at(j).strip, m_hit_data.at(k).strip})){
-
-                        if(m_hit_data.at(i).strip == u_iter){
-                            std::vector<hitPoints> loc_group;
-
-                            loc_group.push_back(m_hit_data.at(i));
-                            loc_group.push_back(m_hit_data.at(j));
-                            loc_group.push_back(m_hit_data.at(k));
-
-                            m_group_data.push_back(loc_group);
-                        }
+                xy_from_uv = calculateXYfromUV(m_hit_data.at(i).strip, m_hit_data.at(j).strip);
+                xy_from_vw = calculateXYfromVW(m_hit_data.at(j).strip, m_hit_data.at(k).strip);
+                xy_from_uw = calculateXYfromUW(m_hit_data.at(i).strip, m_hit_data.at(k).strip);
 
 
-                    } */
+                if(evaluatePointsEquality(xy_from_uv, xy_from_vw, xy_from_uw)){
 
+                    dataXYZ loc_xyz;
+                    loc_xyz.data_x = xy_from_uv.first;
+                    loc_xyz.data_y = xy_from_uv.second;
+                    loc_xyz.data_z = drift_vel * time_unit * m_hit_data.at(i).peak_x;
+                    loc_xyz.data_charge = m_hit_data.at(i).peak_y;//only the charge from u for now
 
-                    for(auto vw_iter : relationU_VW.at((m_hit_data.at(i).strip - 1))){
+                    m_points_xyz.push_back(loc_xyz);
 
-                        if((m_hit_data.at(j).strip - 1) == vw_iter.first && (m_hit_data.at(k).strip - 1) == vw_iter.second){
-
-                            std::vector<hitPoints> loc_group;
-
-                            loc_group.push_back(m_hit_data.at(i));
-                            loc_group.push_back(m_hit_data.at(j));
-                            loc_group.push_back(m_hit_data.at(k));
-
-                            m_group_data.push_back(loc_group);
-
-
-                        }
-
-
-
-                    }
-
-
-
-
-
-
-                }catch(...){
-                    std::cout<<"Error in map for values u: "<<m_hit_data.at(i).strip<<" ,v: "<<m_hit_data.at(j).strip<<" and w: "<<m_hit_data.at(k).strip<<"\n";
                 }
 
 
 
-
-
-
-
             }
-
-
-
-
-
-
-
-
-            
-
-
-            
-
         }
-
-
-
     }
 
-
-    int nr_grp = 0;
-
-/*     for(auto grp_iter : m_group_data){
-
-        std::cout<<"Group number  "<<nr_grp<<": "<<std::endl;
-
-        for(auto hit_iter : grp_iter){
-
-            std::cout<<"    Hit is at x "<<hit_iter.peak_x<<" plane "<<hit_iter.plane<<" strip "<<hit_iter.strip<<std::endl;
-
-        }
-
-        nr_grp++;
-
-    } */
 
 
 
@@ -218,106 +142,65 @@ void convertXYZ::groupHitData()
 
 
 
-void convertXYZ::calculateXY()
+
+std::pair<double, double> convertXYZ::calculateXYfromUV(int strip_u, int strip_v)
 {
 
+    std::pair<double, double> xy_from_uv;
 
-    for(auto grp_iter : m_group_data){
+    double y_part_from_v = 4.33 + (strip_v - 1) * (1.5 / cos(M_PI/6));
 
-        std::vector<dataXYZ> loc_data_xyz;
-
-
-        for(auto i = 0; i < grp_iter.size(); i++){
-
-            if(grp_iter.at(i).plane != 0)
-                continue;
-
-
-            for(auto j = 0; j < grp_iter.size(); j++){
-
-                if(grp_iter.at(j).plane != 1)
-                    continue;
-
-
-                dataXYZ loc_xyz;
-
-
-                double y_part_from_v = 4.33 + (grp_iter.at(j).strip - 1) * (1.5 / cos(M_PI/6));
-
-                //106.5 is the width on x of the plate. 1.5 is the distance between strips
-                //since the strips are between 1 and 72 we substract 1 so the first strip is at 106.5 and the last is at 0
-                loc_xyz.data_x = 106.5 - ((grp_iter.at(i).strip - 1) * 1.5);
-                loc_xyz.data_y = tan(-M_PI/6) * loc_xyz.data_x + y_part_from_v;
-
-                loc_xyz.data_z = 0;
-
-                loc_data_xyz.push_back(loc_xyz);
-
-
-            }
-
-            
+    //106.5 is the width on x of the plate. 1.5 is the distance between strips
+    //since the strips are between 1 and 72 we substract 1 so the first strip is at 106.5 and the last is at 0
+    xy_from_uv.first = 106.5 - ((strip_u - 1) * 1.5);
+    xy_from_uv.second = tan(-M_PI/6) * xy_from_uv.first + y_part_from_v;
 
 
 
-        }
+    return xy_from_uv;
+
+}
 
 
 
-        m_group_xyz.push_back(loc_data_xyz);
 
-    }
-
-
-    int nr_point = 0;
-
-    std::cout<<"\n\n\n\n\n\n\n";
-
-
-
-    double x[10000], y[10000];
+std::pair<double, double> convertXYZ::calculateXYfromVW(int strip_v, int strip_w)
+{
     
-    int nr_points = 0;
+    std::pair<double, double> xy_from_vw;
+
+    double y_part_from_v = 4.33 + (strip_v - 1) * (1.5 / cos(M_PI/6));
+    double y_part_from_w = 100.459 - (strip_w - 1) * (1.5 / cos(M_PI/6));
 
 
-
-    for(auto ptr_iter : m_group_xyz){
-
-        std::cout<<"Point "<<nr_point<<std::endl;
-
-        for(auto pos_iter : ptr_iter){
-            //std::cout<<"    X is "<<pos_iter.data_x<<" and Y is "<<pos_iter.data_y<<std::endl;
-            x[nr_points] = pos_iter.data_x;
-            y[nr_points] = pos_iter.data_y;
-            nr_points++;
-
-        }
-
-        nr_point++;
-
-    }
-
-
-    auto loc_canv = new TCanvas("xy format", "Peaks in XY");
-    auto p_graph = new TGraph(nr_points, x, y);
-    p_graph->SetMarkerColor(kBlue);
-    p_graph->SetMarkerStyle(kFullCircle);
-    p_graph->Draw("AP");
-    loc_canv->Update();
-    loc_canv->Print("peaksxy.png");
+    xy_from_vw.first = (y_part_from_w - y_part_from_v) / (tan(-M_PI/6) - tan(M_PI/6));
+    xy_from_vw.second = tan(-M_PI/6) * xy_from_vw.first + y_part_from_v;
     
 
 
-
+    return xy_from_vw;
 
 }
 
 
-void convertXYZ::buildMap()
+
+
+std::pair<double, double> convertXYZ::calculateXYfromUW(int strip_u, int strip_w)
 {
 
-    relationU_VW = try_build_coords();
+    std::pair<double, double> xy_from_uw;
 
+
+    double y_part_from_w = 100.459 - (strip_w - 1) * (1.5 / cos(M_PI/6));
+
+
+    xy_from_uw.first = 106.5 - ((strip_u - 1) * 1.5);
+
+    xy_from_uw.second = tan(M_PI/6) * xy_from_uw.first + y_part_from_w;
+
+
+
+    return xy_from_uw;
 
 }
 
@@ -325,3 +208,29 @@ void convertXYZ::buildMap()
 
 
 
+int convertXYZ::evaluatePointsEquality(std::pair<double, double> xy_from_uv, std::pair<double, double> xy_from_vw, std::pair<double, double> xy_from_uw)
+{
+
+    const double calib_variable = 3;
+
+    if((xy_from_uv.first > xy_from_vw.first - calib_variable) && (xy_from_uv.first < xy_from_vw.first + calib_variable) &&
+        (xy_from_uv.second > xy_from_vw.second - calib_variable) && (xy_from_uv.second < xy_from_vw.second + calib_variable) &&
+        (xy_from_uv.first > xy_from_uw.first - calib_variable) && (xy_from_uv.first < xy_from_uw.first + calib_variable) &&
+        (xy_from_uv.second > xy_from_uw.second - calib_variable) && (xy_from_uv.second < xy_from_uw.second + calib_variable))
+        return 1;
+
+
+
+
+    return 0;
+}
+
+
+
+
+std::vector<dataXYZ> convertXYZ::returnXYZ()
+{
+
+    return m_points_xyz;
+
+}

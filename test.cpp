@@ -508,7 +508,7 @@ void test_convertXYZ()
     generalDataStorage data_container;
 
 
-    //std::vector<generalDataStorage> data_cont_vect;
+
 
 
 
@@ -564,15 +564,189 @@ void test_convertXYZ()
 
     convertXYZ loc_conv_xyz(data_container.hit_data);
 
-    err = loc_conv_xyz.makeConversionXY();
+
+    err = loc_conv_xyz.makeConversionXYZ();
+
+
+    data_container.xyz_data = loc_conv_xyz.returnXYZ();
 
  
+
+
+    double x[10000], y[10000], z[10000];
+    
+    int nr_points = 0;
+
+    for(auto point_iter : data_container.xyz_data){
+
+        x[nr_points] = point_iter.data_x;
+        y[nr_points] = point_iter.data_y;
+        z[nr_points] = point_iter.data_z;
+
+        nr_points++;
+
+    }
+
+
+
+    auto loc_canv = new TCanvas("xy format v2", "Peaks in XY v2");
+/*     auto p_graph = new TGraph(nr_points, x, y);
+    p_graph->SetMarkerColor(kBlue);
+    p_graph->SetMarkerStyle(kFullCircle);
+    p_graph->Draw("AP");
+    loc_canv->Update(); */
+    //loc_canv->Print("peaksxyv2.png");
+
+    auto p_graph3d = new TGraph2D(nr_points, x, y, z);
+    p_graph3d->SetMarkerColor(kBlue);
+    p_graph3d->SetMarkerStyle(kFullCircle);
+    p_graph3d->Draw("P0");
+    loc_canv->Update();
+    //loc_canv->Print("peaksxyz.png");
+
+
 
 
 
 
 
 }
+
+
+
+
+void test_convert_multiple_entries()
+{
+
+    std::vector<generalDataStorage> data_cont_vect;
+
+
+
+    auto goodFile = "./rootdata/data2.root";
+
+    auto goodTree = "tree";
+
+
+    loadData good_data(goodFile, goodTree);
+
+    auto returned_file = good_data.openFile();
+    auto err = good_data.readData();
+
+
+    for(auto i = 210; i < 216; i++){
+
+        generalDataStorage loc_data_storage;
+
+        err = good_data.decodeData(i);
+
+        loc_data_storage.root_raw_data = good_data.returnRawData();
+
+        convertUVW loc_conv_uvw(loc_data_storage.root_raw_data);
+
+
+        err = loc_conv_uvw.openSpecFile();
+
+        if(err != 0)
+            return;
+
+        err = loc_conv_uvw.makeConversion();
+        if(err != 0)
+            std::cout<<"Make conversion error code "<<err<<std::endl;
+
+
+
+        err = loc_conv_uvw.substractBl();
+
+        if(err != 0)
+            std::cout<<"Substractbl error code "<<err<<std::endl;
+
+
+        loc_data_storage.uvw_data = loc_conv_uvw.returnDataUVW();
+
+
+
+        convertHitData loc_convert_hit(loc_data_storage.uvw_data);
+
+        err = loc_convert_hit.getHitInfo();
+        if(err != 0)
+            std::cout<<"Error get hit info code "<<err<<std::endl;
+
+        loc_data_storage.hit_data = loc_convert_hit.returnHitData();
+        loc_data_storage.raw_hist_container = loc_convert_hit.returnHistData();
+
+
+
+
+        convertXYZ loc_conv_xyz(loc_data_storage.hit_data);
+
+
+        err = loc_conv_xyz.makeConversionXYZ();
+
+
+        loc_data_storage.xyz_data = loc_conv_xyz.returnXYZ();
+
+
+        data_cont_vect.push_back(loc_data_storage);
+
+    }
+
+
+    auto loc_canv = new TCanvas("xy format v2", "Peaks in XY v2");
+
+    loc_canv->Print("xyz_data.pdf[");
+    gErrorIgnoreLevel = kWarning;
+
+
+/*     auto p_graph3d = new TGraph2D(nr_points, x, y, z);
+    p_graph3d->SetMarkerColor(kBlue);
+    p_graph3d->SetMarkerStyle(kFullCircle);
+    p_graph3d->Draw("P0");
+    loc_canv->Update(); */
+
+
+    for(auto loc_data_storage : data_cont_vect){
+
+        double x[10000], y[10000], z[10000];
+    
+        int nr_points = 0;
+
+        for(auto point_iter : loc_data_storage.xyz_data){
+
+            x[nr_points] = point_iter.data_x;
+            y[nr_points] = point_iter.data_y;
+            z[nr_points] = point_iter.data_z;
+
+            nr_points++;
+
+        }
+
+        auto p_graph3d = new TGraph2D(Form("Graph%d", loc_data_storage.root_raw_data.at(0).entry_nr),
+                            Form("Graph for %d", loc_data_storage.root_raw_data.at(0).entry_nr), nr_points, x, y, z);
+        p_graph3d->SetMarkerColor(kBlue);
+        p_graph3d->SetMarkerStyle(kFullCircle);
+        p_graph3d->Draw("P0");
+        loc_canv->Print("xyz_data.pdf", "titlu");
+
+
+
+
+
+    }
+
+
+
+
+
+    gErrorIgnoreLevel = kPrint;
+    loc_canv->Print("xyz_data.pdf]");
+
+
+
+
+
+}
+
+
 
 
 
@@ -589,8 +763,8 @@ void test()
     //test_loadData();
     //test_convertUVW();
     //test_viewdata();
-    test_convertXYZ();
-
+    //test_convertXYZ();
+    test_convert_multiple_entries();
 
 
 

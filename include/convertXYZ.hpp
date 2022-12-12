@@ -14,6 +14,7 @@
 
 
 #include "TGraph.h"
+#include "TGraph2D.h"
 
 
 #include "dataUVW.hpp"
@@ -31,8 +32,8 @@ class convertXYZ
 
 
 
-    int makeConversionXY();
     int makeConversionXYZ();
+    std::vector<dataXYZ> returnXYZ();
 
 
 
@@ -40,23 +41,26 @@ class convertXYZ
 
     private:
     const double drift_vel = 0.724;
-    double m_matrix_params[4][3];
+    const double time_unit = 4e-8;
+
+
+
     std::vector<hitPoints> m_hit_data;
-    std::vector<dataXYZ> m_xyz_data;
-    std::vector<std::vector<hitPoints>> m_group_data;
-    std::vector<std::vector<dataXYZ>> m_group_xyz;
-
-
-    //std::map<std::pair<int, int>, std::vector<int>>relationVW_U;
-    std::map<int, std::vector<std::pair<int, int>>> relationU_VW;
+    std::vector<dataXYZ> m_points_xyz;
 
 
 
 
+    //may be needed when optimising
     void sortHitData();
-    void groupHitData();
-    void buildMap();
-    void calculateXY();
+
+
+    
+    std::pair<double, double> calculateXYfromUV(int strip_u, int strip_v);
+    std::pair<double, double> calculateXYfromVW(int strip_v, int strip_w);
+    std::pair<double, double> calculateXYfromUW(int strip_u, int strip_w);
+    int evaluatePointsEquality(std::pair<double, double> xy_from_uv, std::pair<double, double> xy_from_vw, std::pair<double, double> xy_from_uw);
+    void compareXY();
 
 
 
