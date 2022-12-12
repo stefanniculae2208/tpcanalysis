@@ -666,13 +666,15 @@ std::map<int, std::vector<std::pair<int, int>>> try_build_coords()
     std::cout<<"Vectors have the elements "<<val_u.size()<<"; "<<val_v.size()<<"; "<<val_w.size()<<";"<<std::endl;
 
 
-/*     auto loc_canv = new TCanvas("name", "title");
+    auto loc_canv = new TCanvas("name", "title");
 
 
 
     drawPoints(val_u, val_v, val_w, 1, 1, 1);
 
-    loc_canv->Update(); */
+    loc_canv->Update();
+
+    loc_canv->Print("stripinfo.png");
 
 
     //makeMap(relationVW_U, val_u, val_v, val_w, 0);
