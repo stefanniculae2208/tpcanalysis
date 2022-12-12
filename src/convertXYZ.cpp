@@ -298,11 +298,13 @@ void convertXYZ::calculateXY()
     }
 
 
-
+    auto loc_canv = new TCanvas("xy format", "Peaks in XY");
     auto p_graph = new TGraph(nr_points, x, y);
     p_graph->SetMarkerColor(kBlue);
     p_graph->SetMarkerStyle(kFullCircle);
     p_graph->Draw("AP");
+    loc_canv->Update();
+    loc_canv->Print("peaksxy.png");
     
 
 
