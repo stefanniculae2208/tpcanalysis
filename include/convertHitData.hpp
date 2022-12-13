@@ -21,7 +21,7 @@ class convertHitData
 
 
 
-    int getHitInfo();
+    int getHitInfo(Double_t peak_th = (double)50);
     int setUVWData(std::vector<dataUVW> uvw_data);
 
 

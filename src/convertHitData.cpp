@@ -64,11 +64,12 @@ std::vector<TH1D*> convertHitData::returnHistData()
  * We then eliminate the peaks that are below a threshold value (currently 200).
  * A function of form ‘pol0+gaus+gaus+...’ is created based on the numbers of peaks found.
  * We use this function to fit the histograms.
- * The parameters obtained from the histogram fitting are saved in the hitData type vector. 
+ * The parameters obtained from the histogram fitting are saved in the hitData type vector.
  * 
- * @return int error codes
+ * @param peak_th the threshold for peak detection
+ * @return int 
  */
-int convertHitData::getHitInfo()
+int convertHitData::getHitInfo(Double_t peak_th = (double)50)
 {
 
     auto loc_canv = new TCanvas("canvas from hit info", "hit info canvas");
@@ -132,7 +133,7 @@ int convertHitData::getHitInfo()
         std::vector<Double_t> peaks_x;//x of valid peaks
         std::vector<Double_t> peaks_y;//y of valid peaks
         int nrealpeaks = 0;//number of valid peaks set to 0
-        Double_t peak_th = (double)50;//threshold value for valid peaks
+
 
 
 
@@ -144,7 +145,7 @@ int convertHitData::getHitInfo()
             }
         }
 
-        //std::cout<<"Peaks found: "<<npeaks<<" of which valid are: "<<curr_point.npeaks<<std::endl;
+        //std::cout<<"Peaks found: "<<npeaks<<" of which valid are: "<<peaks_y.size()<<std::endl;
 
 
         //build the function based on the number of valid peaks found

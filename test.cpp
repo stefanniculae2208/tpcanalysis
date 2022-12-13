@@ -501,7 +501,7 @@ void test_viewdata()
 
 
 
-void test_convertXYZ()
+void test_convertXYZ(int entry_nr = 210, double peak_th = 50)
 {
 
 
@@ -521,8 +521,9 @@ void test_convertXYZ()
 
     auto returned_file = good_data.openFile();
     auto err = good_data.readData();
-    err = good_data.decodeData(271);
+    err = good_data.decodeData(entry_nr);
     data_container.root_raw_data = good_data.returnRawData();
+
 
     convertUVW loc_conv_uvw(data_container.root_raw_data);
 
@@ -550,7 +551,7 @@ void test_convertXYZ()
 
     convertHitData loc_convert_hit(data_container.uvw_data);
 
-    err = loc_convert_hit.getHitInfo();
+    err = loc_convert_hit.getHitInfo(peak_th);
     if(err != 0)
         std::cout<<"Error get hit info code "<<err<<std::endl;
 
@@ -570,10 +571,12 @@ void test_convertXYZ()
 
     data_container.xyz_data = loc_conv_xyz.returnXYZ();
 
+
+
  
 
 
-    double x[10000], y[10000], z[10000];
+    double x[100000], y[100000], z[100000];
     
     int nr_points = 0;
 
@@ -589,23 +592,93 @@ void test_convertXYZ()
 
 
 
+
     auto loc_canv = new TCanvas("xy format v2", "Peaks in XY v2");
-/*     auto p_graph = new TGraph(nr_points, x, y);
+    auto loc_pad = new TPad("pad name", "pad title", 0,0,1,1);
+    loc_pad->Divide(3, 2, 0.01, 0.01);
+    loc_pad->Draw();
+
+
+
+
+
+    auto p_graph = new TGraph(nr_points, x, y);
     p_graph->SetMarkerColor(kBlue);
     p_graph->SetMarkerStyle(kFullCircle);
-    p_graph->Draw("AP");
-    loc_canv->Update(); */
+    loc_pad->cd(1);p_graph->Draw("AP");
+   //loc_canv->Update();
     //loc_canv->Print("peaksxyv2.png");
 
     auto p_graph3d = new TGraph2D(nr_points, x, y, z);
-    p_graph3d->SetMarkerColor(kBlue);
+    p_graph3d->SetMarkerColor(kRed);
     p_graph3d->SetMarkerStyle(kFullCircle);
-    p_graph3d->Draw("P0");
-    loc_canv->Update();
+    loc_pad->cd(2); p_graph3d->Draw("P0");
+    //loc_canv->Update();
     //loc_canv->Print("peaksxyz.png");
 
 
-    sleep(10);
+    TH2D *u_hists = new TH2D(Form("u_hists_%d", entry_nr), "u_hist", 512, 1, 513, 100, 1, 101);
+    TH2D *v_hists = new TH2D(Form("v_hists_%d", entry_nr), "v_hist", 512, 1, 513, 100, 1, 101);
+    TH2D *w_hists = new TH2D(Form("w_hists_%d", entry_nr), "w_hist", 512, 1, 513, 100, 1, 101);
+
+
+
+
+
+
+    int bin = 0;
+    int strip = 1;
+
+    for(auto iter : data_container.uvw_data){
+
+        bin = 0;
+
+
+
+
+        if(iter.plane_val == 0){
+
+            for(auto sig_iter : iter.signal_val){
+
+                u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 1){
+
+            for(auto sig_iter : iter.signal_val){
+
+                v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 2){
+
+            for(auto sig_iter : iter.signal_val){
+
+                w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+    }
+
+    loc_pad->cd(4); u_hists->Draw("COLZ");
+    loc_pad->cd(5); v_hists->Draw("COLZ");
+    loc_pad->cd(6); w_hists->Draw("COLZ");
+    loc_canv->Update();
+
+
+
+    sleep(20);
 
 
 
@@ -765,8 +838,8 @@ void test()
     //test_loadData();
     //test_convertUVW();
     //test_viewdata();
-    //test_convertXYZ();
-    test_convert_multiple_entries();
+    test_convertXYZ(271, 100);
+    //test_convert_multiple_entries();
 
 
 

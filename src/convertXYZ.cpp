@@ -19,9 +19,13 @@ convertXYZ::convertXYZ(std::vector<hitPoints> hit_data)
 int convertXYZ::makeConversionXYZ()
 {
 
+
+
     sortHitData();
 
+
     compareXY();
+
 
 
 

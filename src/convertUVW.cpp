@@ -167,8 +167,10 @@ int convertUVW::substractBl()
 
         baseline /= sampleRegion;
 
+
         for(auto &sig_el : data_el.signal_val){
 
+            
             sig_el -= baseline;
 
             if(sig_el < 0)
