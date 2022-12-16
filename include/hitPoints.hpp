@@ -14,15 +14,14 @@ class hitPoints
     ~hitPoints(){};
 
 
-    //int npeaks = 0;//number of peaks
-    int strip;
-    int plane;
-    int base_line;
-    int entry_nr;
-    //std::vector<hitPeakInfo> peaks_info;//each element holds info about one peak
-    Double_t peak_x;
-    Double_t peak_y;
-    Double_t fwhm;
+
+    int strip = -1;
+    int plane = -1;
+    int base_line = 0;
+    int entry_nr = -1;
+    Double_t peak_x = -1;
+    Double_t peak_y = -1;
+    Double_t fwhm = -1;
 
 
 

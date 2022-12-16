@@ -43,9 +43,9 @@ std::shared_ptr<TFile> loadData::openFile()
 
 
 /**
- * @brief reads the tree from the file
+ * @brief Reads the tree from the file.
  * 
- * @return int error codes. 0 is success
+ * @return int error codes
  */
 int loadData::readData()
 {
@@ -75,7 +75,7 @@ int loadData::readData()
 
 
 /**
- * @brief returns the tree
+ * @brief Returns the tree read fromn the file.
  * 
  * @return TTree* the tree from the file
  */
@@ -89,9 +89,17 @@ TTree* loadData::returnTree()
 
 
 /**
- * @brief decodes the data from an entry in the tree using the dictionary and saves it in a rawData vector
- * if multiple entries are to be read then you should have a vector and each element calls this function
- * with a different entryNr
+ * @brief Decodes the data from an entry in the tree using the dictionary and saves it in a rawData vector.
+ * If multiple entries are to be read then you should call this function multiple times with the number of the entry you want.
+ * You must call the returnRawData() function before decoding the next entry, otherwise you will overwrite the current entry.
+ * The code should look something like:
+ * for(...){
+ *  
+ *  err = decodeData(i);
+ *  loc_data = returnRawData();
+ * 
+ * }
+ * 
  * 
  * @param entryNr the number of the entry from the tree to be decoded
  * @return int error codes
@@ -163,7 +171,7 @@ int loadData::decodeData(int entryNr)
 
 
 /**
- * @brief returns the raw data vector. To be called only after the decodeData function
+ * @brief Returns the raw data vector. To be called only after the decodeData function.
  * 
  * @return std::vector<rawData> the vector
  */
@@ -175,7 +183,7 @@ std::vector<rawData> loadData::returnRawData()
 
 
 /**
- * @brief returns the number of entries. Only called agter the decodeData function.
+ * @brief Returns the number of entries. To be called only after the ReadData() function.
  * 
  * @return Long64_t the number of entries taken from the file
  */

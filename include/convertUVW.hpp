@@ -44,6 +44,7 @@ class convertUVW
     int openSpecFile();
     int makeConversion();
     int substractBl();
+    int convertToCSV(std::string file_name);
     std::vector<dataUVW> returnDataUVW();
 
 

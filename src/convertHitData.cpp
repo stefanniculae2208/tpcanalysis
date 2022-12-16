@@ -14,9 +14,9 @@ convertHitData::convertHitData(std::vector<dataUVW> uvw_data)
 
 
 /**
- * @brief sets the uvw vector to be used when finding the hits
+ * @brief Sets the uvw vector to be used when finding the hits to the new value.
  * 
- * @param uvw_data the vector in question
+ * @param uvw_data the vector containing the information about the 3 planes
  * @return int error codes
  */
 int convertHitData::setUVWData(std::vector<dataUVW> uvw_data)
@@ -34,9 +34,9 @@ int convertHitData::setUVWData(std::vector<dataUVW> uvw_data)
 
 
 /**
- * @brief returns the vector of hits
+ * @brief Returns the vector of hits.
  * 
- * @return std::vector<hitPoints> the vector
+ * @return std::vector<hitPoints> the vector of hits calculated
  */
 std::vector<hitPoints> convertHitData::returnHitData()
 {
@@ -47,9 +47,9 @@ std::vector<hitPoints> convertHitData::returnHitData()
 
 
 /**
- * @brief returns the vector of histograms
+ * @brief Returns the vector of histograms.
  * 
- * @return std::vector<TH1D*> the vector
+ * @return std::vector<TH1D*> the vector of histograms containing the information about the peaks for each strip
  */
 std::vector<TH1D*> convertHitData::returnHistData()
 {
@@ -67,7 +67,7 @@ std::vector<TH1D*> convertHitData::returnHistData()
  * The parameters obtained from the histogram fitting are saved in the hitData type vector.
  * 
  * @param peak_th the threshold for peak detection
- * @return int 
+ * @return int error codes
  */
 int convertHitData::getHitInfo(Double_t peak_th = (double)50)
 {
@@ -176,11 +176,14 @@ int convertHitData::getHitInfo(Double_t peak_th = (double)50)
 
             curr_point.peak_x = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+2));
             curr_point.peak_y = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+1));
-            curr_point.fwhm = 2.355 * hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+3));
+            curr_point.fwhm = 2.355 * abs(hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+3)));
             curr_point.plane = m_uvw_data.at(curr_iter).plane_val;
             curr_point.strip = m_uvw_data.at(curr_iter).strip_nr;
             curr_point.entry_nr = m_uvw_data.at(curr_iter).entry_nr;
             curr_point.base_line = hist_iter->GetFunction("gaus_and_pol0")->GetParameter(0);
+
+
+
 
             m_hit_data.push_back(curr_point);
         }

@@ -34,13 +34,14 @@ class convertXYZ
 
     int makeConversionXYZ();
     std::vector<dataXYZ> returnXYZ();
+    int getNewVector(std::vector<hitPoints> hit_data);
 
 
 
     
 
     private:
-    const double drift_vel = 0.724;
+    const double drift_vel = 0.724 * 10000 * 1000;
     const double time_unit = 4e-8;
 
 

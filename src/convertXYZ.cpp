@@ -1,10 +1,34 @@
 #include "../include/convertXYZ.hpp"
 
 
-
+/**
+ * @brief Construct a new convert X Y Z::convert X Y Z object
+ * 
+ * @param hit_data the hitPoints type vector that is converted using the other functions
+ */
 convertXYZ::convertXYZ(std::vector<hitPoints> hit_data)
 {
     m_hit_data = hit_data;
+}
+
+
+
+/**
+ * @brief Get a new vector that is to be converted by the other functions. The old vector is lost.
+ * 
+ * @param hit_data the new vector to be used
+ * @return int error codes
+ */
+int convertXYZ::getNewVector(std::vector<hitPoints> hit_data)
+{
+
+    if(hit_data.size() == 0)
+        return -3;
+
+    m_hit_data = hit_data;
+
+    return 0;
+
 }
 
 
@@ -15,9 +39,16 @@ convertXYZ::convertXYZ(std::vector<hitPoints> hit_data)
 
 
 
-
+/**
+ * @brief Makes the conversion from UVW planes to XYZ coordinate system.
+ * 
+ * @return int error codes
+ */
 int convertXYZ::makeConversionXYZ()
 {
+
+    if(m_hit_data.size() == 0)
+        return -3;
 
 
 
@@ -40,7 +71,11 @@ int convertXYZ::makeConversionXYZ()
 
 
 
-
+/**
+ * @brief Sorts the data based on the position of the peak on the x axis
+ * right now it is not useful, but can be used when optimising the code.
+ * 
+ */
 void convertXYZ::sortHitData()
 {
 
@@ -59,6 +94,14 @@ void convertXYZ::sortHitData()
 
 
 
+
+/**
+ * @brief This function does the actual conversion.
+ * First we iterate through all the hits first for U, then for V, and finally for W.
+ * We check if the hits happen at the same time. If yes, we calculate X and Y using 3 methods and if the values are the same
+ * we calculate the Z value from the time information and add the point to our converted vector.
+ * 
+ */
 void convertXYZ::compareXY()
 {
 
@@ -146,7 +189,13 @@ void convertXYZ::compareXY()
 
 
 
-
+/**
+ * @brief 
+ * 
+ * @param strip_u the strip values from the U plane
+ * @param strip_v the strip values from the V plane
+ * @return std::pair<double, double> the calculated X and Y values; the first element is Y and the second is Y
+ */
 std::pair<double, double> convertXYZ::calculateXYfromUV(int strip_u, int strip_v)
 {
 
@@ -167,7 +216,13 @@ std::pair<double, double> convertXYZ::calculateXYfromUV(int strip_u, int strip_v
 
 
 
-
+/**
+ * @brief 
+ * 
+ * @param strip_v the strip values from the V plane
+ * @param strip_w the strip values from the W plane
+ * @return std::pair<double, double> the calculated X and Y values; the first element is Y and the second is Y
+ */
 std::pair<double, double> convertXYZ::calculateXYfromVW(int strip_v, int strip_w)
 {
     
@@ -188,7 +243,13 @@ std::pair<double, double> convertXYZ::calculateXYfromVW(int strip_v, int strip_w
 
 
 
-
+/**
+ * @brief 
+ * 
+ * @param strip_u the strip values from the U plane
+ * @param strip_w the strip values from the W plane
+ * @return std::pair<double, double> the calculated X and Y values; the first element is Y and the second is Y
+ */
 std::pair<double, double> convertXYZ::calculateXYfromUW(int strip_u, int strip_w)
 {
 
@@ -217,10 +278,10 @@ int convertXYZ::evaluatePointsEquality(std::pair<double, double> xy_from_uv, std
 
     const double calib_variable = 3;
 
-    if((xy_from_uv.first > xy_from_vw.first - calib_variable) && (xy_from_uv.first < xy_from_vw.first + calib_variable) &&
-        (xy_from_uv.second > xy_from_vw.second - calib_variable) && (xy_from_uv.second < xy_from_vw.second + calib_variable) &&
-        (xy_from_uv.first > xy_from_uw.first - calib_variable) && (xy_from_uv.first < xy_from_uw.first + calib_variable) &&
-        (xy_from_uv.second > xy_from_uw.second - calib_variable) && (xy_from_uv.second < xy_from_uw.second + calib_variable))
+    if((xy_from_uv.first > (xy_from_vw.first - calib_variable)) && (xy_from_uv.first < (xy_from_vw.first + calib_variable)) &&
+        (xy_from_uv.second > (xy_from_vw.second - calib_variable)) && (xy_from_uv.second < (xy_from_vw.second + calib_variable)) &&
+        (xy_from_uv.first > (xy_from_uw.first - calib_variable)) && (xy_from_uv.first < (xy_from_uw.first + calib_variable)) &&
+        (xy_from_uv.second > (xy_from_uw.second - calib_variable)) && (xy_from_uv.second < (xy_from_uw.second + calib_variable)))
         return 1;
 
 

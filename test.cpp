@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <random>
 
 
 #include "src/loadData.cpp"
@@ -32,6 +32,226 @@
 #include "dict/src/GDataChannel.cpp"
 #include "dict/src/GFrameHeader.cpp"
 #include "dict/src/GDataFrame.cpp"
+
+
+
+std::vector<hitPoints> generateHitData()
+{
+
+    std::vector<hitPoints> hit_vect;
+    hitPoints loc_hit;
+
+
+
+    loc_hit.peak_x = 290;
+    loc_hit.peak_y = 100;
+    loc_hit.entry_nr = 66;
+    loc_hit.base_line= 50;
+    loc_hit.fwhm = 3;
+
+
+    
+    
+    loc_hit.plane = 0;
+
+    for(auto i = 7; i < 68; i+=2){
+
+
+
+            loc_hit.strip = i;
+
+            hit_vect.push_back(loc_hit);
+
+
+    }
+
+
+
+
+
+    loc_hit.plane = 1;
+
+    for(auto i = 62; i < 93; i++){
+
+
+
+            loc_hit.strip = i;
+
+            hit_vect.push_back(loc_hit);
+
+    }
+
+
+
+
+
+    loc_hit.plane = 2;
+
+    for(auto i = 1; i < 31; i++){
+
+
+
+            loc_hit.strip = i;
+
+            hit_vect.push_back(loc_hit);
+
+
+    }
+
+        
+        
+
+
+
+
+
+
+
+    return hit_vect;
+
+}
+
+
+std::vector<dataUVW> generateUVW()
+{
+
+    std::vector<dataUVW> data_vec;
+    dataUVW loc_data;    
+
+
+
+    std::mt19937 engine;
+    std::random_device seed_gen;
+    engine.seed(seed_gen());
+
+
+    std::uniform_real_distribution<> noise_gen(40, 45);
+    std::uniform_real_distribution<> peak_gen(150, 200);
+
+
+
+    loc_data.entry_nr = 66;
+
+
+    //U plane
+    for(auto i = 1; i < 73; i++){
+
+        loc_data.plane_val = 0;
+        loc_data.strip_nr = i;
+        
+        for(auto j = 0; j < 512; j++){
+
+            double loc_signal_el = noise_gen(engine);
+
+            if(j > 290 && j < 300 && i > 10 && i < 70){
+
+                loc_signal_el += peak_gen(engine);
+
+            }
+
+            if(j > 400 && j < 410 && i > 40 && i < 50){
+
+                loc_signal_el += peak_gen(engine);
+
+            }
+
+
+
+            loc_data.signal_val.push_back(loc_signal_el);
+
+        }
+
+        data_vec.push_back(loc_data);
+
+        std::vector<double>().swap(loc_data.signal_val);
+
+    }
+
+
+
+    //V plane
+    for(auto i = 1; i < 93; i++){
+
+        loc_data.plane_val = 1;
+        loc_data.strip_nr = i;
+        
+        for(auto j = 0; j < 512; j++){
+
+            double loc_signal_el = noise_gen(engine);
+
+            if(j > 290 && j < 300 && i > 10 && i < 70){
+
+                loc_signal_el += peak_gen(engine);
+
+            }
+
+            if(j > 400 && j < 410 && i > 40 && i < 50){
+
+                loc_signal_el += peak_gen(engine);
+
+            }
+
+
+
+            loc_data.signal_val.push_back(loc_signal_el);
+
+        }
+
+        data_vec.push_back(loc_data);
+
+        std::vector<double>().swap(loc_data.signal_val);
+
+    }
+
+
+
+
+    //W plane
+    for(auto i = 1; i < 93; i++){
+
+        loc_data.plane_val = 2;
+        loc_data.strip_nr = i;
+        
+        for(auto j = 0; j < 512; j++){
+;
+            double loc_signal_el = noise_gen(engine);
+
+            if(j > 290 && j < 300 && i > 10 && i < 70){
+
+                loc_signal_el += peak_gen(engine);
+
+            }
+
+            if(j > 400 && j < 410 && i > 40 && i < 50){
+
+                loc_signal_el += peak_gen(engine);
+
+            }
+
+
+
+
+
+            loc_data.signal_val.push_back(loc_signal_el);
+
+        }
+
+        data_vec.push_back(loc_data);
+
+        std::vector<double>().swap(loc_data.signal_val);
+
+    }
+
+
+
+
+    
+
+    
+
+    return data_vec;
+
+}
 
 
 
@@ -498,6 +718,200 @@ void test_viewdata()
 }
 
 
+void test_hitdata()
+{
+
+    generalDataStorage data_container;
+    int err;
+
+
+    //test error code -3
+    std::vector<dataUVW> empty_data;
+    convertHitData bad_hit_data(empty_data);
+
+
+    err = bad_hit_data.getHitInfo();
+
+    if(err != -3)
+        std::cout<<"Error hit data returned bad error code: "<<err<<std::endl;
+
+
+
+
+
+
+
+    data_container.uvw_data = generateUVW();
+
+
+    convertHitData loc_convert_hit(data_container.uvw_data);
+
+
+
+
+    err = loc_convert_hit.getHitInfo(100);
+    if(err != 0)
+        std::cout<<"Error get hit info code "<<err<<std::endl;
+
+    data_container.hit_data = loc_convert_hit.returnHitData();
+    data_container.raw_hist_container = loc_convert_hit.returnHistData();
+
+    std::cout<<"Hit data size "<<data_container.hit_data.size()<<std::endl;
+    std::cout<<"Hist data size "<<data_container.raw_hist_container.size()<<std::endl;
+
+
+
+
+    auto loc_canv = new TCanvas("xy format v2", "Peaks in XY v2");
+    auto loc_pad = new TPad("pad name", "pad title", 0,0,1,1);
+    loc_pad->Divide(3, 2, 0.01, 0.01);
+    loc_pad->Draw();
+
+
+
+
+
+    TH2D *u_hists = new TH2D(Form("u_hists_%d", 66), "u_hist", 512, 1, 513, 100, 1, 101);
+    TH2D *v_hists = new TH2D(Form("v_hists_%d", 66), "v_hist", 512, 1, 513, 100, 1, 101);
+    TH2D *w_hists = new TH2D(Form("w_hists_%d", 66), "w_hist", 512, 1, 513, 100, 1, 101);
+
+
+
+
+
+
+    int bin = 0;
+    int strip = 1;
+
+    for(auto iter : data_container.uvw_data){
+
+        bin = 0;
+
+
+
+
+        if(iter.plane_val == 0){
+
+            for(auto sig_iter : iter.signal_val){
+
+                u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 1){
+
+            for(auto sig_iter : iter.signal_val){
+
+                v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 2){
+
+            for(auto sig_iter : iter.signal_val){
+
+                w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+    }
+
+    loc_pad->cd(1); u_hists->Draw("COLZ");
+    loc_pad->cd(2); v_hists->Draw("COLZ");
+    loc_pad->cd(3); w_hists->Draw("COLZ");
+
+
+
+    double x_u[10000];
+    double y_u[10000];
+    int nr_points_u = 0;
+
+    double x_v[10000];
+    double y_v[10000];
+    int nr_points_v = 0;
+
+    double x_w[10000];
+    double y_w[10000];
+    int nr_points_w = 0;
+
+    for(auto hit_iter : data_container.hit_data){
+
+        if(hit_iter.plane == 0){
+
+            x_u[nr_points_u] = hit_iter.peak_x;
+            y_u[nr_points_u] = hit_iter.strip;
+            nr_points_u++;
+
+        }else if(hit_iter.plane == 1){
+
+            x_v[nr_points_v] = hit_iter.peak_x;
+            y_v[nr_points_v] = hit_iter.strip;
+            nr_points_v++;
+
+        }else if(hit_iter.plane == 2){
+
+            x_w[nr_points_w] = hit_iter.peak_x;
+            y_w[nr_points_w] = hit_iter.strip;
+            nr_points_w++;
+
+        }
+
+    }
+
+
+
+
+
+
+    auto u_graph = new TGraph(nr_points_u, x_u, y_u);
+    TAxis *u_axis = u_graph->GetXaxis();
+    u_axis->SetLimits(-1,512);
+    u_graph->SetMarkerColor(kBlue);
+    u_graph->SetMarkerStyle(kFullCircle);
+    loc_pad->cd(4);u_graph->Draw("AP");
+
+    auto v_graph = new TGraph(nr_points_v, x_v, y_v);
+    TAxis *v_axis = v_graph->GetXaxis();
+    v_axis->SetLimits(-1,512);
+    v_graph->SetMarkerColor(kBlue);
+    v_graph->SetMarkerStyle(kFullCircle);
+    loc_pad->cd(5);v_graph->Draw("AP");
+
+    auto w_graph = new TGraph(nr_points_w, x_w, y_w);
+    TAxis *w_axis = w_graph->GetXaxis();
+    w_axis->SetLimits(-1,512);
+    w_graph->SetMarkerColor(kBlue);
+    w_graph->SetMarkerStyle(kFullCircle);
+    loc_pad->cd(6);w_graph->Draw("AP");
+
+
+
+
+
+
+
+
+
+
+
+    loc_canv->Update();
+
+
+
+
+
+}
+
+
 
 
 
@@ -824,8 +1238,222 @@ void test_convert_multiple_entries()
 
 
 
+void test_unitXYZ()
+{
+
+    generalDataStorage data_container;
+    int err;
+
+    std::vector<hitPoints> empty_vect;
 
 
+    convertXYZ bad_data_xyz(empty_vect);
+
+
+    err = bad_data_xyz.makeConversionXYZ();
+
+    if(err != -3)
+        std::cout<<"Error bad return code: "<<err<<std::endl;
+
+
+
+    data_container.hit_data = generateHitData();
+
+
+    convertXYZ loc_conv_xyz(data_container.hit_data);
+
+
+    err = loc_conv_xyz.makeConversionXYZ();
+
+
+    data_container.xyz_data = loc_conv_xyz.returnXYZ();
+
+
+
+
+
+
+    double x[100000], y[100000], z[100000];
+    
+    int nr_points = 0;
+
+    for(auto point_iter : data_container.xyz_data){
+
+        x[nr_points] = point_iter.data_x;
+        y[nr_points] = point_iter.data_y;
+        z[nr_points] = point_iter.data_z;
+
+        nr_points++;
+
+    }
+
+
+
+
+    auto loc_canv = new TCanvas("xy format v2", "Peaks in XY v2");
+    auto loc_pad = new TPad("pad name", "pad title", 0,0,1,1);
+    loc_pad->Divide(3, 2, 0.01, 0.01);
+    loc_pad->Draw();
+
+
+
+
+
+    auto p_graph = new TGraph(nr_points, x, y);
+    TAxis *px_axis = p_graph->GetXaxis();
+    px_axis->SetLimits(-1,150);
+    p_graph->GetHistogram()->SetMaximum(150);
+    p_graph->GetHistogram()->SetMinimum(-1);
+    p_graph->SetMarkerColor(kBlue);
+    p_graph->SetMarkerStyle(kFullCircle);
+    loc_pad->cd(1);p_graph->Draw("AP");
+
+
+    auto p_graph3d = new TGraph2D(nr_points, x, y, z);
+    p_graph3d->SetMarkerColor(kRed);
+    p_graph3d->SetMarkerStyle(kFullCircle);
+    loc_pad->cd(2); p_graph3d->Draw("P0");
+
+
+
+
+
+
+    double x_u[100000];
+    double y_u[100000];
+    int nr_points_u = 0;
+
+    double x_v[100000];
+    double y_v[100000];
+    int nr_points_v = 0;
+
+    double x_w[100000];
+    double y_w[100000];
+    int nr_points_w = 0;
+
+    for(auto hit_iter : data_container.hit_data){
+
+        if(hit_iter.plane == 0){
+
+            x_u[nr_points_u] = hit_iter.peak_x;
+            y_u[nr_points_u] = hit_iter.strip;
+            nr_points_u++;
+
+        }else if(hit_iter.plane == 1){
+
+            x_v[nr_points_v] = hit_iter.peak_x;
+            y_v[nr_points_v] = hit_iter.strip;
+            nr_points_v++;
+
+        }else if(hit_iter.plane == 2){
+
+            x_w[nr_points_w] = hit_iter.peak_x;
+            y_w[nr_points_w] = hit_iter.strip;
+            nr_points_w++;
+
+        }
+
+    }
+
+
+
+
+
+
+    auto u_graph = new TGraph(nr_points_u, x_u, y_u);
+    TAxis *u_axis = u_graph->GetXaxis();
+    u_axis->SetLimits(-1,512);
+    u_graph->GetHistogram()->SetMaximum(73);
+    u_graph->GetHistogram()->SetMinimum(0);
+    u_graph->SetMarkerColor(kBlue);
+    u_graph->SetMarkerStyle(kFullCircle);
+    loc_pad->cd(4);u_graph->Draw("AP");
+
+    auto v_graph = new TGraph(nr_points_v, x_v, y_v);
+    TAxis *v_axis = v_graph->GetXaxis();
+    v_axis->SetLimits(-1,512);
+    v_graph->GetHistogram()->SetMaximum(93);
+    v_graph->GetHistogram()->SetMinimum(0);
+    v_graph->SetMarkerColor(kBlue);
+    v_graph->SetMarkerStyle(kFullCircle);
+    loc_pad->cd(5);v_graph->Draw("AP");
+
+    auto w_graph = new TGraph(nr_points_w, x_w, y_w);
+    TAxis *w_axis = w_graph->GetXaxis();
+    w_axis->SetLimits(-1,512);
+    w_graph->GetHistogram()->SetMaximum(93);
+    w_graph->GetHistogram()->SetMinimum(0);
+    w_graph->SetMarkerColor(kBlue);
+    w_graph->SetMarkerStyle(kFullCircle);
+    loc_pad->cd(6);w_graph->Draw("AP");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    loc_canv->Update();
+
+}
+
+
+
+
+
+
+void test_convert_to_csv(int entry_nr = 210)
+{
+
+    generalDataStorage data_container;
+
+
+
+
+
+
+    auto goodFile = "./rootdata/data2.root";
+
+    auto goodTree = "tree";
+
+
+    loadData good_data(goodFile, goodTree);
+
+    auto returned_file = good_data.openFile();
+    auto err = good_data.readData();
+    err = good_data.decodeData(entry_nr);
+    data_container.root_raw_data = good_data.returnRawData();
+
+
+    convertUVW loc_conv_uvw(data_container.root_raw_data);
+
+
+    err = loc_conv_uvw.openSpecFile();
+
+    if(err != 0)
+        return;
+
+    err = loc_conv_uvw.makeConversion();
+    if(err != 0)
+        std::cout<<"Make conversion error code "<<err<<std::endl;
+
+
+
+    err = loc_conv_uvw.convertToCSV("/media/gant/Expansion/tpcanalcsv/testcsv.csv");
+    if(err != 0)
+        std::cout<<"Write to csv error code "<<err<<std::endl;
+
+
+
+}
 
 
 void test()
@@ -838,8 +1466,17 @@ void test()
     //test_loadData();
     //test_convertUVW();
     //test_viewdata();
-    test_convertXYZ(271, 100);
+    //test_convertXYZ(271, 100);
     //test_convert_multiple_entries();
+    //test_convert_to_csv();
+
+
+
+
+    //test_hitdata();
+    test_unitXYZ();
+
+
 
 
 

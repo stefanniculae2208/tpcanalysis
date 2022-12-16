@@ -4,7 +4,7 @@
 /**
  * @brief Construct a new convert U V W::convert U V W object
  * 
- * @param data_vec the raw data vector
+ * @param data_vec the raw data vector to be converted to the UVW format
  */
 convertUVW::convertUVW(std::vector<rawData> data_vec)
 {
@@ -13,10 +13,10 @@ convertUVW::convertUVW(std::vector<rawData> data_vec)
 
 
 /**
- * @brief sets the raw data vactor
+ * @brief Sets the raw data vector to a new value.
  * 
  * @param data_vec the raw data vector to be set
- * @return int 0 for success and -3 for vector size 0
+ * @return error codes
  */
 int convertUVW::setRawData(std::vector<rawData> data_vec)
 {
@@ -36,7 +36,7 @@ int convertUVW::setRawData(std::vector<rawData> data_vec)
 /**
  * @brief Opens the specification file and makes the map.
  * 
- * @return int Returns 0 upon success and -1 if it fails to open the file.
+ * @return error codes
  */
 int convertUVW::openSpecFile()
 {
@@ -93,9 +93,9 @@ int convertUVW::openSpecFile()
 
 
 /**
- * @brief Makes the UVW conversion.
+ * @brief Makes the conversion to the UVW format.
  * 
- * @return int Returns 0 upon success, -3 if the vector size is incorrect.
+ * @return error codes
  */
 int convertUVW::makeConversion()
 {
@@ -140,8 +140,9 @@ int convertUVW::makeConversion()
 
 /**
  * @brief Substracts the baseline from the signal.
+ * The baseline is calculated as the mean of the first 64 bins from the signal.
  * 
- * @return int The baseline is calculated as the mean of the first 64 bins from the signal.
+ * @return int error codes
  */
 int convertUVW::substractBl()
 {
@@ -208,7 +209,7 @@ int convertUVW::substractBl()
 
 
 /**
- * @brief returns the dataUVW vector
+ * @brief Returns the dataUVW vector containing the converted data.
  * 
  * @return std::vector<dataUVW> the vector to be returned containing the data converted to UVW
  */
@@ -216,6 +217,61 @@ std::vector<dataUVW> convertUVW::returnDataUVW()
 {
 
     return m_uvw_vec;
+
+}
+
+
+
+
+/**
+ * @brief Writes the data from m_uvw_vec to a .csv file.
+ * The format of the .csv file is the following:
+ *  First column is the plane value.
+ *  Second colums is the strip number.
+ *  Third column in the entry number. (Sould be the same for every element)
+ *  The remaining columns contain the values of the signal.
+ *  
+ * @param file_name the name of the .csv file
+ * @return int error codes
+ */
+int convertUVW::convertToCSV(std::string file_name)
+{
+
+    std::ofstream out_file(file_name);
+
+    if (!out_file.is_open()) {
+        std::cerr << "Error: Could not open file for output" << std::endl;
+        return -1;
+    }
+
+    //header
+    out_file << "plane_val,strip_nr,entry_nr,signal_val\n";
+
+
+    for(auto &data_entry : m_uvw_vec){
+
+        out_file << data_entry.plane_val << "," << data_entry.strip_nr << "," << data_entry.entry_nr << ",";
+
+        for(auto i = 0; i < data_entry.signal_val.size(); i++){
+
+            out_file << data_entry.signal_val[i];
+            if (i < data_entry.signal_val.size() - 1) {
+                out_file << ",";
+            }
+
+        }
+
+        out_file << "\n";
+
+    }
+
+
+
+
+
+    out_file.close();
+
+    return 0;
 
 }
 
