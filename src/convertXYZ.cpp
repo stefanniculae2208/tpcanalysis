@@ -159,18 +159,22 @@ void convertXYZ::compareXY()
                 std::pair<double, double> xy_from_vw;
                 std::pair<double, double> xy_from_uw;
 
-                xy_from_uv = calculateXYfromUV(m_hit_data.at(i).strip, m_hit_data.at(j).strip);
-                xy_from_vw = calculateXYfromVW(m_hit_data.at(j).strip, m_hit_data.at(k).strip);
-                xy_from_uw = calculateXYfromUW(m_hit_data.at(i).strip, m_hit_data.at(k).strip);
+                xy_from_uv = calculateXYfromUV_V2(m_hit_data.at(i).strip, m_hit_data.at(j).strip);
+                xy_from_vw = calculateXYfromVW_V2(m_hit_data.at(j).strip, m_hit_data.at(k).strip);
+                xy_from_uw = calculateXYfromUW_V2(m_hit_data.at(i).strip, m_hit_data.at(k).strip);
 
 
                 if(evaluatePointsEquality(xy_from_uv, xy_from_vw, xy_from_uw)){
+
+                
+                    /* std::cout<<"U: "<<m_hit_data.at(i).strip<<" V: "<<m_hit_data.at(j).strip<<" W: "<<m_hit_data.at(k).strip;
+                    std::cout<<" X: "<<xy_from_uv.first<<" Y: "<<xy_from_uv.second<<"\n"; */
 
                     dataXYZ loc_xyz;
                     loc_xyz.data_x = xy_from_uv.first;
                     loc_xyz.data_y = xy_from_uv.second;
                     loc_xyz.data_z = drift_vel * time_unit * m_hit_data.at(i).peak_x;
-                    loc_xyz.data_charge = m_hit_data.at(i).peak_y;//only the charge from u for now
+                    loc_xyz.data_charge = m_hit_data.at(i).peak_y + m_hit_data.at(j).peak_y + m_hit_data.at(k).peak_y;
 
                     m_points_xyz.push_back(loc_xyz);
 
@@ -272,30 +276,127 @@ std::pair<double, double> convertXYZ::calculateXYfromUW(int strip_u, int strip_w
 
 
 
-
+/**
+ * @brief This function checks to see if the 3 X and Y pairs calculated from the data of 2 planes are almost equal.
+ * The calibration variable is used to set the range of the equality.
+ * 
+ * @param xy_from_uv x and y calculated from the u and v plane data
+ * @param xy_from_vw x and y calculated from the v and w plane data
+ * @param xy_from_uw x and y calculated from the u and w plane data
+ * @return int 1 if true 0 if false
+ */
 int convertXYZ::evaluatePointsEquality(std::pair<double, double> xy_from_uv, std::pair<double, double> xy_from_vw, std::pair<double, double> xy_from_uw)
 {
 
     const double calib_variable = 3;
 
-    if((xy_from_uv.first > (xy_from_vw.first - calib_variable)) && (xy_from_uv.first < (xy_from_vw.first + calib_variable)) &&
-        (xy_from_uv.second > (xy_from_vw.second - calib_variable)) && (xy_from_uv.second < (xy_from_vw.second + calib_variable)) &&
-        (xy_from_uv.first > (xy_from_uw.first - calib_variable)) && (xy_from_uv.first < (xy_from_uw.first + calib_variable)) &&
-        (xy_from_uv.second > (xy_from_uw.second - calib_variable)) && (xy_from_uv.second < (xy_from_uw.second + calib_variable)))
-        return 1;
 
+    return (xy_from_uv.first > (xy_from_vw.first - calib_variable) && xy_from_uv.first < (xy_from_vw.first + calib_variable) &&
+        xy_from_uv.second > (xy_from_vw.second - calib_variable) && xy_from_uv.second < (xy_from_vw.second + calib_variable) &&
+        xy_from_uv.first > (xy_from_uw.first - calib_variable) && xy_from_uv.first < (xy_from_uw.first + calib_variable) &&
+        xy_from_uv.second > (xy_from_uw.second - calib_variable) && xy_from_uv.second < (xy_from_uw.second + calib_variable)/*  &&
+        xy_from_vw.first > (xy_from_uw.first - calib_variable) && xy_from_vw.first < (xy_from_uw.first + calib_variable) &&
+        xy_from_vw.second > (xy_from_uw.second - calib_variable) && xy_from_vw.second < (xy_from_uw.second + calib_variable) */ &&
+        xy_from_uv.first > -3 && xy_from_uv.first < 110 && xy_from_uv.second > -3 && xy_from_uv.second < 110) ? 1 : 0;
 
-
-
-    return 0;
+    
 }
 
 
 
 
+
+/**
+ * @brief Returns the vector contining the x, y and z values calculated.
+ * 
+ * @return std::vector<dataXYZ> the vector containing the x, y and z values of the points.
+ */
 std::vector<dataXYZ> convertXYZ::returnXYZ()
 {
 
     return m_points_xyz;
 
 }
+
+
+
+
+
+
+
+
+
+std::pair<double, double> convertXYZ::calculateXYfromUV_V2(int strip_u, int strip_v)
+{
+
+    std::pair<double, double> xy_from_uv;
+
+
+    const auto deg30 = 30. * TMath::Pi() / 180.;
+    const auto slopeV = tan(-deg30);
+    const auto pitchV = 1.5 / cos(deg30);
+    const auto yV = 4.33 + (pitchV * strip_v);
+    
+    auto x = 106.5 - (strip_u * 1.5);
+    auto y = x * slopeV + yV;
+    xy_from_uv = {x, y};
+
+
+
+    return xy_from_uv;
+
+}
+
+std::pair<double, double> convertXYZ::calculateXYfromVW_V2(int strip_v, int strip_w)
+{
+    
+    std::pair<double, double> xy_from_vw;
+
+
+
+
+    const auto deg30 = 30. * TMath::Pi() / 180.;
+    const auto slopeV = tan(-deg30);
+    const auto pitchV = 1.5 / cos(deg30);
+    const auto yV = 4.33 + (pitchV * strip_v);
+    
+    const auto slopeW = tan(deg30);
+    const auto pitchW = 1.5 / cos(deg30);
+    const auto yW = 99.593 - (pitchW * strip_w);
+
+    auto x = (yW - yV) / (slopeV - slopeW);
+    auto y = x * slopeV + yV;
+    
+    xy_from_vw = {x, y};
+
+    return xy_from_vw;
+
+}
+
+
+
+
+std::pair<double, double> convertXYZ::calculateXYfromUW_V2(int strip_u, int strip_w)
+{
+
+    std::pair<double, double> xy_from_uw;
+
+
+
+    const auto deg30 = 30. * TMath::Pi() / 180.;
+    const auto slopeW = tan(deg30);
+    const auto pitchW = 1.5 / cos(deg30);
+    const auto yW = 99.593 - (pitchW * strip_w);
+    
+    auto x = 106.5 - (strip_u * 1.5);
+    auto y = x * slopeW + yW;
+    xy_from_uw = {x, y};
+
+
+
+    return xy_from_uw;
+
+}
+
+
+

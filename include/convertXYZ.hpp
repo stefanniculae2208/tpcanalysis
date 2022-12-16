@@ -65,6 +65,12 @@ class convertXYZ
 
 
 
+    std::pair<double, double> calculateXYfromUV_V2(int strip_u, int strip_v);
+    std::pair<double, double> calculateXYfromVW_V2(int strip_v, int strip_w);
+    std::pair<double, double> calculateXYfromUW_V2(int strip_u, int strip_w);
+
+
+
 };
 
 

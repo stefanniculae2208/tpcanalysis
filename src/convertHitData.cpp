@@ -69,7 +69,7 @@ std::vector<TH1D*> convertHitData::returnHistData()
  * @param peak_th the threshold for peak detection
  * @return int error codes
  */
-int convertHitData::getHitInfo(Double_t peak_th = (double)50)
+int convertHitData::getHitInfo(Double_t peak_th)
 {
 
     auto loc_canv = new TCanvas("canvas from hit info", "hit info canvas");
@@ -162,6 +162,7 @@ int convertHitData::getHitInfo(Double_t peak_th = (double)50)
             gaus_and_pol0->SetParameter((3*i+1), peaks_y.at(i));
             gaus_and_pol0->SetParameter((3*i+2), peaks_x.at(i));
             gaus_and_pol0->SetParameter((3*i+3), 10);
+            gaus_and_pol0->SetParLimits((3*i+3), 0, 1000);
         }
 
         hist_iter->Fit("gaus_and_pol0", "Q");
@@ -176,7 +177,7 @@ int convertHitData::getHitInfo(Double_t peak_th = (double)50)
 
             curr_point.peak_x = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+2));
             curr_point.peak_y = hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+1));
-            curr_point.fwhm = 2.355 * abs(hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+3)));
+            curr_point.fwhm = 2.355 * hist_iter->GetFunction("gaus_and_pol0")->GetParameter((3*i+3));
             curr_point.plane = m_uvw_data.at(curr_iter).plane_val;
             curr_point.strip = m_uvw_data.at(curr_iter).strip_nr;
             curr_point.entry_nr = m_uvw_data.at(curr_iter).entry_nr;

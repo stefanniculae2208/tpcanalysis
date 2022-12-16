@@ -47,39 +47,61 @@ std::vector<hitPoints> generateHitData()
     loc_hit.peak_y = 100;
     loc_hit.entry_nr = 66;
     loc_hit.base_line= 50;
-    loc_hit.fwhm = 3;
+    loc_hit.fwhm = 25;
 
 
     
     
     loc_hit.plane = 0;
 
-    for(auto i = 7; i < 68; i+=2){
+    double j = 1;
 
+    for(auto i = 67; i > 6; i-=2){
 
+        loc_hit.peak_x = j;
+        j+=9;
 
-            loc_hit.strip = i;
+        loc_hit.strip = i;
 
-            hit_vect.push_back(loc_hit);
-
+        hit_vect.push_back(loc_hit);
 
     }
+
+    /* for(auto i = 1; i < 513; i += 15){
+
+        loc_hit.peak_x = i;
+        loc_hit.strip = 31;
+        hit_vect.push_back(loc_hit);
+
+    } */
 
 
 
 
 
     loc_hit.plane = 1;
+    j = 1;
 
     for(auto i = 62; i < 93; i++){
 
+        loc_hit.peak_x = j;
+        j+=9;
 
 
-            loc_hit.strip = i;
 
-            hit_vect.push_back(loc_hit);
+        loc_hit.strip = i;
+
+        hit_vect.push_back(loc_hit);
 
     }
+
+    /* for(auto i = 1; i < 513; i += 15){
+
+        loc_hit.peak_x = i;
+        loc_hit.strip = 65;
+        hit_vect.push_back(loc_hit);
+
+    } */
 
 
 
@@ -87,16 +109,29 @@ std::vector<hitPoints> generateHitData()
 
     loc_hit.plane = 2;
 
+    j = 1;
+
     for(auto i = 1; i < 31; i++){
 
+        loc_hit.peak_x = j;
+        j+=9;
 
 
-            loc_hit.strip = i;
 
-            hit_vect.push_back(loc_hit);
+        loc_hit.strip = i;
+
+        hit_vect.push_back(loc_hit);
 
 
     }
+
+/*     for(auto i = 1; i < 513; i += 15){
+
+        loc_hit.peak_x = i;
+        loc_hit.strip = 30;
+        hit_vect.push_back(loc_hit);
+
+    } */
 
         
         
@@ -831,37 +866,34 @@ void test_hitdata()
 
 
 
-    double x_u[10000];
-    double y_u[10000];
-    int nr_points_u = 0;
+    std::vector<double> x_u;
+    std::vector<double> y_u;
 
-    double x_v[10000];
-    double y_v[10000];
-    int nr_points_v = 0;
+    std::vector<double> x_v;
+    std::vector<double> y_v;
 
-    double x_w[10000];
-    double y_w[10000];
-    int nr_points_w = 0;
+    std::vector<double> x_w;
+    std::vector<double> y_w;
+
+    
 
     for(auto hit_iter : data_container.hit_data){
 
         if(hit_iter.plane == 0){
 
-            x_u[nr_points_u] = hit_iter.peak_x;
-            y_u[nr_points_u] = hit_iter.strip;
-            nr_points_u++;
+            x_u.push_back(hit_iter.peak_x);
+            y_u.push_back(hit_iter.strip);
+
 
         }else if(hit_iter.plane == 1){
 
-            x_v[nr_points_v] = hit_iter.peak_x;
-            y_v[nr_points_v] = hit_iter.strip;
-            nr_points_v++;
+            x_v.push_back(hit_iter.peak_x);
+            y_v.push_back(hit_iter.strip);
 
         }else if(hit_iter.plane == 2){
 
-            x_w[nr_points_w] = hit_iter.peak_x;
-            y_w[nr_points_w] = hit_iter.strip;
-            nr_points_w++;
+            x_w.push_back(hit_iter.peak_x);
+            y_w.push_back(hit_iter.strip);
 
         }
 
@@ -872,21 +904,22 @@ void test_hitdata()
 
 
 
-    auto u_graph = new TGraph(nr_points_u, x_u, y_u);
+
+    auto u_graph = new TGraph(x_u.size(), x_u.data(), y_u.data());
     TAxis *u_axis = u_graph->GetXaxis();
     u_axis->SetLimits(-1,512);
     u_graph->SetMarkerColor(kBlue);
     u_graph->SetMarkerStyle(kFullCircle);
     loc_pad->cd(4);u_graph->Draw("AP");
 
-    auto v_graph = new TGraph(nr_points_v, x_v, y_v);
+    auto v_graph = new TGraph(x_v.size(), x_v.data(), y_v.data());
     TAxis *v_axis = v_graph->GetXaxis();
     v_axis->SetLimits(-1,512);
     v_graph->SetMarkerColor(kBlue);
     v_graph->SetMarkerStyle(kFullCircle);
     loc_pad->cd(5);v_graph->Draw("AP");
 
-    auto w_graph = new TGraph(nr_points_w, x_w, y_w);
+    auto w_graph = new TGraph(x_w.size(), x_w.data(), y_w.data());
     TAxis *w_axis = w_graph->GetXaxis();
     w_axis->SetLimits(-1,512);
     w_graph->SetMarkerColor(kBlue);
@@ -990,17 +1023,17 @@ void test_convertXYZ(int entry_nr = 210, double peak_th = 50)
  
 
 
-    double x[100000], y[100000], z[100000];
+    std::vector<double> x, y, z;
     
-    int nr_points = 0;
+
 
     for(auto point_iter : data_container.xyz_data){
 
-        x[nr_points] = point_iter.data_x;
-        y[nr_points] = point_iter.data_y;
-        z[nr_points] = point_iter.data_z;
+        x.push_back(point_iter.data_x);
+        y.push_back(point_iter.data_y);
+        z.push_back(point_iter.data_z);
 
-        nr_points++;
+ 
 
     }
 
@@ -1016,14 +1049,14 @@ void test_convertXYZ(int entry_nr = 210, double peak_th = 50)
 
 
 
-    auto p_graph = new TGraph(nr_points, x, y);
+    auto p_graph = new TGraph(x.size(), x.data(), y.data());
     p_graph->SetMarkerColor(kBlue);
     p_graph->SetMarkerStyle(kFullCircle);
     loc_pad->cd(1);p_graph->Draw("AP");
    //loc_canv->Update();
     //loc_canv->Print("peaksxyv2.png");
 
-    auto p_graph3d = new TGraph2D(nr_points, x, y, z);
+    auto p_graph3d = new TGraph2D(x.size(), x.data(), y.data(), z.data());
     p_graph3d->SetMarkerColor(kRed);
     p_graph3d->SetMarkerStyle(kFullCircle);
     loc_pad->cd(2); p_graph3d->Draw("P0");
@@ -1195,22 +1228,23 @@ void test_convert_multiple_entries()
 
     for(auto loc_data_storage : data_cont_vect){
 
-        double x[10000], y[10000], z[10000];
-    
-        int nr_points = 0;
+        std::vector<double> x, y, z;
+
+        
+
 
         for(auto point_iter : loc_data_storage.xyz_data){
 
-            x[nr_points] = point_iter.data_x;
-            y[nr_points] = point_iter.data_y;
-            z[nr_points] = point_iter.data_z;
+            x.push_back(point_iter.data_x);
+            y.push_back(point_iter.data_y);
+            z.push_back(point_iter.data_z);
 
-            nr_points++;
+    
 
         }
 
         auto p_graph3d = new TGraph2D(Form("Graph%d", loc_data_storage.root_raw_data.at(0).entry_nr),
-                            Form("Graph for %d", loc_data_storage.root_raw_data.at(0).entry_nr), nr_points, x, y, z);
+                            Form("Graph for %d", loc_data_storage.root_raw_data.at(0).entry_nr), x.size(), x.data(), y.data(), z.data());
         p_graph3d->SetMarkerColor(kBlue);
         p_graph3d->SetMarkerStyle(kFullCircle);
         p_graph3d->Draw("P0");
@@ -1260,6 +1294,7 @@ void test_unitXYZ()
     data_container.hit_data = generateHitData();
 
 
+
     convertXYZ loc_conv_xyz(data_container.hit_data);
 
 
@@ -1273,17 +1308,17 @@ void test_unitXYZ()
 
 
 
-    double x[100000], y[100000], z[100000];
+    std::vector<double> x, y, z;
     
-    int nr_points = 0;
+
 
     for(auto point_iter : data_container.xyz_data){
 
-        x[nr_points] = point_iter.data_x;
-        y[nr_points] = point_iter.data_y;
-        z[nr_points] = point_iter.data_z;
+        x.push_back(point_iter.data_x);
+        y.push_back(point_iter.data_y);
+        z.push_back(point_iter.data_z);
 
-        nr_points++;
+ 
 
     }
 
@@ -1299,57 +1334,53 @@ void test_unitXYZ()
 
 
 
-    auto p_graph = new TGraph(nr_points, x, y);
+    auto p_graph = new TGraph(x.size(), x.data(), y.data());
     TAxis *px_axis = p_graph->GetXaxis();
     px_axis->SetLimits(-1,150);
     p_graph->GetHistogram()->SetMaximum(150);
     p_graph->GetHistogram()->SetMinimum(-1);
     p_graph->SetMarkerColor(kBlue);
     p_graph->SetMarkerStyle(kFullCircle);
+    p_graph->SetTitle("XY coordinates projection; X axis; Y axis");
     loc_pad->cd(1);p_graph->Draw("AP");
 
 
-    auto p_graph3d = new TGraph2D(nr_points, x, y, z);
+    auto p_graph3d = new TGraph2D(x.size(), x.data(), y.data(), z.data());
     p_graph3d->SetMarkerColor(kRed);
     p_graph3d->SetMarkerStyle(kFullCircle);
+    p_graph3d->SetTitle("Reconstructed data in XYZ coordinates; X axis; Y axis; Z axis");
     loc_pad->cd(2); p_graph3d->Draw("P0");
 
 
 
+    std::vector<double> x_u;
+    std::vector<double> y_u;
 
+    std::vector<double> x_v;
+    std::vector<double> y_v;
 
+    std::vector<double> x_w;
+    std::vector<double> y_w;
 
-    double x_u[100000];
-    double y_u[100000];
-    int nr_points_u = 0;
-
-    double x_v[100000];
-    double y_v[100000];
-    int nr_points_v = 0;
-
-    double x_w[100000];
-    double y_w[100000];
-    int nr_points_w = 0;
+    
 
     for(auto hit_iter : data_container.hit_data){
 
         if(hit_iter.plane == 0){
 
-            x_u[nr_points_u] = hit_iter.peak_x;
-            y_u[nr_points_u] = hit_iter.strip;
-            nr_points_u++;
+            x_u.push_back(hit_iter.peak_x);
+            y_u.push_back(hit_iter.strip);
+
 
         }else if(hit_iter.plane == 1){
 
-            x_v[nr_points_v] = hit_iter.peak_x;
-            y_v[nr_points_v] = hit_iter.strip;
-            nr_points_v++;
+            x_v.push_back(hit_iter.peak_x);
+            y_v.push_back(hit_iter.strip);
 
         }else if(hit_iter.plane == 2){
 
-            x_w[nr_points_w] = hit_iter.peak_x;
-            y_w[nr_points_w] = hit_iter.strip;
-            nr_points_w++;
+            x_w.push_back(hit_iter.peak_x);
+            y_w.push_back(hit_iter.strip);
 
         }
 
@@ -1360,31 +1391,34 @@ void test_unitXYZ()
 
 
 
-    auto u_graph = new TGraph(nr_points_u, x_u, y_u);
+    auto u_graph = new TGraph(x_u.size(), x_u.data(), y_u.data());
     TAxis *u_axis = u_graph->GetXaxis();
     u_axis->SetLimits(-1,512);
     u_graph->GetHistogram()->SetMaximum(73);
     u_graph->GetHistogram()->SetMinimum(0);
     u_graph->SetMarkerColor(kBlue);
     u_graph->SetMarkerStyle(kFullCircle);
+    u_graph->SetTitle("Hits detected on U plane; Time; Strip");
     loc_pad->cd(4);u_graph->Draw("AP");
 
-    auto v_graph = new TGraph(nr_points_v, x_v, y_v);
+    auto v_graph = new TGraph(x_v.size(), x_v.data(), y_v.data());
     TAxis *v_axis = v_graph->GetXaxis();
     v_axis->SetLimits(-1,512);
     v_graph->GetHistogram()->SetMaximum(93);
     v_graph->GetHistogram()->SetMinimum(0);
     v_graph->SetMarkerColor(kBlue);
     v_graph->SetMarkerStyle(kFullCircle);
+    v_graph->SetTitle("Hits detected on V plane; Time; Strip");
     loc_pad->cd(5);v_graph->Draw("AP");
 
-    auto w_graph = new TGraph(nr_points_w, x_w, y_w);
+    auto w_graph = new TGraph(x_w.size(), x_w.data(), y_w.data());
     TAxis *w_axis = w_graph->GetXaxis();
     w_axis->SetLimits(-1,512);
     w_graph->GetHistogram()->SetMaximum(93);
     w_graph->GetHistogram()->SetMinimum(0);
     w_graph->SetMarkerColor(kBlue);
     w_graph->SetMarkerStyle(kFullCircle);
+    w_graph->SetTitle("Hits detected on W plane; Time; Strip");
     loc_pad->cd(6);w_graph->Draw("AP");
 
 
