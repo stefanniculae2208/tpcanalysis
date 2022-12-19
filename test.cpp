@@ -1346,6 +1346,10 @@ void test_unitXYZ()
 
 
     auto p_graph3d = new TGraph2D(x.size(), x.data(), y.data(), z.data());
+    TAxis *px_axis3d = p_graph3d->GetXaxis();
+    TAxis *py_axis3d = p_graph3d->GetYaxis();
+    px_axis3d->SetRangeUser(-1,150);
+    py_axis3d->SetRangeUser(-1,150);
     p_graph3d->SetMarkerColor(kRed);
     p_graph3d->SetMarkerStyle(kFullCircle);
     p_graph3d->SetTitle("Reconstructed data in XYZ coordinates; X axis; Y axis; Z axis");
@@ -1500,15 +1504,19 @@ void test()
     //test_loadData();
     //test_convertUVW();
     //test_viewdata();
-    //test_convertXYZ(271, 100);
+
+    //271 100
+    //test_convertXYZ(210, 50);
+
+
     //test_convert_multiple_entries();
     //test_convert_to_csv();
 
 
 
 
-    //test_hitdata();
-    test_unitXYZ();
+    test_hitdata();
+    //test_unitXYZ();
 
 
 

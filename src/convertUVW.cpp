@@ -138,6 +138,12 @@ int convertUVW::makeConversion()
 
 
 
+
+
+
+
+
+
 /**
  * @brief Substracts the baseline from the signal.
  * The baseline is calculated as the mean of the first 64 bins from the signal.

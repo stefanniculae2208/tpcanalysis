@@ -80,7 +80,7 @@ void convertXYZ::sortHitData()
 {
 
     struct{
-        bool operator()(hitPoints a, hitPoints b)const{return a.peak_x < b.peak_x;}
+        bool operator()(hitPoints &a, hitPoints &b)const{return a.peak_x < b.peak_x;}
     }lessHPI;
 
 
@@ -171,8 +171,8 @@ void convertXYZ::compareXY()
                     std::cout<<" X: "<<xy_from_uv.first<<" Y: "<<xy_from_uv.second<<"\n"; */
 
                     dataXYZ loc_xyz;
-                    loc_xyz.data_x = xy_from_uv.first;
-                    loc_xyz.data_y = xy_from_uv.second;
+                    loc_xyz.data_x = (xy_from_uv.first + xy_from_vw.first + xy_from_uw.first)/3;
+                    loc_xyz.data_y = (xy_from_uv.second + xy_from_vw.second + xy_from_uw.second)/3;
                     loc_xyz.data_z = drift_vel * time_unit * m_hit_data.at(i).peak_x;
                     loc_xyz.data_charge = m_hit_data.at(i).peak_y + m_hit_data.at(j).peak_y + m_hit_data.at(k).peak_y;
 
@@ -205,12 +205,16 @@ std::pair<double, double> convertXYZ::calculateXYfromUV(int strip_u, int strip_v
 
     std::pair<double, double> xy_from_uv;
 
-    double y_part_from_v = 4.33 + (strip_v - 1) * (1.5 / cos(M_PI/6));
+    //0.866 is cos(M_PI/6)
+    double y_part_from_v = 4.33 + (strip_v - 1) * (1.5 / 0.866);
 
     //106.5 is the width on x of the plate. 1.5 is the distance between strips
     //since the strips are between 1 and 72 we substract 1 so the first strip is at 106.5 and the last is at 0
     xy_from_uv.first = 106.5 - ((strip_u - 1) * 1.5);
-    xy_from_uv.second = tan(-M_PI/6) * xy_from_uv.first + y_part_from_v;
+
+
+    //-0.577 is tan(-M_PI/6)
+    xy_from_uv.second = -0.577 * xy_from_uv.first + y_part_from_v;
 
 
 
@@ -232,11 +236,13 @@ std::pair<double, double> convertXYZ::calculateXYfromVW(int strip_v, int strip_w
     
     std::pair<double, double> xy_from_vw;
 
-    double y_part_from_v = 4.33 + (strip_v - 1) * (1.5 / cos(M_PI/6));
-    double y_part_from_w = 100.459 - (strip_w - 1) * (1.5 / cos(M_PI/6));
 
+    //0.866 is cos(M_PI/6)
+    double y_part_from_v = 4.33 + (strip_v - 1) * (1.5 / 0.866);
+    double y_part_from_w = 100.459 - (strip_w - 1) * (1.5 / 0.866);
 
-    xy_from_vw.first = (y_part_from_w - y_part_from_v) / (tan(-M_PI/6) - tan(M_PI/6));
+    //0.577 is tan(M_PI/6) and -0.577 is tan(-M_PI/6)
+    xy_from_vw.first = (y_part_from_w - y_part_from_v) / (-0.577 - 0.577);
     xy_from_vw.second = tan(-M_PI/6) * xy_from_vw.first + y_part_from_v;
     
 
@@ -259,13 +265,14 @@ std::pair<double, double> convertXYZ::calculateXYfromUW(int strip_u, int strip_w
 
     std::pair<double, double> xy_from_uw;
 
-
-    double y_part_from_w = 100.459 - (strip_w - 1) * (1.5 / cos(M_PI/6));
+    //0.866 is cos(M_PI/6)
+    double y_part_from_w = 100.459 - (strip_w - 1) * (1.5 / 0.866);
 
 
     xy_from_uw.first = 106.5 - ((strip_u - 1) * 1.5);
 
-    xy_from_uw.second = tan(M_PI/6) * xy_from_uw.first + y_part_from_w;
+    //0.577 is tan(M_PI/6)
+    xy_from_uw.second = 0.577 * xy_from_uw.first + y_part_from_w;
 
 
 
