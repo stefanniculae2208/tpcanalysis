@@ -159,9 +159,9 @@ void convertXYZ::compareXY()
                 std::pair<double, double> xy_from_vw;
                 std::pair<double, double> xy_from_uw;
 
-                xy_from_uv = calculateXYfromUV_V2(m_hit_data.at(i).strip, m_hit_data.at(j).strip);
-                xy_from_vw = calculateXYfromVW_V2(m_hit_data.at(j).strip, m_hit_data.at(k).strip);
-                xy_from_uw = calculateXYfromUW_V2(m_hit_data.at(i).strip, m_hit_data.at(k).strip);
+                xy_from_uv = calculateXYfromUV(m_hit_data.at(i).strip, m_hit_data.at(j).strip);
+                xy_from_vw = calculateXYfromVW(m_hit_data.at(j).strip, m_hit_data.at(k).strip);
+                xy_from_uw = calculateXYfromUW(m_hit_data.at(i).strip, m_hit_data.at(k).strip);
 
 
                 if(evaluatePointsEquality(xy_from_uv, xy_from_vw, xy_from_uw)){
@@ -320,7 +320,7 @@ std::vector<dataXYZ> convertXYZ::returnXYZ()
 
 
 
-
+/* 
 
 
 
@@ -400,3 +400,4 @@ std::pair<double, double> convertXYZ::calculateXYfromUW_V2(int strip_u, int stri
 
 
 
+ */

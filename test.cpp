@@ -47,7 +47,7 @@ std::vector<hitPoints> generateHitData()
     loc_hit.peak_y = 100;
     loc_hit.entry_nr = 66;
     loc_hit.base_line= 50;
-    loc_hit.fwhm = 25;
+    loc_hit.fwhm = 5;
 
 
     
