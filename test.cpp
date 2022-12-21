@@ -678,7 +678,7 @@ void test_viewdata()
 
 
 
-    for(auto i_entries = 0; i_entries < data_container.n_entries; i_entries++){
+    for(auto i_entries = 0; i_entries < 1/* data_container.n_entries */; i_entries++){
 
 
         TH2D *u_hists = map_u.at(210 + i_entries);
@@ -1599,10 +1599,10 @@ void test()
 
     //test_loadData();
     //test_convertUVW();
-    //test_viewdata();
+    test_viewdata();
 
     //271 100 sau 210 50
-    test_convertXYZ(210, 50);
+    //test_convertXYZ(210, 50);
 
 
     //test_convert_multiple_entries();
