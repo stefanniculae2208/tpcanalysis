@@ -137,6 +137,75 @@ int convertUVW::makeConversion()
 
 
 
+/**
+ * @brief Calculates the charge for each time bin. The charge is calculated by adding the charge from each strip on each plane
+ * for the same time bin. 
+ * 
+ */
+void convertUVW::calculateChargeHist()
+{
+
+    std::array<double, 512> charge_val;
+
+    m_charge_hist = new TH1D("Charge_hist", "Charge histogram", 512, 1, 512);
+
+    charge_val.fill(0);
+
+    for(auto &data_el : m_uvw_vec){
+
+        for(auto i = 0; static_cast<std::vector<double>::size_type>(i) < data_el.signal_val.size(); i++){
+
+            if(i > 511){
+                std::cout<<"Error: signal has more than 512 bins.\n";
+                break;
+            }
+            charge_val.at(i) += data_el.signal_val.at(i);
+
+        }
+
+    }
+
+    for(auto i = 0; static_cast<std::vector<double>::size_type>(i) < charge_val.size(); i++){
+
+        m_charge_hist->SetBinContent(i, charge_val.at(i));
+
+    }
+
+}
+
+
+
+
+/**
+ * @brief Draws the histogram of the charge added on each time bin.
+ * 
+ * @return int error codes
+ */
+int convertUVW::drawChargeHist()
+{
+
+    if(m_charge_hist == nullptr){
+
+        calculateChargeHist();
+
+    }
+    
+
+    if(m_charge_hist->GetEntries() == 0){
+        return -3;
+    }
+
+    auto *charge_canv = new TCanvas("Charge_canvas", "Charge_canvas");
+
+    m_charge_hist->Draw();
+
+    charge_canv->Update();
+
+    return 0;
+
+}
+
+
 
 
 
@@ -160,6 +229,11 @@ int convertUVW::substractBl()
 
     if(m_uvw_vec.size() < sampleRegion)
         return -3;//invalid size
+
+
+    calculateChargeHist();
+
+
 
 
     for(auto &data_el : m_uvw_vec){
@@ -258,10 +332,10 @@ int convertUVW::convertToCSV(std::string file_name)
 
         out_file << data_entry.plane_val << "," << data_entry.strip_nr << "," << data_entry.entry_nr << ",";
 
-        for(auto i = 0; i < data_entry.signal_val.size(); i++){
+        for(auto i = 0; static_cast<std::vector<double>::size_type>(i) < data_entry.signal_val.size(); i++){
 
             out_file << data_entry.signal_val[i];
-            if (i < data_entry.signal_val.size() - 1) {
+            if (static_cast<std::vector<double>::size_type>(i) < data_entry.signal_val.size() - 1) {
                 out_file << ",";
             }
 

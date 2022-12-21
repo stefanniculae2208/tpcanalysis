@@ -992,6 +992,13 @@ void test_convertXYZ(int entry_nr = 210, double peak_th = 50)
         std::cout<<"Substractbl error code "<<err<<std::endl;
 
 
+    err = loc_conv_uvw.drawChargeHist();
+
+    if(err != 0)
+        std::cout<<"Draw Charge Hist error code "<<err<<std::endl;
+
+
+
     data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
 
@@ -1042,7 +1049,7 @@ void test_convertXYZ(int entry_nr = 210, double peak_th = 50)
 
     auto loc_canv = new TCanvas("xy format v2", "Peaks in XY v2");
     auto loc_pad = new TPad("pad name", "pad title", 0,0,1,1);
-    loc_pad->Divide(3, 2, 0.01, 0.01);
+    loc_pad->Divide(3, 3, 0.01, 0.01);
     loc_pad->Draw();
 
 
@@ -1052,13 +1059,15 @@ void test_convertXYZ(int entry_nr = 210, double peak_th = 50)
     auto p_graph = new TGraph(x.size(), x.data(), y.data());
     p_graph->SetMarkerColor(kBlue);
     p_graph->SetMarkerStyle(kFullCircle);
+    p_graph->SetTitle("XY coordinates projection; X axis; Y axis");
     loc_pad->cd(1);p_graph->Draw("AP");
-   //loc_canv->Update();
+    //loc_canv->Update();
     //loc_canv->Print("peaksxyv2.png");
 
     auto p_graph3d = new TGraph2D(x.size(), x.data(), y.data(), z.data());
     p_graph3d->SetMarkerColor(kRed);
     p_graph3d->SetMarkerStyle(kFullCircle);
+    p_graph3d->SetTitle("Reconstructed data in XYZ coordinates; X axis; Y axis; Z axis");
     loc_pad->cd(2); p_graph3d->Draw("P0");
     //loc_canv->Update();
     //loc_canv->Print("peaksxyz.png");
@@ -1121,6 +1130,93 @@ void test_convertXYZ(int entry_nr = 210, double peak_th = 50)
     loc_pad->cd(4); u_hists->Draw("COLZ");
     loc_pad->cd(5); v_hists->Draw("COLZ");
     loc_pad->cd(6); w_hists->Draw("COLZ");
+
+
+
+
+
+
+    std::vector<double> x_u;
+    std::vector<double> y_u;
+
+    std::vector<double> x_v;
+    std::vector<double> y_v;
+
+    std::vector<double> x_w;
+    std::vector<double> y_w;
+
+    
+
+    for(auto hit_iter : data_container.hit_data){
+
+        if(hit_iter.plane == 0){
+
+            x_u.push_back(hit_iter.peak_x);
+            y_u.push_back(hit_iter.strip);
+
+
+        }else if(hit_iter.plane == 1){
+
+            x_v.push_back(hit_iter.peak_x);
+            y_v.push_back(hit_iter.strip);
+
+        }else if(hit_iter.plane == 2){
+
+            x_w.push_back(hit_iter.peak_x);
+            y_w.push_back(hit_iter.strip);
+
+        }
+
+    }
+
+
+
+
+
+
+    auto u_graph = new TGraph(x_u.size(), x_u.data(), y_u.data());
+    TAxis *u_axis = u_graph->GetXaxis();
+    u_axis->SetLimits(-1,512);
+    u_graph->GetHistogram()->SetMaximum(73);
+    u_graph->GetHistogram()->SetMinimum(0);
+    u_graph->SetMarkerColor(kBlue);
+    u_graph->SetMarkerStyle(kFullCircle);
+    u_graph->SetTitle("Hits detected on U plane; Time; Strip");
+    loc_pad->cd(7);u_graph->Draw("AP");
+
+    auto v_graph = new TGraph(x_v.size(), x_v.data(), y_v.data());
+    TAxis *v_axis = v_graph->GetXaxis();
+    v_axis->SetLimits(-1,512);
+    v_graph->GetHistogram()->SetMaximum(93);
+    v_graph->GetHistogram()->SetMinimum(0);
+    v_graph->SetMarkerColor(kBlue);
+    v_graph->SetMarkerStyle(kFullCircle);
+    v_graph->SetTitle("Hits detected on V plane; Time; Strip");
+    loc_pad->cd(8);v_graph->Draw("AP");
+
+    auto w_graph = new TGraph(x_w.size(), x_w.data(), y_w.data());
+    TAxis *w_axis = w_graph->GetXaxis();
+    w_axis->SetLimits(-1,512);
+    w_graph->GetHistogram()->SetMaximum(93);
+    w_graph->GetHistogram()->SetMinimum(0);
+    w_graph->SetMarkerColor(kBlue);
+    w_graph->SetMarkerStyle(kFullCircle);
+    w_graph->SetTitle("Hits detected on W plane; Time; Strip");
+    loc_pad->cd(9);w_graph->Draw("AP");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     loc_canv->Update();
 
 
@@ -1505,8 +1601,8 @@ void test()
     //test_convertUVW();
     //test_viewdata();
 
-    //271 100
-    //test_convertXYZ(210, 50);
+    //271 100 sau 210 50
+    test_convertXYZ(210, 50);
 
 
     //test_convert_multiple_entries();
@@ -1515,7 +1611,7 @@ void test()
 
 
 
-    test_hitdata();
+    //test_hitdata();
     //test_unitXYZ();
 
 

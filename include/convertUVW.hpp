@@ -16,6 +16,7 @@
 
 #include "TSpectrum.h"
 #include "TH1.h"
+#include "TCanvas.h"
 
 
 
@@ -46,6 +47,7 @@ class convertUVW
     int substractBl();
     int convertToCSV(std::string file_name);
     std::vector<dataUVW> returnDataUVW();
+    int drawChargeHist();
 
 
 
@@ -53,6 +55,10 @@ class convertUVW
     std::map<std::pair<int, int>, std::pair<GEM, int>> fPositionMap;
     std::vector<rawData> m_data_vec;
     std::vector<dataUVW> m_uvw_vec;
+    TH1D *m_charge_hist = nullptr;
+
+
+    void calculateChargeHist();
 
     
 
