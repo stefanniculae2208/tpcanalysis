@@ -59,6 +59,7 @@ class convertUVW
 
 
     void calculateChargeHist();
+    void smoothSignal(std::vector<double> &v);
 
     
 

@@ -214,8 +214,9 @@ int convertUVW::drawChargeHist()
 
 
 /**
- * @brief Substracts the baseline from the signal.
- * The baseline is calculated as the mean of the first 64 bins from the signal.
+ * @brief Substracts the baseline from the signal and smooths the signal using the rolling average algorithm.
+ * OLD: The baseline is calculated as the mean of the first 64 bins from the signal.
+ * NEW: The baseline is now the smallest non 0 element in the vector.
  * 
  * @return int error codes
  */
@@ -224,7 +225,7 @@ int convertUVW::substractBl()
 
     const int sampleRegion = 64;
 
-    double baseline;
+    double baseline = 0;
 
 
     if(m_uvw_vec.size() < sampleRegion)
@@ -240,13 +241,21 @@ int convertUVW::substractBl()
 
         baseline = 0;
 
-        for(auto i = 0; i < sampleRegion; i++){
+
+
+
+        /* for(auto i = 0; i < sampleRegion; i++){
 
             baseline += data_el.signal_val.at(i);
 
         }
 
-        baseline /= sampleRegion;
+        baseline /= sampleRegion; */
+
+        auto start_iter = std::next(data_el.signal_val.begin(), 20);
+        baseline = *std::min_element(start_iter, data_el.signal_val.end(), [](int a, int b) {
+                        return (a > 0 && b > 0) ? (a < b) : (a > b);
+                    });
 
 
         for(auto &sig_el : data_el.signal_val){
@@ -258,6 +267,10 @@ int convertUVW::substractBl()
                 sig_el = 0;
 
         }
+
+
+        smoothSignal(data_el.signal_val);
+
 
 
         for(auto i = 500; i<512; i++){
@@ -352,6 +365,32 @@ int convertUVW::convertToCSV(std::string file_name)
     out_file.close();
 
     return 0;
+
+}
+
+
+
+
+/**
+ * @brief Smooths the signal using the rolling average algorithm.
+ * 
+ * @param v the signal to be smoothed
+ * @return std::vector<double> the smoothed signal
+ */
+void convertUVW::smoothSignal(std::vector<double> &v)
+{
+    int window_size = 8;
+
+
+    for (int i = 0; i < v.size(); i++) {
+
+        int start = std::max(0, i - window_size / 2); // Start index of the window
+        int end = std::min(int(v.size()) - 1, i + window_size / 2); // End index of the window
+
+
+        v.at(i) = std::accumulate(&v.at(start), &v.at(end), 0.0) / (end - start); // Average of the elements in the window
+    }
+
 
 }
 

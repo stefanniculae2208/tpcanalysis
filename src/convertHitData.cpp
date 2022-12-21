@@ -65,6 +65,10 @@ std::vector<TH1D*> convertHitData::returnHistData()
  * A function of form ‘pol0+gaus+gaus+...’ is created based on the numbers of peaks found.
  * We use this function to fit the histograms.
  * The parameters obtained from the histogram fitting are saved in the hitData type vector.
+ * OLD: The peak threshold in taken as an input variable.
+ * OLD: The peak threshold is 2.5 times the mean of the signal.
+ * NEW: The peak threshold is not the maximum value between 2.5 times the mean of the signal and
+ * 0.75 times the maximum value of the signal.
  * 
  * @param peak_th the threshold for peak detection
  * @return int error codes
@@ -86,6 +90,9 @@ int convertHitData::getHitInfo(Double_t peak_th)
     int bin = 0;
     int strip = 1;
 
+    std::vector<double> peak_th_vec;
+
+
     for(auto &iter : m_uvw_data){
 
         auto loc_hist = new TH1D(Form("entry%d_hist_at_strip%d_plane%d"
@@ -97,6 +104,15 @@ int convertHitData::getHitInfo(Double_t peak_th)
         }
 
         m_raw_hist_data.push_back(loc_hist);
+
+        //peak_th_vec.push_back(std::accumulate(iter.signal_val.begin(), iter.signal_val.end(), 0.0)/iter.signal_val.size());
+
+        double loc_peak_th = std::max(0.75 * (*std::max_element(iter.signal_val.begin(), iter.signal_val.end())), 
+                                        2.5 * (std::accumulate(iter.signal_val.begin(), iter.signal_val.end(), 0.0)/iter.signal_val.size()));
+
+        peak_th_vec.push_back(loc_peak_th);
+
+
 
         bin = 0;
         strip++;
@@ -129,6 +145,7 @@ int convertHitData::getHitInfo(Double_t peak_th)
         pos_holder_y = spec_analyzer->GetPositionY();
 
 
+
         //find which peaks are good
         std::vector<Double_t> peaks_x;//x of valid peaks
         std::vector<Double_t> peaks_y;//y of valid peaks
@@ -138,7 +155,10 @@ int convertHitData::getHitInfo(Double_t peak_th)
 
 
         for(auto i = 0; i < npeaks; i++){
-            if(pos_holder_y[i] > peak_th){
+            //if(pos_holder_y[i] > peak_th){
+            //if(pos_holder_y[i] > 2.5 * peak_th_vec.at(curr_iter)/* peak_th */){
+            //if(pos_holder_y[i] > 0.75 * peak_th_vec.at(curr_iter)){
+            if(pos_holder_y[i] > peak_th_vec.at(curr_iter)){    
                 peaks_x.push_back(pos_holder_x[i]);
                 peaks_y.push_back(pos_holder_y[i]);
                 nrealpeaks++;

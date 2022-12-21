@@ -478,7 +478,7 @@ void test_convertUVW()
 }
 
 
-void test_viewdata()
+void test_viewdata(double peak_th = 50)
 {
 
 
@@ -547,7 +547,7 @@ void test_viewdata()
 
     convertHitData loc_convert_hit(data_container.uvw_data);
 
-    err = loc_convert_hit.getHitInfo();
+    err = loc_convert_hit.getHitInfo(peak_th);
     if(err != 0)
         std::cout<<"Error get hit info code "<<err<<std::endl;
 
@@ -726,6 +726,10 @@ void test_viewdata()
     //reset message level
     gErrorIgnoreLevel = kPrint;
     print_canv->Print("test_hist01.pdf]");
+
+
+
+    print_canv->Close();
 
 
 
@@ -1599,10 +1603,10 @@ void test()
 
     //test_loadData();
     //test_convertUVW();
-    test_viewdata();
+    //test_viewdata();
 
     //271 100 sau 210 50
-    //test_convertXYZ(210, 50);
+    test_convertXYZ(271, 100);
 
 
     //test_convert_multiple_entries();
