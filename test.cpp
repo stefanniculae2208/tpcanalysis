@@ -1997,7 +1997,7 @@ void view_data_entries()
             u_graph->GetXaxis()->SetLimits(-1, 512);
             u_graph->GetHistogram()->SetMaximum(73);
             u_graph->GetHistogram()->SetMinimum(0);
-            u_graph->SetMarkerColor(kBlue);
+            u_graph->SetMarkerColor(kRed);
             u_graph->SetMarkerStyle(kFullCircle);
             u_graph->SetTitle("Hits detected on U plane; Time; Strip");
             loc_pad->cd(4);u_graph->Draw("AP");
@@ -2007,7 +2007,7 @@ void view_data_entries()
             v_graph->GetXaxis()->SetLimits(-1, 512);
             v_graph->GetHistogram()->SetMaximum(93);
             v_graph->GetHistogram()->SetMinimum(0);
-            v_graph->SetMarkerColor(kBlue);
+            v_graph->SetMarkerColor(kGreen);
             v_graph->SetMarkerStyle(kFullCircle);
             v_graph->SetTitle("Hits detected on V plane; Time; Strip");
             loc_pad->cd(5);v_graph->Draw("AP");
@@ -2055,7 +2055,7 @@ void view_data_entries()
             p_graph->GetXaxis()->SetLimits(-10, 150);
             p_graph->GetHistogram()->SetMaximum(150);
             p_graph->GetHistogram()->SetMinimum(-10);
-            p_graph->SetMarkerColor(kBlue);
+            p_graph->SetMarkerColor(kOrange);
             p_graph->SetMarkerStyle(kFullCircle);
             p_graph->SetTitle("XY coordinates projection; X axis; Y axis");
             loc_pad->cd(7);p_graph->Draw("AP");
@@ -2064,7 +2064,7 @@ void view_data_entries()
             
 
             p_graph3d = new TGraph2D(x.size(), x.data(), y.data(), z.data());
-            p_graph3d->SetMarkerColor(kRed);
+            p_graph3d->SetMarkerColor(kBlack);
             p_graph3d->SetMarkerStyle(kFullCircle);
             p_graph3d->SetTitle("Reconstructed data in XYZ coordinates; X axis; Y axis; Z axis");
             loc_pad->cd(8); p_graph3d->Draw("P0");
