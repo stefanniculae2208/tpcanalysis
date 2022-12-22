@@ -27,6 +27,8 @@ int convertXYZ::getNewVector(std::vector<hitPoints> hit_data)
 
     m_hit_data = hit_data;
 
+    std::vector<dataXYZ>().swap(m_points_xyz);
+
     return 0;
 
 }

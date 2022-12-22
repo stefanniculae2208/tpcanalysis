@@ -27,6 +27,11 @@ int convertHitData::setUVWData(std::vector<dataUVW> uvw_data)
 
 
     m_uvw_data = uvw_data;
+
+    std::vector<hitPoints>().swap(m_hit_data);
+    std::vector<TH1D*>().swap(m_raw_hist_data);
+
+
     return 0;
 
 }
@@ -134,6 +139,8 @@ int convertHitData::getHitInfo(Double_t peak_th)
 
 
 
+
+
     for(auto &hist_iter : m_raw_hist_data){
 
 
@@ -212,9 +219,11 @@ int convertHitData::getHitInfo(Double_t peak_th)
 
 
 
-
+        
 
         curr_iter++;
+
+        
 
 
     }

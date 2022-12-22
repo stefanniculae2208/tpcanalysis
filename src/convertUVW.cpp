@@ -25,6 +25,9 @@ int convertUVW::setRawData(std::vector<rawData> data_vec)
         return -3;
 
     m_data_vec = data_vec;
+    
+    std::vector<dataUVW>().swap(m_uvw_vec);
+
     return 0;
 
 }
