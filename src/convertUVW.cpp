@@ -388,7 +388,7 @@ void convertUVW::smoothSignal(std::vector<double> &v)
     int window_size = 8;
 
 
-    for (int i = 0; i < v.size(); i++) {
+    for (auto i = 0; i < v.size(); i++) {
 
         int start = std::max(0, i - window_size / 2); // Start index of the window
         int end = std::min(int(v.size()) - 1, i + window_size / 2); // End index of the window

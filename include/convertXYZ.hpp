@@ -13,6 +13,16 @@
 #endif
 
 
+#ifndef COS_PIOVER6
+#define COS_PIOVER6 (0.866)
+#endif
+
+#ifndef TAN_PIOVER6
+#define TAN_PIOVER6 (0.577)
+#endif
+
+
+
 #include "TGraph.h"
 #include "TGraph2D.h"
 

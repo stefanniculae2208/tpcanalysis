@@ -342,15 +342,15 @@ std::pair<double, double> convertXYZ::calculateXYfromUV(const int strip_u, const
     std::pair<double, double> xy_from_uv;
 
     //0.866 is cos(M_PI/6)
-    double y_part_from_v = 4.33 + (strip_v - 1) * (1.5 / 0.866);
+    double y_part_from_v = 4.33 + (strip_v - 1) * (1.5 / COS_PIOVER6);
 
     //106.5 is the width on x of the plate. 1.5 is the distance between strips
     //since the strips are between 1 and 72 we substract 1 so the first strip is at 106.5 and the last is at 0
     xy_from_uv.first = 106.5 - ((strip_u - 1) * 1.5);
 
 
-    //-0.577 is tan(-M_PI/6)
-    xy_from_uv.second = -0.577 * xy_from_uv.first + y_part_from_v;
+    //-0.577 is tan(-M_PI/6) which is -tan(M_PI/6)
+    xy_from_uv.second = -TAN_PIOVER6 * xy_from_uv.first + y_part_from_v;
 
 
 
@@ -378,8 +378,8 @@ std::pair<double, double> convertXYZ::calculateXYfromVW(const int strip_v, const
     double y_part_from_w = 100.459 - (strip_w - 1) * (1.5 / 0.866);
 
     //0.577 is tan(M_PI/6) and -0.577 is tan(-M_PI/6)
-    xy_from_vw.first = (y_part_from_w - y_part_from_v) / (-0.577 - 0.577);
-    xy_from_vw.second = tan(-M_PI/6) * xy_from_vw.first + y_part_from_v;
+    xy_from_vw.first = (y_part_from_w - y_part_from_v) / (-TAN_PIOVER6 - TAN_PIOVER6);
+    xy_from_vw.second = (-TAN_PIOVER6) * xy_from_vw.first + y_part_from_v;
     
 
 
@@ -401,14 +401,14 @@ std::pair<double, double> convertXYZ::calculateXYfromUW(const int strip_u, const
 
     std::pair<double, double> xy_from_uw;
 
-    //0.866 is cos(M_PI/6)
-    double y_part_from_w = 100.459 - (strip_w - 1) * (1.5 / 0.866);
+    //0.866 is cos(M_PI/6) and cos(-M_PI/6)
+    double y_part_from_w = 100.459 - (strip_w - 1) * (1.5 / COS_PIOVER6);
 
 
     xy_from_uw.first = 106.5 - ((strip_u - 1) * 1.5);
 
     //0.577 is tan(M_PI/6)
-    xy_from_uw.second = 0.577 * xy_from_uw.first + y_part_from_w;
+    xy_from_uw.second = TAN_PIOVER6 * xy_from_uw.first + y_part_from_w;
 
 
 
