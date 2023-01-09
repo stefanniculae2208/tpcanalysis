@@ -2,6 +2,8 @@
 #define convertHitData_hpp 1
 
 
+#include <numeric>
+
 
 #include "hitPoints.hpp"
 #include "dataUVW.hpp"
@@ -12,6 +14,9 @@
 #include "TF1.h"
 #include "TSystem.h"
 #include "TCanvas.h"
+
+
+
 
 
 

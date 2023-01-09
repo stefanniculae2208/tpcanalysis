@@ -2034,6 +2034,10 @@ void view_data_entries()
         if(data_container.xyz_data.size() != 0){
 
             std::vector<double> x, y, z;
+
+            x.push_back(-10.0);
+            y.push_back(-10.0);
+            z.push_back(-10.0);
     
 
 
@@ -2046,6 +2050,10 @@ void view_data_entries()
         
 
             }
+
+            x.push_back(150.0);
+            y.push_back(150.0);
+            z.push_back(150.0);
 
 
 
@@ -2061,13 +2069,18 @@ void view_data_entries()
             loc_pad->cd(7);p_graph->Draw("AP");
             loc_pad->Modified();
             loc_pad->Update();
+
             
+
+
 
             p_graph3d = new TGraph2D(x.size(), x.data(), y.data(), z.data());
             p_graph3d->SetMarkerColor(kBlue);
             p_graph3d->SetMarkerStyle(kFullCircle);
             p_graph3d->SetTitle("Reconstructed data in XYZ coordinates; X axis; Y axis; Z axis");
             loc_pad->cd(8); p_graph3d->Draw("P0");
+            loc_pad->Modified();
+            loc_pad->Update();
 
 
 

@@ -57,7 +57,11 @@ int convertXYZ::makeConversionXYZ()
     sortHitData();
 
 
-    compareXY();
+
+
+    //compareXY();
+
+    calculateXYZ();
 
 
 
@@ -73,24 +77,29 @@ int convertXYZ::makeConversionXYZ()
 
 
 
+
+
+
+
+
 /**
- * @brief Sorts the data based on the position of the peak on the x axis
- * right now it is not useful, but can be used when optimising the code.
+ * @brief Sorts the hit data based on the plane value.
+ * OLD: Sorts the data based on the position of the peak on the x axis. Right now it is not useful.
  * 
  */
 void convertXYZ::sortHitData()
 {
 
-    struct{
+    /* struct{
         bool operator()(hitPoints &a, hitPoints &b)const{return a.peak_x < b.peak_x;}
-    }lessHPI;
+    }lessHPI; */
+
+    //std::sort(m_hit_data.begin(), m_hit_data.end(), lessHPI);
 
 
 
 
-
-
-    std::sort(m_hit_data.begin(), m_hit_data.end(), lessHPI);
+    std::sort(m_hit_data.begin(), m_hit_data.end(), [](const hitPoints &a, const hitPoints &b) { return a.plane< b.plane; });
 
 }
 
@@ -104,8 +113,133 @@ void convertXYZ::sortHitData()
  * we calculate the Z value from the time information and add the point to our converted vector.
  * 
  */
-void convertXYZ::compareXY()
+void convertXYZ::calculateXYZ()
 {
+
+    //clear the vector
+    std::vector<dataXYZ>().swap(m_points_xyz);
+
+    auto start_u = std::lower_bound(m_hit_data.begin(), m_hit_data.end(), 0, [](const hitPoints& hp, const int v) { return hp.plane < v; });
+    auto end_u = std::upper_bound(m_hit_data.begin(), m_hit_data.end(), 0, [](const int v, const hitPoints& hp) { return v < hp.plane; });
+
+    auto start_v = std::lower_bound(m_hit_data.begin(), m_hit_data.end(), 1, [](const hitPoints& hp, const int v) { return hp.plane < v; });
+    auto end_v = std::upper_bound(m_hit_data.begin(), m_hit_data.end(), 1, [](const int v, const hitPoints& hp) { return v < hp.plane; });
+
+    auto start_w = std::lower_bound(m_hit_data.begin(), m_hit_data.end(), 2, [](const hitPoints& hp, const int v) { return hp.plane < v; });
+    auto end_w = std::upper_bound(m_hit_data.begin(), m_hit_data.end(), 2, [](const int v, const hitPoints& hp) { return v < hp.plane; });
+
+
+    for(auto it_u = start_u; it_u != end_u; ++it_u){
+
+        if(it_u == m_hit_data.end()){
+
+            std::cout<<"Iterator it_u hit end of vector."<<std::endl;
+            break;
+
+        }
+
+
+        for(auto it_v = start_v; it_v != end_v; ++it_v){
+
+            if(it_u == m_hit_data.end()){
+
+                std::cout<<"Iterator it_v hit end of vector."<<std::endl;
+                break;
+
+            }
+
+            //see if the peaks are at the same location, continue if not
+            if(((*it_v).peak_x < ((*it_u).peak_x - (*it_u).fwhm / 2.355)) ||
+             ((*it_v).peak_x > ((*it_u).peak_x + (*it_u).fwhm / 2.355)) ||
+             ((*it_v).plane == (*it_u).plane)){
+
+                continue;
+
+            }
+
+
+
+            for(auto it_w = start_w; it_v != end_w; ++it_w){
+
+                if(it_w == m_hit_data.end()){
+
+                    std::cout<<"Iterator it_w hit the end of the vector."<<std::endl;
+                    break;
+
+                }
+
+                //see if this hit is also at the same location
+                if(((*it_w).peak_x < ((*it_v).peak_x - (*it_v).fwhm / 2.355)) ||
+                    ((*it_w).peak_x > ((*it_v).peak_x + (*it_v).fwhm / 2.355)) ||
+                    ((*it_w).plane == (*it_v).plane)){
+
+                        continue;
+
+                }
+
+                std::pair<double, double> xy_from_uv;
+                std::pair<double, double> xy_from_vw;
+                std::pair<double, double> xy_from_uw;
+
+                xy_from_uv = calculateXYfromUV((*it_u).strip, (*it_v).strip);
+                xy_from_vw = calculateXYfromVW((*it_v).strip, (*it_w).strip);
+                xy_from_uw = calculateXYfromUW((*it_u).strip, (*it_w).strip);
+
+
+                if(evaluatePointsEquality(xy_from_uv, xy_from_vw, xy_from_uw)){
+
+                
+                    
+
+                    dataXYZ loc_xyz;
+                    loc_xyz.data_x = (xy_from_uv.first + xy_from_vw.first + xy_from_uw.first)/3;
+                    loc_xyz.data_y = (xy_from_uv.second + xy_from_vw.second + xy_from_uw.second)/3;
+                    loc_xyz.data_z = drift_vel * time_unit * (*it_u).peak_x;
+                    loc_xyz.data_charge = (*it_u).peak_y + (*it_v).peak_y + (*it_w).peak_y;
+
+                    m_points_xyz.push_back(loc_xyz);
+
+
+                    /* m_points_xyz.emplace_back(((xy_from_uv.first + xy_from_vw.first + xy_from_uw.first)/3), 
+                                            ((xy_from_uv.second + xy_from_vw.second + xy_from_uw.second)/3),
+                                            (drift_vel * time_unit * (*it_u).peak_x),
+                                            ((*it_u).peak_y + (*it_v).peak_y + (*it_u).peak_y)); */
+
+
+                }
+
+
+
+            }
+
+
+
+        }
+
+
+
+    }
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+/* void convertXYZ::compareXY()
+{
+
+    //clear the vector
+    std::vector<dataXYZ>().swap(m_points_xyz);
 
         //is not good but it should work for now
     //first we only care for u plane
@@ -169,8 +303,8 @@ void convertXYZ::compareXY()
                 if(evaluatePointsEquality(xy_from_uv, xy_from_vw, xy_from_uw)){
 
                 
-                    /* std::cout<<"U: "<<m_hit_data.at(i).strip<<" V: "<<m_hit_data.at(j).strip<<" W: "<<m_hit_data.at(k).strip;
-                    std::cout<<" X: "<<xy_from_uv.first<<" Y: "<<xy_from_uv.second<<"\n"; */
+                    std::cout<<"U: "<<m_hit_data.at(i).strip<<" V: "<<m_hit_data.at(j).strip<<" W: "<<m_hit_data.at(k).strip;
+                    std::cout<<" X: "<<xy_from_uv.first<<" Y: "<<xy_from_uv.second<<"\n";
 
                     dataXYZ loc_xyz;
                     loc_xyz.data_x = (xy_from_uv.first + xy_from_vw.first + xy_from_uw.first)/3;
@@ -191,7 +325,7 @@ void convertXYZ::compareXY()
 
 
 
-}
+} */
 
 
 
@@ -202,7 +336,7 @@ void convertXYZ::compareXY()
  * @param strip_v the strip values from the V plane
  * @return std::pair<double, double> the calculated X and Y values; the first element is Y and the second is Y
  */
-std::pair<double, double> convertXYZ::calculateXYfromUV(int strip_u, int strip_v)
+std::pair<double, double> convertXYZ::calculateXYfromUV(const int strip_u, const int strip_v)
 {
 
     std::pair<double, double> xy_from_uv;
@@ -233,7 +367,7 @@ std::pair<double, double> convertXYZ::calculateXYfromUV(int strip_u, int strip_v
  * @param strip_w the strip values from the W plane
  * @return std::pair<double, double> the calculated X and Y values; the first element is Y and the second is Y
  */
-std::pair<double, double> convertXYZ::calculateXYfromVW(int strip_v, int strip_w)
+std::pair<double, double> convertXYZ::calculateXYfromVW(const int strip_v, const int strip_w)
 {
     
     std::pair<double, double> xy_from_vw;
@@ -262,7 +396,7 @@ std::pair<double, double> convertXYZ::calculateXYfromVW(int strip_v, int strip_w
  * @param strip_w the strip values from the W plane
  * @return std::pair<double, double> the calculated X and Y values; the first element is Y and the second is Y
  */
-std::pair<double, double> convertXYZ::calculateXYfromUW(int strip_u, int strip_w)
+std::pair<double, double> convertXYZ::calculateXYfromUW(const int strip_u, const int strip_w)
 {
 
     std::pair<double, double> xy_from_uw;
@@ -294,7 +428,7 @@ std::pair<double, double> convertXYZ::calculateXYfromUW(int strip_u, int strip_w
  * @param xy_from_uw x and y calculated from the u and w plane data
  * @return int 1 if true 0 if false
  */
-int convertXYZ::evaluatePointsEquality(std::pair<double, double> xy_from_uv, std::pair<double, double> xy_from_vw, std::pair<double, double> xy_from_uw)
+int convertXYZ::evaluatePointsEquality(const std::pair<double, double> xy_from_uv, std::pair<double, double> xy_from_vw, std::pair<double, double> xy_from_uw)
 {
 
     const double calib_variable = 3;

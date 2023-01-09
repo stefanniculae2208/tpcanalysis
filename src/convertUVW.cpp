@@ -263,11 +263,14 @@ int convertUVW::substractBl()
 
         for(auto &sig_el : data_el.signal_val){
 
+            //Make any elements lower than 0 equal to 0 so we don't have negative signal values.
+            sig_el = std::max(0.0, (sig_el - baseline));
+
             
-            sig_el -= baseline;
+            /* sig_el -= baseline;
 
             if(sig_el < 0)
-                sig_el = 0;
+                sig_el = 0; */
 
         }
 
