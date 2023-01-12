@@ -32,7 +32,7 @@
 #include "dataXYZ.hpp"
 
 
-//TODO
+
 class convertXYZ
 {
     public:
@@ -51,8 +51,8 @@ class convertXYZ
     
 
     private:
-    const double drift_vel = 0.724 * 10000 * 1000;
-    const double time_unit = 4e-8;
+    static constexpr double drift_vel = 0.724 * 1e7;//10000 * 1000
+    static constexpr double time_unit = 4e-8;
 
 
 
@@ -72,7 +72,7 @@ class convertXYZ
     std::pair<double, double> calculateXYfromUV(const int strip_u, const int strip_v);
     std::pair<double, double> calculateXYfromVW(const int strip_v, const int strip_w);
     std::pair<double, double> calculateXYfromUW(const int strip_u, const int strip_w);
-    int evaluatePointsEquality(const std::pair<double, double> xy_from_uv, std::pair<double, double> xy_from_vw, std::pair<double, double> xy_from_uw);
+    int evaluatePointsEquality(const std::pair<double, double> xy_from_uv, const std::pair<double, double> xy_from_vw, const std::pair<double, double> xy_from_uw);
 
     void calculateXYZ();
 

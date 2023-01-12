@@ -150,8 +150,7 @@ void convertXYZ::calculateXYZ()
 
             //see if the peaks are at the same location, continue if not
             if(((*it_v).peak_x < ((*it_u).peak_x - (*it_u).fwhm / 2.355)) ||
-             ((*it_v).peak_x > ((*it_u).peak_x + (*it_u).fwhm / 2.355)) ||
-             ((*it_v).plane == (*it_u).plane)){
+             ((*it_v).peak_x > ((*it_u).peak_x + (*it_u).fwhm / 2.355))){
 
                 continue;
 
@@ -170,8 +169,7 @@ void convertXYZ::calculateXYZ()
 
                 //see if this hit is also at the same location
                 if(((*it_w).peak_x < ((*it_v).peak_x - (*it_v).fwhm / 2.355)) ||
-                    ((*it_w).peak_x > ((*it_v).peak_x + (*it_v).fwhm / 2.355)) ||
-                    ((*it_w).plane == (*it_v).plane)){
+                    ((*it_w).peak_x > ((*it_v).peak_x + (*it_v).fwhm / 2.355))){
 
                         continue;
 
@@ -374,12 +372,12 @@ std::pair<double, double> convertXYZ::calculateXYfromVW(const int strip_v, const
 
 
     //0.866 is cos(M_PI/6)
-    double y_part_from_v = 4.33 + (strip_v - 1) * (1.5 / 0.866);
-    double y_part_from_w = 100.459 - (strip_w - 1) * (1.5 / 0.866);
+    double part_from_v = 4.33 + (strip_v - 1) * (1.5 / 0.866);
+    double part_from_w = 100.459 - (strip_w - 1) * (1.5 / 0.866);
 
     //0.577 is tan(M_PI/6) and -0.577 is tan(-M_PI/6)
-    xy_from_vw.first = (y_part_from_w - y_part_from_v) / (-TAN_PIOVER6 - TAN_PIOVER6);
-    xy_from_vw.second = (-TAN_PIOVER6) * xy_from_vw.first + y_part_from_v;
+    xy_from_vw.first = (part_from_w - part_from_v) / (-TAN_PIOVER6 - TAN_PIOVER6);
+    xy_from_vw.second = (-TAN_PIOVER6) * xy_from_vw.first + part_from_v;
     
 
 
@@ -428,7 +426,7 @@ std::pair<double, double> convertXYZ::calculateXYfromUW(const int strip_u, const
  * @param xy_from_uw x and y calculated from the u and w plane data
  * @return int 1 if true 0 if false
  */
-int convertXYZ::evaluatePointsEquality(const std::pair<double, double> xy_from_uv, std::pair<double, double> xy_from_vw, std::pair<double, double> xy_from_uw)
+int convertXYZ::evaluatePointsEquality(const std::pair<double, double> xy_from_uv, const std::pair<double, double> xy_from_vw, const std::pair<double, double> xy_from_uw)
 {
 
     const double calib_variable = 3;
