@@ -25,6 +25,12 @@
 using namespace GET;
 
 
+
+/**
+ * @brief Reads the specified TTree from the specified '.root' file.
+ * Can only decode one entry at a time.
+ * 
+ */
 class loadData
 {
     public:
@@ -34,10 +40,15 @@ class loadData
     loadData(TString filename, TString treename);
 
     std::shared_ptr<TFile> openFile();
+
     int readData();
+
     TTree* returnTree();
+
     int decodeData(int entryNr);
+
     std::vector<rawData> returnRawData();
+
     Long64_t returnNEntries();
 
 
@@ -45,13 +56,23 @@ class loadData
 
 
     private:
+
+    /// @brief The name of the file to be opened.
     TString m_filename;
+
+    /// @brief The name of the TTree in the file.
     TString m_treename;
 
+    /// @brief The file containg the data.
     std::shared_ptr<TFile> m_rootfile;
+
+    /// @brief The TTree read from the file.
     TTree *m_roottree;
+
+    /// @brief The raw data taken from the TTree. Conatins only 1 entry.
     std::vector<rawData> m_root_raw_data;
 
+    /// @brief The number of entries in the TTree.
     Long64_t m_nEntries = 0;
 
 

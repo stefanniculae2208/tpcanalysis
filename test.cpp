@@ -1734,8 +1734,9 @@ void view_data_entries()
 
             std::cin>>entry_nr;
 
-            if(entry_nr < 0)
+            if(entry_nr < 0 || entry_nr > (max_entries - 1))
                 entry_nr = 0;
+
 
             std::cout<<"Entry number is "<<entry_nr<<"\n\n"<<std::endl;
 

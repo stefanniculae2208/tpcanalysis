@@ -110,7 +110,6 @@ int convertHitData::getHitInfo(Double_t peak_th)
 
         m_raw_hist_data.push_back(loc_hist);
 
-        //peak_th_vec.push_back(std::accumulate(iter.signal_val.begin(), iter.signal_val.end(), 0.0)/iter.signal_val.size());
 
         double loc_peak_th = std::max(0.75 * (*std::max_element(iter.signal_val.begin(), iter.signal_val.end())), 
                                         2.5 * (std::accumulate(iter.signal_val.begin(), iter.signal_val.end(), 0.0)/iter.signal_val.size()));
@@ -162,9 +161,6 @@ int convertHitData::getHitInfo(Double_t peak_th)
 
 
         for(auto i = 0; i < npeaks; i++){
-            //if(pos_holder_y[i] > peak_th){
-            //if(pos_holder_y[i] > 2.5 * peak_th_vec.at(curr_iter)/* peak_th */){
-            //if(pos_holder_y[i] > 0.75 * peak_th_vec.at(curr_iter)){
             if(pos_holder_y[i] > peak_th_vec.at(curr_iter)){    
                 peaks_x.push_back(pos_holder_x[i]);
                 peaks_y.push_back(pos_holder_y[i]);
@@ -222,6 +218,7 @@ int convertHitData::getHitInfo(Double_t peak_th)
         
 
         curr_iter++;
+
 
         
 

@@ -57,10 +57,6 @@ int convertXYZ::makeConversionXYZ()
     sortHitData();
 
 
-
-
-    //compareXY();
-
     calculateXYZ();
 
 
@@ -198,12 +194,6 @@ void convertXYZ::calculateXYZ()
                     m_points_xyz.push_back(loc_xyz);
 
 
-                    /* m_points_xyz.emplace_back(((xy_from_uv.first + xy_from_vw.first + xy_from_uw.first)/3), 
-                                            ((xy_from_uv.second + xy_from_vw.second + xy_from_uw.second)/3),
-                                            (drift_vel * time_unit * (*it_u).peak_x),
-                                            ((*it_u).peak_y + (*it_v).peak_y + (*it_u).peak_y)); */
-
-
                 }
 
 
@@ -229,101 +219,6 @@ void convertXYZ::calculateXYZ()
 
 
 
-
-
-
-
-/* void convertXYZ::compareXY()
-{
-
-    //clear the vector
-    std::vector<dataXYZ>().swap(m_points_xyz);
-
-        //is not good but it should work for now
-    //first we only care for u plane
-    for(auto i = 0; i < m_hit_data.size(); i++){
-
-        //continue if not u plane
-        if(m_hit_data.at(i).plane != 0)
-            continue;
-
-
-
-
-
-        //iterate through v plane
-        for(auto j = 0; j < m_hit_data.size(); j++){
-
-
-            //continue if not j
-            if(m_hit_data.at(j).plane != 1)
-                continue;
-
-
-            //see if the peaks are at the same location, continue if not
-            if((m_hit_data.at(j).peak_x < (m_hit_data.at(i).peak_x - m_hit_data.at(i).fwhm / 2.355)) ||
-             (m_hit_data.at(j).peak_x > (m_hit_data.at(i).peak_x + m_hit_data.at(i).fwhm / 2.355))||
-             (m_hit_data.at(j).plane == m_hit_data.at(i).plane)){
-
-                continue;
-
-            }
-
-
-
-            //w plane
-            for(auto k = 0; k < m_hit_data.size(); k++){
-
-
-                //continue if not w
-                if(m_hit_data.at(k).plane != 2)
-                    continue;
-
-
-                //see if this hit is also at the same location
-                if((m_hit_data.at(k).peak_x < (m_hit_data.at(j).peak_x - m_hit_data.at(j).fwhm / 2.355)) ||
-                    (m_hit_data.at(k).peak_x > (m_hit_data.at(j).peak_x + m_hit_data.at(j).fwhm / 2.355))||
-                    (m_hit_data.at(k).plane == m_hit_data.at(j).plane)){
-
-                        continue;
-
-                }
-
-                std::pair<double, double> xy_from_uv;
-                std::pair<double, double> xy_from_vw;
-                std::pair<double, double> xy_from_uw;
-
-                xy_from_uv = calculateXYfromUV(m_hit_data.at(i).strip, m_hit_data.at(j).strip);
-                xy_from_vw = calculateXYfromVW(m_hit_data.at(j).strip, m_hit_data.at(k).strip);
-                xy_from_uw = calculateXYfromUW(m_hit_data.at(i).strip, m_hit_data.at(k).strip);
-
-
-                if(evaluatePointsEquality(xy_from_uv, xy_from_vw, xy_from_uw)){
-
-                
-                    std::cout<<"U: "<<m_hit_data.at(i).strip<<" V: "<<m_hit_data.at(j).strip<<" W: "<<m_hit_data.at(k).strip;
-                    std::cout<<" X: "<<xy_from_uv.first<<" Y: "<<xy_from_uv.second<<"\n";
-
-                    dataXYZ loc_xyz;
-                    loc_xyz.data_x = (xy_from_uv.first + xy_from_vw.first + xy_from_uw.first)/3;
-                    loc_xyz.data_y = (xy_from_uv.second + xy_from_vw.second + xy_from_uw.second)/3;
-                    loc_xyz.data_z = drift_vel * time_unit * m_hit_data.at(i).peak_x;
-                    loc_xyz.data_charge = m_hit_data.at(i).peak_y + m_hit_data.at(j).peak_y + m_hit_data.at(k).peak_y;
-
-                    m_points_xyz.push_back(loc_xyz);
-
-                }
-
-
-
-            }
-        }
-    }
-
-
-
-
-} */
 
 
 

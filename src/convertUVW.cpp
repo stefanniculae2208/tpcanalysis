@@ -150,11 +150,9 @@ void convertUVW::calculateChargeHist()
 
     std::array<double, 512> charge_val;
 
-    m_charge_hist = new TH1D("Charge_hist", "Charge histogram", 512, 1, 512);
-
     charge_val.fill(0);
 
-    for(auto &data_el : m_uvw_vec){
+    /* for(auto &data_el : m_uvw_vec){
 
         for(auto i = 0; static_cast<std::vector<double>::size_type>(i) < data_el.signal_val.size(); i++){
 
@@ -166,13 +164,31 @@ void convertUVW::calculateChargeHist()
 
         }
 
+    } */
+
+
+    //Adds the elements in the i-th bin from each signal vector to i-th element of the charge vector. If there are more than 512 elements
+    //in one signal the value for the charge there is 0 because the signal is not valid (something went wrong).
+    for (std::size_t i = 0; i < charge_val.size(); i++) {
+        charge_val.at(i) = std::accumulate(m_uvw_vec.begin(), m_uvw_vec.end(), 0.0, [i](double acc, const dataUVW& el) {
+            return acc + (i < el.signal_val.size() ? el.signal_val.at(i) : 0);
+        });
     }
 
-    for(auto i = 0; static_cast<std::vector<double>::size_type>(i) < charge_val.size(); i++){
+
+
+
+
+
+    m_charge_hist = new TH1D("Charge_hist", "Charge histogram", 512, 1, 512);
+
+    m_charge_hist->SetContent(charge_val.data());
+
+    /* for(auto i = 0; static_cast<std::vector<double>::size_type>(i) < charge_val.size(); i++){
 
         m_charge_hist->SetBinContent(i, charge_val.at(i));
 
-    }
+    } */
 
 }
 

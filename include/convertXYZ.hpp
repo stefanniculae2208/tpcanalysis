@@ -32,7 +32,10 @@
 #include "dataXYZ.hpp"
 
 
-
+/**
+ * @brief Makes the conversion to the XYZ coordinate system. Takes the information about the hits and returns the XYZ location of the hits.
+ * 
+ */
 class convertXYZ
 {
     public:
@@ -43,7 +46,9 @@ class convertXYZ
 
 
     int makeConversionXYZ();
+
     std::vector<dataXYZ> returnXYZ();
+    
     int getNewVector(std::vector<hitPoints> hit_data);
 
 
@@ -51,27 +56,33 @@ class convertXYZ
     
 
     private:
-    static constexpr double drift_vel = 0.724 * 1e7;//10000 * 1000
-    static constexpr double time_unit = 4e-8;
-
-
-
-    std::vector<hitPoints> m_hit_data;
-    std::vector<dataXYZ> m_points_xyz;
-
-    std::map<int, int> m_plane_map;
-
-
-
-
-    //may be needed when optimising
-    void sortHitData();
-
 
     
+    /// @brief The drift velocity taken from the documentation.
+    static constexpr double drift_vel = 0.724 * 1e7;//10000 * 1000
+
+    /// @brief The time unit taken from the documentation.
+    static constexpr double time_unit = 4e-8;
+
+    /// @brief Vector containing the hits. Taken as input.
+    std::vector<hitPoints> m_hit_data;
+
+    /// @brief Vector containing the XYZ coordinates of the hits. Is the output.
+    std::vector<dataXYZ> m_points_xyz;
+
+
+
+
+
+
+    void sortHitData();
+
     std::pair<double, double> calculateXYfromUV(const int strip_u, const int strip_v);
+
     std::pair<double, double> calculateXYfromVW(const int strip_v, const int strip_w);
+
     std::pair<double, double> calculateXYfromUW(const int strip_u, const int strip_w);
+
     int evaluatePointsEquality(const std::pair<double, double> xy_from_uv, const std::pair<double, double> xy_from_vw, const std::pair<double, double> xy_from_uw);
 
     void calculateXYZ();
