@@ -328,11 +328,11 @@ void convertXYZ::calculateXYZ()
 
 
 /**
- * @brief 
+ * @brief Computes the X and Y values from the U and V plane hits.
  * 
  * @param strip_u the strip values from the U plane
  * @param strip_v the strip values from the V plane
- * @return std::pair<double, double> the calculated X and Y values; the first element is Y and the second is Y
+ * @return std::pair<double, double> the calculated X and Y values; the first element is X and the second is Y
  */
 std::pair<double, double> convertXYZ::calculateXYfromUV(const int strip_u, const int strip_v)
 {
@@ -359,11 +359,11 @@ std::pair<double, double> convertXYZ::calculateXYfromUV(const int strip_u, const
 
 
 /**
- * @brief 
+ * @brief  Computes the X and Y values from the V and W plane hits.
  * 
  * @param strip_v the strip values from the V plane
  * @param strip_w the strip values from the W plane
- * @return std::pair<double, double> the calculated X and Y values; the first element is Y and the second is Y
+ * @return std::pair<double, double> the calculated X and Y values; the first element is X and the second is Y
  */
 std::pair<double, double> convertXYZ::calculateXYfromVW(const int strip_v, const int strip_w)
 {
@@ -388,11 +388,11 @@ std::pair<double, double> convertXYZ::calculateXYfromVW(const int strip_v, const
 
 
 /**
- * @brief 
+ * @brief  Computes the X and Y values from the U and W plane hits.
  * 
  * @param strip_u the strip values from the U plane
  * @param strip_w the strip values from the W plane
- * @return std::pair<double, double> the calculated X and Y values; the first element is Y and the second is Y
+ * @return std::pair<double, double> the calculated X and Y values; the first element is X and the second is Y
  */
 std::pair<double, double> convertXYZ::calculateXYfromUW(const int strip_u, const int strip_w)
 {
@@ -432,12 +432,16 @@ int convertXYZ::evaluatePointsEquality(const std::pair<double, double> xy_from_u
     const double calib_variable = 3;
 
 
-    return (xy_from_uv.first > (xy_from_vw.first - calib_variable) && xy_from_uv.first < (xy_from_vw.first + calib_variable) &&
+    /* return (xy_from_uv.first > (xy_from_vw.first - calib_variable) && xy_from_uv.first < (xy_from_vw.first + calib_variable) &&
         xy_from_uv.second > (xy_from_vw.second - calib_variable) && xy_from_uv.second < (xy_from_vw.second + calib_variable) &&
         xy_from_uv.first > (xy_from_uw.first - calib_variable) && xy_from_uv.first < (xy_from_uw.first + calib_variable) &&
-        xy_from_uv.second > (xy_from_uw.second - calib_variable) && xy_from_uv.second < (xy_from_uw.second + calib_variable)/*  &&
-        xy_from_vw.first > (xy_from_uw.first - calib_variable) && xy_from_vw.first < (xy_from_uw.first + calib_variable) &&
-        xy_from_vw.second > (xy_from_uw.second - calib_variable) && xy_from_vw.second < (xy_from_uw.second + calib_variable) */ &&
+        xy_from_uv.second > (xy_from_uw.second - calib_variable) && xy_from_uv.second < (xy_from_uw.second + calib_variable) &&
+        //xy_from_vw.first > (xy_from_uw.first - calib_variable) && xy_from_vw.first < (xy_from_uw.first + calib_variable) &&
+        //xy_from_vw.second > (xy_from_uw.second - calib_variable) && xy_from_vw.second < (xy_from_uw.second + calib_variable) &&
+        xy_from_uv.first > -3 && xy_from_uv.first < 110 && xy_from_uv.second > -3 && xy_from_uv.second < 110) ? 1 : 0; */
+
+    return (abs(xy_from_uv.first - xy_from_vw.first) < calib_variable && abs(xy_from_uv.second - xy_from_vw.second) < calib_variable &&
+        abs(xy_from_uv.first - xy_from_uw.first) < calib_variable && abs(xy_from_uv.second - xy_from_uw.second) < calib_variable &&
         xy_from_uv.first > -3 && xy_from_uv.first < 110 && xy_from_uv.second > -3 && xy_from_uv.second < 110) ? 1 : 0;
 
     

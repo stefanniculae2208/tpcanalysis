@@ -247,41 +247,30 @@ int convertUVW::substractBl()
 
 
 
-        /* for(auto i = 0; i < sampleRegion; i++){
-
-            baseline += data_el.signal_val.at(i);
-
-        }
-
-        baseline /= sampleRegion; */
-
+    
+        //Calculate the baseline as the smallest non 0 element.
         auto start_iter = std::next(data_el.signal_val.begin(), 20);
         baseline = *std::min_element(start_iter, data_el.signal_val.end(), [](int a, int b) {
                         return (a > 0 && b > 0) ? (a < b) : (a > b);
                     });
 
 
-        for(auto &sig_el : data_el.signal_val){
+        
 
-            //Make any elements lower than 0 equal to 0 so we don't have negative signal values.
-            sig_el = std::max(0.0, (sig_el - baseline));
+        //Extract the baseline from the signal. Make any elements lower than 0 equal to 0 so we don't have negative signal values.
+        std::transform(data_el.signal_val.begin(), data_el.signal_val.end(), data_el.signal_val.begin(),
+               [baseline](double sig_el) { return std::max(0.0, (sig_el - baseline)); });
 
-            
-            /* sig_el -= baseline;
 
-            if(sig_el < 0)
-                sig_el = 0; */
-
-        }
 
 
         smoothSignal(data_el.signal_val);
 
 
+        //Set the final 12 elements to 0 because of artifacts. To be removed when working with good data.
+        std::fill(data_el.signal_val.begin() + 500, data_el.signal_val.begin() + 512, 0);
 
-        for(auto i = 500; i<512; i++){
-            data_el.signal_val.at(i) = 0;
-        }
+        
 
 
         
