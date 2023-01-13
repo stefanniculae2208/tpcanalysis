@@ -81,6 +81,10 @@ std::vector<TH1D*> convertHitData::returnHistData()
 int convertHitData::getHitInfo(Double_t peak_th)
 {
 
+    //This makes it so the canvas doesn't open a window every time and disrupt the user.
+    gROOT->SetBatch(kTRUE);
+
+
     auto loc_canv = new TCanvas("canvas from hit info", "hit info canvas");
 
     if(m_uvw_data.size() == 0)
@@ -234,6 +238,8 @@ int convertHitData::getHitInfo(Double_t peak_th)
         loc_canv->Close();
         gSystem->ProcessEvents();
     }
+
+    gROOT->SetBatch(kFALSE);
 
 
     return 0;
