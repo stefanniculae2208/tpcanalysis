@@ -2640,6 +2640,237 @@ void create_entries_pdf()
 
 
 
+void writeXYZcvs(int entry_nr)
+{
+
+    generalDataStorage data_container;
+
+
+
+
+
+
+    auto goodFile = "./rootdata/data2.root";
+
+    auto goodTree = "tree";
+
+
+    loadData good_data(goodFile, goodTree);
+
+    auto returned_file = good_data.openFile();
+    auto err = good_data.readData();
+    err = good_data.decodeData(entry_nr);
+    data_container.root_raw_data = good_data.returnRawData();
+
+
+    convertUVW loc_conv_uvw(data_container.root_raw_data);
+
+
+    err = loc_conv_uvw.openSpecFile();
+
+    if(err != 0)
+        return;
+
+    err = loc_conv_uvw.makeConversion();
+    if(err != 0)
+        std::cout<<"Make conversion error code "<<err<<std::endl;
+
+
+
+    err = loc_conv_uvw.substractBl();
+
+    if(err != 0)
+        std::cout<<"Substractbl error code "<<err<<std::endl;
+
+
+    err = loc_conv_uvw.drawChargeHist();
+
+    if(err != 0)
+        std::cout<<"Draw Charge Hist error code "<<err<<std::endl;
+
+
+
+    data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+
+
+    convertHitData loc_convert_hit(data_container.uvw_data);
+
+    err = loc_convert_hit.getHitInfo();
+    if(err != 0)
+        std::cout<<"Error get hit info code "<<err<<std::endl;
+
+    data_container.hit_data = loc_convert_hit.returnHitData();
+    data_container.raw_hist_container = loc_convert_hit.returnHistData();
+
+    std::cout<<"Hit data size "<<data_container.hit_data.size()<<std::endl;
+    std::cout<<"Hist data size "<<data_container.raw_hist_container.size()<<std::endl;
+
+
+
+    convertXYZ loc_conv_xyz(data_container.hit_data);
+
+
+    err = loc_conv_xyz.makeConversionXYZ();
+
+
+    data_container.xyz_data = loc_conv_xyz.returnXYZ();
+
+    std::ofstream out_file("./converteddata/test_xyz.csv");
+
+    if (!out_file.is_open()) {
+        std::cerr << "Error: Could not open file for output" << std::endl;
+    }
+
+
+    //header
+    out_file << "x,y,z\n";
+
+
+    for(auto &data_entry : data_container.xyz_data){
+
+        out_file << data_entry.data_x << "," << data_entry.data_y << "," << data_entry.data_z;
+
+
+        out_file << "\n";
+
+    }
+
+
+
+
+
+    out_file.close();
+
+
+
+
+ 
+
+
+
+
+
+}
+
+
+
+void drawXYimage(int entry_nr)
+{
+
+
+    generalDataStorage data_container;
+
+
+
+
+
+
+    auto goodFile = "./rootdata/data2.root";
+
+    auto goodTree = "tree";
+
+
+    loadData good_data(goodFile, goodTree);
+
+    auto returned_file = good_data.openFile();
+    auto err = good_data.readData();
+    err = good_data.decodeData(entry_nr);
+    data_container.root_raw_data = good_data.returnRawData();
+
+
+    convertUVW loc_conv_uvw(data_container.root_raw_data);
+
+
+    err = loc_conv_uvw.openSpecFile();
+
+    if(err != 0)
+        return;
+
+    err = loc_conv_uvw.makeConversion();
+    if(err != 0)
+        std::cout<<"Make conversion error code "<<err<<std::endl;
+
+
+
+    err = loc_conv_uvw.substractBl();
+
+    if(err != 0)
+        std::cout<<"Substractbl error code "<<err<<std::endl;
+
+
+    err = loc_conv_uvw.drawChargeHist();
+
+    if(err != 0)
+        std::cout<<"Draw Charge Hist error code "<<err<<std::endl;
+
+
+
+    data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+
+
+    convertHitData loc_convert_hit(data_container.uvw_data);
+
+    err = loc_convert_hit.getHitInfo();
+    if(err != 0)
+        std::cout<<"Error get hit info code "<<err<<std::endl;
+
+    data_container.hit_data = loc_convert_hit.returnHitData();
+    data_container.raw_hist_container = loc_convert_hit.returnHistData();
+
+    std::cout<<"Hit data size "<<data_container.hit_data.size()<<std::endl;
+    std::cout<<"Hist data size "<<data_container.raw_hist_container.size()<<std::endl;
+
+
+
+    convertXYZ loc_conv_xyz(data_container.hit_data);
+
+
+    err = loc_conv_xyz.makeConversionXYZ();
+
+
+    data_container.xyz_data = loc_conv_xyz.returnXYZ();
+
+
+    std::vector<double> x, y, z;
+    
+
+
+    for(auto point_iter : data_container.xyz_data){
+
+        x.push_back(point_iter.data_x);
+        y.push_back(point_iter.data_y);
+        z.push_back(point_iter.data_z);
+
+ 
+
+    }
+
+
+
+    auto loc_canv = new TCanvas("xy format", "Peaks in XY");
+
+
+
+
+
+    auto p_graph = new TGraph(x.size(), x.data(), y.data());
+    p_graph->GetXaxis()->SetLimits(-10, 150);
+    p_graph->GetHistogram()->SetMaximum(150);
+    p_graph->GetHistogram()->SetMinimum(-10);
+    p_graph->SetMarkerColor(kBlue);
+    p_graph->SetMarkerStyle(kFullCircle);
+    p_graph->SetTitle("XY coordinates projection; X axis; Y axis");
+    p_graph->Draw("AP");
+    loc_canv->Update();
+    loc_canv->Print("./converteddata/test_xyz.png");
+
+    loc_canv->Close();
+
+
+}
+
 
 
 
@@ -2670,9 +2901,13 @@ void test()
     //test_hitdata();
     //test_unitXYZ();
 
-    view_data_entries();
+    //view_data_entries();
 
     //create_entries_pdf();
+
+    //writeXYZcvs(429);
+
+    drawXYimage(429);
 
 
 
