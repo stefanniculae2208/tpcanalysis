@@ -80,6 +80,9 @@ class convertUVW
     /// @brief The charge histogram. Not used currently but can be used in the future.
     TH1D *m_charge_hist = nullptr;
 
+    /// @brief Used for debugging
+    bool m_verbose = false;
+
 
 
 

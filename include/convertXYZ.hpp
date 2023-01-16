@@ -70,6 +70,9 @@ class convertXYZ
     /// @brief Vector containing the XYZ coordinates of the hits. Is the output.
     std::vector<dataXYZ> m_points_xyz;
 
+    /// @brief Used for debug.
+    bool m_verbose = false;
+
 
 
 

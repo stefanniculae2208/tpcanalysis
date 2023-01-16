@@ -2141,7 +2141,7 @@ void view_data_entries()
 
 
 
-void create_entries_pdf()
+void create_entries_pdf(TString source_file, TString destination_file)
 {
 
 
@@ -2157,7 +2157,7 @@ void create_entries_pdf()
 
 
 
-    auto goodFile = "./rootdata/data2.root";
+    auto goodFile = source_file;
 
     auto goodTree = "tree";
 
@@ -2234,7 +2234,7 @@ void create_entries_pdf()
     
 
 
-    loc_canv->Print("entries.pdf[");
+    loc_canv->Print(destination_file + "[");
     gErrorIgnoreLevel = kWarning;
 
     
@@ -2246,19 +2246,19 @@ void create_entries_pdf()
 
         generalDataStorage data_container;
         
-
+        std::cout<<"\n\n\nNow at entry: "<<entry_nr<<" of "<<max_entries<<" for "<<destination_file<<"\n";
 
 
 
 
         err = good_data.decodeData(entry_nr);
         if(err != 0){
-            std::cout<<"Error decode data code "<<err<<std::endl;
+            std::cout<<"Error decode data code "<<err<<"\n";
         }
 
         data_container.root_raw_data = good_data.returnRawData();
 
-        std::cout<<"RAW data size is "<<data_container.root_raw_data.size()<<std::endl;
+        std::cout<<"RAW data size is "<<data_container.root_raw_data.size()<<"\n";
 
 
 
@@ -2274,48 +2274,48 @@ void create_entries_pdf()
 
         err = loc_conv_uvw.makeConversion();
         if(err != 0)
-            std::cout<<"Make conversion error code "<<err<<std::endl;
+            std::cout<<"Make conversion error code "<<err<<"\n";
 
 
 
         err = loc_conv_uvw.substractBl();
 
         if(err != 0)
-            std::cout<<"Substractbl error code "<<err<<std::endl;
+            std::cout<<"Substractbl error code "<<err<<"\n";
 
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
-        std::cout<<"UVW data size is "<<data_container.uvw_data.size()<<std::endl;
+        std::cout<<"UVW data size is "<<data_container.uvw_data.size()<<"\n";
 
 
         err = loc_convert_hit.setUVWData(data_container.uvw_data);
         if(err != 0)
-            std::cout<<"Error set UVW data code "<<err<<std::endl;
+            std::cout<<"Error set UVW data code "<<err<<"\n";
 
         err = loc_convert_hit.getHitInfo();
         if(err != 0)
-            std::cout<<"Error get hit info code "<<err<<std::endl;
+            std::cout<<"Error get hit info code "<<err<<"\n";
 
         data_container.hit_data = loc_convert_hit.returnHitData();
         data_container.raw_hist_container = loc_convert_hit.returnHistData();
 
-        std::cout<<"Hit data size "<<data_container.hit_data.size()<<std::endl;
-        std::cout<<"Hist data size "<<data_container.raw_hist_container.size()<<std::endl;
+        std::cout<<"Hit data size "<<data_container.hit_data.size()<<"\n";
+        std::cout<<"Hist data size "<<data_container.raw_hist_container.size()<<"\n";
 
 
         err = loc_conv_xyz.getNewVector(data_container.hit_data);
         if(err != 0)
-            std::cout<<"Error get new vector code "<<err<<std::endl;
+            std::cout<<"Error get new vector code "<<err<<"\n";
 
         err = loc_conv_xyz.makeConversionXYZ();
         if(err != 0)
-            std::cout<<"Error make conversion XYZ code "<<err<<std::endl;
+            std::cout<<"Error make conversion XYZ code "<<err<<"\n";
 
 
         data_container.xyz_data = loc_conv_xyz.returnXYZ();
 
-        std::cout<<"XYZ vector size "<<data_container.xyz_data.size()<<std::endl;
+        std::cout<<"XYZ vector size "<<data_container.xyz_data.size()<<"\n";
 
 
 
@@ -2611,7 +2611,7 @@ void create_entries_pdf()
         entry_nr++;
 
         loc_canv->Update();
-        loc_canv->Print("entries.pdf");
+        loc_canv->Print(destination_file);
 
 
 
@@ -2624,7 +2624,7 @@ void create_entries_pdf()
 
 
     gErrorIgnoreLevel = kPrint;
-    loc_canv->Print("entries.pdf]");
+    loc_canv->Print(destination_file + "]");
 
 
     loc_canv->Close();
@@ -2632,7 +2632,7 @@ void create_entries_pdf()
     gROOT->SetBatch(kFALSE);
 
 
-
+    std::cout<<"\n\n\nDONE!!!!!\n\n\n"<<std::endl;
 
 
 
@@ -2903,11 +2903,23 @@ void test()
 
     //view_data_entries();
 
-    //create_entries_pdf();
+    //create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data00.root", "/media/gant/Expansion/tpcanalcsv/data00.pdf");
 
     //writeXYZcvs(429);
 
-    drawXYimage(429);
+    //drawXYimage(429);
+
+    for(int i = 0; i < 10; i++){
+
+        create_entries_pdf(Form("/media/gant/Expansion/tpcanalcsv/data0%d.root", i), Form("/media/gant/Expansion/tpcanalcsv/data0%d.pdf", i));
+
+    }
+
+    for(int i = 10; i < 14; i++){
+
+        create_entries_pdf(Form("/media/gant/Expansion/tpcanalcsv/data%d.root", i), Form("/media/gant/Expansion/tpcanalcsv/data%d.pdf", i));
+
+    }
 
 
 

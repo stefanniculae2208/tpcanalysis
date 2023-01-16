@@ -123,7 +123,10 @@ int convertUVW::makeConversion()
             loc_data_uvw.entry_nr = data_inst.entry_nr;
             m_uvw_vec.push_back(loc_data_uvw);
         }catch(...){
-            std::cout << "AGET: " << data_inst.chip_nr << "\tChannel: " << data_inst.ch_nr << " is not assigned." << std::endl;
+            if(m_verbose){
+                std::cout << "AGET: " << data_inst.chip_nr << "\tChannel: " << data_inst.ch_nr << " is not assigned." << std::endl;
+            }
+                
             m_data_vec.erase(m_data_vec.begin() + i);
             err_code = -4;//there exists data not assigned     
         }
@@ -251,7 +254,6 @@ int convertUVW::substractBl()
         return -3;//invalid size
 
 
-    calculateChargeHist();
 
 
 

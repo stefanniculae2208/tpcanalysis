@@ -129,7 +129,9 @@ void convertXYZ::calculateXYZ()
 
         if(it_u == m_hit_data.end()){
 
-            std::cout<<"Iterator it_u hit end of vector."<<std::endl;
+            if(m_verbose){
+                std::cout<<"Iterator it_u hit the end of the vector."<<std::endl;
+            }
             break;
 
         }
@@ -139,7 +141,9 @@ void convertXYZ::calculateXYZ()
 
             if(it_u == m_hit_data.end()){
 
-                std::cout<<"Iterator it_v hit end of vector."<<std::endl;
+                if(m_verbose){
+                    std::cout<<"Iterator it_v hit the end of the vector."<<std::endl;
+                }
                 break;
 
             }
@@ -158,7 +162,9 @@ void convertXYZ::calculateXYZ()
 
                 if(it_w == m_hit_data.end()){
 
-                    std::cout<<"Iterator it_w hit the end of the vector."<<std::endl;
+                    if(m_verbose){
+                        std::cout<<"Iterator it_w hit the end of the vector."<<std::endl;
+                    }
                     break;
 
                 }
