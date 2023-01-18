@@ -2916,23 +2916,13 @@ void test()
 
     //view_data_entries();
 
-    //create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data03.root", "/media/gant/Expansion/tpcanalcsv/data03.pdf");
+    create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data05.root", "/media/gant/Expansion/tpcanalcsv/data05.pdf");
 
     //writeXYZcvs(429);
 
     //drawXYimage(429);
 
-    for(auto i = 4; i < 10; i++){
-
-        create_entries_pdf(Form("/media/gant/Expansion/tpcanalcsv/data0%d.root", i), Form("/media/gant/Expansion/tpcanalcsv/data0%d.pdf", i));
-
-    }
-
-    for(auto i = 10; i < 14; i++){
-
-        create_entries_pdf(Form("/media/gant/Expansion/tpcanalcsv/data%d.root", i), Form("/media/gant/Expansion/tpcanalcsv/data%d.pdf", i));
-
-    }
+    
 
     
 
