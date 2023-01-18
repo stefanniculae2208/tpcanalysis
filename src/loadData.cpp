@@ -13,6 +13,35 @@ loadData::loadData(TString filename, TString treename)
 
     m_filename = filename;
     m_treename = treename;
+    m_data_branch = new GDataFrame();
+
+}
+
+loadData::~loadData()
+{
+
+    m_roottree->ResetBranchAddresses();
+
+    if(m_roottree){
+
+        delete(m_roottree);
+        m_roottree = nullptr;
+
+    }
+
+
+    
+    
+    //Having issues with this or m_data_branch->Reset().
+    //I get really weird segmentation faults. Will leave it like this for now.
+    /* if(m_data_branch){
+
+        delete(m_data_branch);
+        m_data_branch = nullptr;
+
+    } */
+
+    
 
 }
 
@@ -24,17 +53,17 @@ loadData::loadData(TString filename, TString treename)
  * 
  * @return std::shared_ptr<TFile> On success returns pointer to file. If file isn't opened returns nullptr.
  */
-std::shared_ptr<TFile> loadData::openFile()
+int loadData::openFile()
 {
 
     m_rootfile = std::make_shared<TFile> (m_filename, "READ");
 
     if(m_rootfile->IsOpen())
-        return m_rootfile;
+        return 0;
 
 
     
-    return nullptr;
+    return -1;
 
 }
 
@@ -67,24 +96,14 @@ int loadData::readData()
 
     m_roottree = m_rootfile->Get<TTree>(m_treename);
 
+    m_roottree->SetBranchAddress("GDataFrame", &m_data_branch);
+
 
     return 0;
 
 }
 
 
-
-/**
- * @brief Returns the tree read fromn the file.
- * 
- * @return TTree* the tree from the file
- */
-TTree* loadData::returnTree()
-{
-
-    return m_roottree;
-
-}
 
 
 
@@ -128,10 +147,14 @@ int loadData::decodeData(int entryNr)
 
 
 
-    auto data = new GDataFrame();
-    m_roottree->SetBranchAddress("GDataFrame", &data);
+    /* auto data = new GDataFrame();   
+    m_roottree->SetBranchAddress("GDataFrame", &data); */
 
-    //m_nEntries = m_roottree->GetEntries();
+
+    
+    
+
+    
 
 
     rawData loc_data;
@@ -141,7 +164,8 @@ int loadData::decodeData(int entryNr)
     m_roottree->GetEntry(entryNr);
 
 
-    TIter channelIT((TCollection *)data->GetChannels());
+    //TIter channelIT((TCollection *)data->GetChannels());
+    TIter channelIT((TCollection *)m_data_branch->GetChannels());
     GDataChannel *channel = nullptr;
     while ((channel = (GDataChannel *)channelIT.Next())) {
         TIter sampleIT((TCollection *)&channel->fSamples);
@@ -161,7 +185,16 @@ int loadData::decodeData(int entryNr)
     }
 
 
+    //Slows the program down too much. Need to find another way.
+    /* if(data){
+        delete(data);
+        data = nullptr;
+    } */
 
+    //data->Delete();
+
+    
+    
 
 
 

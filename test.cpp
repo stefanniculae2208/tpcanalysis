@@ -301,18 +301,19 @@ void test_openFile()
 
     auto testNoFile = no_data_loader.openFile();
 
-    if(testNoFile.get() != nullptr) {
+
+    /* if(testNoFile.get() != nullptr) {
         std::cerr << "Error: loadData try to read empty file, but not return error\n";
-    }
+    } */
 
 
     loadData good_data_loader(goodFile, "tree_data");
 
     auto testGoodFile = good_data_loader.openFile();
 
-    if(testGoodFile.get() == nullptr){
+/*     if(testGoodFile.get() == nullptr){
         std::cerr << "Error opening good file\n";
-    }
+    } */
 
 
 }
@@ -2164,8 +2165,8 @@ void create_entries_pdf(TString source_file, TString destination_file)
 
     loadData good_data(goodFile, goodTree);
 
-    auto returned_file = good_data.openFile();
-    auto err = good_data.readData();
+    auto err = good_data.openFile();
+    err = good_data.readData();
     max_entries = good_data.returnNEntries();
 
 
@@ -2229,8 +2230,6 @@ void create_entries_pdf(TString source_file, TString destination_file)
     TGraph2D *p_graph3d = nullptr;
 
 
-
-
     
 
 
@@ -2251,6 +2250,11 @@ void create_entries_pdf(TString source_file, TString destination_file)
 
 
 
+        
+
+
+        
+
         err = good_data.decodeData(entry_nr);
         if(err != 0){
             std::cout<<"Error decode data code "<<err<<"\n";
@@ -2259,8 +2263,6 @@ void create_entries_pdf(TString source_file, TString destination_file)
         data_container.root_raw_data = good_data.returnRawData();
 
         std::cout<<"RAW data size is "<<data_container.root_raw_data.size()<<"\n";
-
-
 
 
 
@@ -2304,6 +2306,8 @@ void create_entries_pdf(TString source_file, TString destination_file)
         std::cout<<"Hist data size "<<data_container.raw_hist_container.size()<<"\n";
 
 
+
+
         err = loc_conv_xyz.getNewVector(data_container.hit_data);
         if(err != 0)
             std::cout<<"Error get new vector code "<<err<<"\n";
@@ -2316,6 +2320,7 @@ void create_entries_pdf(TString source_file, TString destination_file)
         data_container.xyz_data = loc_conv_xyz.returnXYZ();
 
         std::cout<<"XYZ vector size "<<data_container.xyz_data.size()<<"\n";
+
 
 
 
@@ -2365,6 +2370,8 @@ void create_entries_pdf(TString source_file, TString destination_file)
 
         if(p_graph3d != nullptr)
             p_graph3d->Delete();
+
+            
 
         
 
@@ -2628,6 +2635,12 @@ void create_entries_pdf(TString source_file, TString destination_file)
 
 
     loc_canv->Close();
+
+    if(loc_canv){
+        delete(loc_canv);
+        loc_canv = nullptr;
+    }
+        
 
     gROOT->SetBatch(kFALSE);
 
@@ -2903,23 +2916,27 @@ void test()
 
     //view_data_entries();
 
-    //create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data00.root", "/media/gant/Expansion/tpcanalcsv/data00.pdf");
+    //create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data03.root", "/media/gant/Expansion/tpcanalcsv/data03.pdf");
 
     //writeXYZcvs(429);
 
     //drawXYimage(429);
 
-    for(int i = 0; i < 10; i++){
+    for(auto i = 4; i < 10; i++){
 
         create_entries_pdf(Form("/media/gant/Expansion/tpcanalcsv/data0%d.root", i), Form("/media/gant/Expansion/tpcanalcsv/data0%d.pdf", i));
 
     }
 
-    for(int i = 10; i < 14; i++){
+    for(auto i = 10; i < 14; i++){
 
         create_entries_pdf(Form("/media/gant/Expansion/tpcanalcsv/data%d.root", i), Form("/media/gant/Expansion/tpcanalcsv/data%d.pdf", i));
 
     }
+
+    
+
+    
 
 
 

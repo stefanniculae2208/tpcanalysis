@@ -24,6 +24,8 @@ int convertUVW::setRawData(std::vector<rawData> data_vec)
     if(data_vec.size() == 0)
         return -3;
 
+    std::vector<rawData>().swap(m_data_vec);
+
     m_data_vec = data_vec;
     
     std::vector<dataUVW>().swap(m_uvw_vec);
@@ -199,7 +201,8 @@ void convertUVW::calculateChargeHist()
 
 
 /**
- * @brief Draws the histogram of the charge added on each time bin.
+ * @brief Draws the histogram of the charge added on each time bin. The histogram isn't deleted so it should only be used for testing
+ * and not in a real program.
  * 
  * @return int error codes
  */

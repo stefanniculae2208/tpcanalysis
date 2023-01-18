@@ -27,7 +27,7 @@ class convertHitData
 {
     public:
     convertHitData(){};
-    ~convertHitData(){};
+    ~convertHitData();
     convertHitData(std::vector<dataUVW> uvw_data);
 
 

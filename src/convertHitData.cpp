@@ -2,13 +2,36 @@
 
 
 /**
- * @brief Construct a new convert Hit Data::convert Hit Data object
+ * @brief Construct a new convert Hit Data::convert Hit Data object.
  * 
  * @param uvw_data the uvw data vector to be used when finding the hits
  */
 convertHitData::convertHitData(std::vector<dataUVW> uvw_data)
 {
     m_uvw_data = uvw_data;
+}
+
+
+
+/**
+ * @brief Destroy the convert Hit Data::convert Hit Data object.
+ * Also deletes the raw histograms in m_raw_hist_data.
+ * 
+ */
+convertHitData::~convertHitData()
+{
+    
+    for(auto loc_hist : m_raw_hist_data){
+
+        if(loc_hist){
+
+            delete(loc_hist);
+            loc_hist = nullptr;
+
+        }
+
+    }
+
 }
 
 
@@ -25,6 +48,7 @@ int convertHitData::setUVWData(std::vector<dataUVW> uvw_data)
     if(uvw_data.size() == 0)
         return -3;
 
+    std::vector<dataUVW>().swap(m_uvw_data);
 
     m_uvw_data = uvw_data;
 
@@ -120,10 +144,14 @@ int convertHitData::getHitInfo(Double_t peak_th)
 
         peak_th_vec.push_back(loc_peak_th);
 
+        
 
 
         bin = 0;
         strip++;
+
+        
+
     }
 
 
@@ -218,7 +246,10 @@ int convertHitData::getHitInfo(Double_t peak_th)
 
 
 
-
+        if(gaus_and_pol0){
+            delete(gaus_and_pol0);
+            gaus_and_pol0 = nullptr;
+        }
         
 
         curr_iter++;
@@ -231,13 +262,20 @@ int convertHitData::getHitInfo(Double_t peak_th)
 
 
 
+    if(spec_analyzer){
+        delete(spec_analyzer);
+        spec_analyzer = nullptr;
+    }
 
 
 
     if(loc_canv){
         loc_canv->Close();
         gSystem->ProcessEvents();
+        delete(loc_canv);
+        loc_canv = nullptr;
     }
+
 
     gROOT->SetBatch(kFALSE);
 

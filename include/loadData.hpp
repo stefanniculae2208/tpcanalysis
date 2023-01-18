@@ -35,15 +35,13 @@ class loadData
 {
     public:
     loadData(){};
-    ~loadData(){};
+    ~loadData();
 
     loadData(TString filename, TString treename);
 
-    std::shared_ptr<TFile> openFile();
+    int openFile();
 
     int readData();
-
-    TTree* returnTree();
 
     int decodeData(int entryNr);
 
@@ -74,6 +72,8 @@ class loadData
 
     /// @brief The number of entries in the TTree.
     Long64_t m_nEntries = 0;
+
+    GDataFrame *m_data_branch;
 
 
 
