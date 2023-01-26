@@ -28,7 +28,7 @@ convertHitData::~convertHitData()
             delete(loc_hist);
             loc_hist = nullptr;
 
-        }
+        } 
 
     }
 
@@ -97,7 +97,7 @@ std::vector<TH1D*> convertHitData::returnHistData()
  * OLD: The peak threshold in taken as an input variable.
  * OLD: The peak threshold is 2.5 times the mean of the signal.
  * NEW: The peak threshold is not the maximum value between 2.5 times the mean of the signal and
- * 0.75 times the maximum value of the signal.
+ * 0.75 times the maximum value of the signal. Might need to be adjusted further.
  * 
  * @param peak_th the threshold for peak detection
  * @return int error codes

@@ -2218,11 +2218,9 @@ void create_entries_pdf(TString source_file, TString destination_file)
 
 
     TGraph *u_graph = nullptr;
-    //TAxis *u_axis = nullptr;
     TGraph *v_graph = nullptr;
-    //TAxis *v_axis = nullptr;
     TGraph *w_graph = nullptr;
-    //TAxis *w_axis = nullptr;
+    
 
 
     TGraph *p_graph = nullptr;
@@ -2353,14 +2351,7 @@ void create_entries_pdf(TString source_file, TString destination_file)
         if(w_graph != nullptr)
             w_graph->Delete();
 
-        /* if(u_axis != nullptr)
-            u_axis->Delete();
-
-        if(v_axis != nullptr)
-            v_axis->Delete();
-
-        if(w_axis != nullptr)
-            w_axis->Delete(); */
+        
 
 
 
@@ -2768,6 +2759,169 @@ void writeXYZcvs(int entry_nr)
 
 
 
+void writeFullCSV()
+{
+
+    auto goodFile = "./rootdata/data2.root";
+
+    auto goodTree = "tree";
+
+
+
+    std::ofstream out_file("./converteddata/data2allentries.csv");
+
+    if (!out_file.is_open()) {
+        std::cerr << "Error: Could not open file for output" << std::endl;
+        return;
+    }
+
+
+
+
+
+
+    loadData good_data(goodFile, goodTree);
+
+
+    convertUVW loc_conv_uvw;
+
+    convertHitData loc_convert_hit;
+
+    convertXYZ loc_conv_xyz;
+
+
+    auto err = good_data.openFile();
+    err = good_data.readData();
+
+    err = loc_conv_uvw.openSpecFile();
+
+
+    auto max_entries = good_data.returnNEntries();
+
+
+    //header
+    out_file << "x,y,z,entry_nr\n";
+
+    int entry_nr = 0;
+
+
+    while(entry_nr < max_entries){
+
+        std::cout<<"\n\n\nNow at entry: "<<entry_nr<<" of "<<max_entries<<"\n";
+
+
+        generalDataStorage data_container;
+
+
+        err = good_data.decodeData(entry_nr);
+        if(err != 0){
+            std::cout<<"Error decode data code "<<err<<"\n";
+        }
+
+        data_container.root_raw_data = good_data.returnRawData();
+
+        std::cout<<"RAW data size is "<<data_container.root_raw_data.size()<<"\n";
+
+
+
+
+
+
+        
+        loc_conv_uvw.setRawData(data_container.root_raw_data);
+
+        
+
+        err = loc_conv_uvw.makeConversion();
+        if(err != 0)
+            std::cout<<"Make conversion error code "<<err<<"\n";
+
+
+
+        err = loc_conv_uvw.substractBl();
+
+        if(err != 0)
+            std::cout<<"Substractbl error code "<<err<<"\n";
+
+
+        data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+        std::cout<<"UVW data size is "<<data_container.uvw_data.size()<<"\n";
+
+
+        err = loc_convert_hit.setUVWData(data_container.uvw_data);
+        if(err != 0)
+            std::cout<<"Error set UVW data code "<<err<<"\n";
+
+        err = loc_convert_hit.getHitInfo();
+        if(err != 0)
+            std::cout<<"Error get hit info code "<<err<<"\n";
+
+        data_container.hit_data = loc_convert_hit.returnHitData();
+        data_container.raw_hist_container = loc_convert_hit.returnHistData();
+
+        std::cout<<"Hit data size "<<data_container.hit_data.size()<<"\n";
+        std::cout<<"Hist data size "<<data_container.raw_hist_container.size()<<"\n";
+
+
+
+
+        err = loc_conv_xyz.getNewVector(data_container.hit_data);
+        if(err != 0)
+            std::cout<<"Error get new vector code "<<err<<"\n";
+
+        err = loc_conv_xyz.makeConversionXYZ();
+        if(err != 0)
+            std::cout<<"Error make conversion XYZ code "<<err<<"\n";
+
+
+        data_container.xyz_data = loc_conv_xyz.returnXYZ();
+
+        std::cout<<"XYZ vector size "<<data_container.xyz_data.size()<<"\n";
+
+
+        
+
+
+        for(auto &data_entry : data_container.xyz_data){
+
+            out_file << data_entry.data_x << "," << data_entry.data_y << "," << data_entry.data_z<< "," << entry_nr;
+
+
+            out_file << "\n";
+
+        }
+
+
+
+
+
+        entry_nr++;
+
+
+    }
+
+
+
+    
+
+    
+
+
+    out_file.close();
+
+
+
+
+
+
+
+}
+
+
+
+
+
 void drawXYimage(int entry_nr)
 {
 
@@ -2916,11 +3070,14 @@ void test()
 
     //view_data_entries();
 
-    create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data05.root", "/media/gant/Expansion/tpcanalcsv/data05.pdf");
+    //create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data07.root", "/media/gant/Expansion/tpcanalcsv/data07.pdf");
 
     //writeXYZcvs(429);
 
     //drawXYimage(429);
+
+
+    writeFullCSV();
 
     
 
