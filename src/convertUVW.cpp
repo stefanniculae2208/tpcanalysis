@@ -147,7 +147,7 @@ int convertUVW::makeConversion()
 
 /**
  * @brief Calculates the charge for each time bin. The charge is calculated by adding the charge from each strip on each plane
- * for the same time bin. 
+ * for the same time bin. OBSOLETE for now.
  * 
  */
 void convertUVW::calculateChargeHist()
@@ -202,7 +202,7 @@ void convertUVW::calculateChargeHist()
 
 /**
  * @brief Draws the histogram of the charge added on each time bin. The histogram isn't deleted so it should only be used for testing
- * and not in a real program.
+ * and not in a real program. OBSOLETE for now
  * 
  * @return int error codes
  */
