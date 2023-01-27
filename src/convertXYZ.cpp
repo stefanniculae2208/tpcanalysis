@@ -197,7 +197,8 @@ void convertXYZ::calculateXYZ()
                     loc_xyz.data_x = (xy_from_uv.first + xy_from_vw.first + xy_from_uw.first)/3;
                     loc_xyz.data_y = (xy_from_uv.second + xy_from_vw.second + xy_from_uw.second)/3;
                     loc_xyz.data_z = drift_vel * time_unit * (*it_u).peak_x;
-                    loc_xyz.data_charge = (*it_u).peak_y + (*it_v).peak_y + (*it_w).peak_y;
+                    loc_xyz.data_charge = (*it_u).peak_y + (*it_v).peak_y + (*it_w).peak_y
+                                        + (*it_u).base_line + (*it_v).base_line + (*it_w).base_line;
 
                     m_points_xyz.push_back(loc_xyz);
 

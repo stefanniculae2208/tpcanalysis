@@ -21,6 +21,8 @@
 #include "TF1.h"
 #include "TSpectrum.h"
 #include "TError.h"
+#include "TColor.h"
+#include "TMarker.h"
 
 
 
@@ -3127,12 +3129,15 @@ void view_data_entries()
 
         std::vector<double> x_u;
         std::vector<double> y_u;
+        std::vector<double> c_u;
 
         std::vector<double> x_v;
         std::vector<double> y_v;
+        std::vector<double> c_v;
 
         std::vector<double> x_w;
         std::vector<double> y_w;
+        std::vector<double> c_w;
 
         
 
@@ -3142,17 +3147,20 @@ void view_data_entries()
 
                 x_u.push_back(hit_iter.peak_x);
                 y_u.push_back(hit_iter.strip);
+                c_u.push_back(hit_iter.peak_y + hit_iter.base_line);
 
 
             }else if(hit_iter.plane == 1){
 
                 x_v.push_back(hit_iter.peak_x);
                 y_v.push_back(hit_iter.strip);
+                c_v.push_back(hit_iter.peak_y + hit_iter.base_line);
 
             }else if(hit_iter.plane == 2){
 
                 x_w.push_back(hit_iter.peak_x);
                 y_w.push_back(hit_iter.strip);
+                c_w.push_back(hit_iter.peak_y + hit_iter.base_line);
 
             }
 
@@ -3172,17 +3180,54 @@ void view_data_entries()
 
         
         if(data_container.hit_data.size() != 0){
-
-        
+            
 
 
             u_graph = new TGraph(x_u.size(), x_u.data(), y_u.data());
             u_graph->GetXaxis()->SetLimits(-1, 512);
             u_graph->GetHistogram()->SetMaximum(73);
             u_graph->GetHistogram()->SetMinimum(0);
-            u_graph->SetMarkerColor(kBlack);
+            //u_graph->SetMarkerColor(kBlack);
             u_graph->SetMarkerStyle(kFullCircle);
             u_graph->SetTitle("Hits detected on U plane; Time; Strip");
+            //Set marker colors Pink > Red > Green > Blue
+            if(c_u.size() != 0){
+
+                auto min_val_c_u = 0;
+                auto max_val_c_u = 2000;
+
+                std::transform(c_u.begin(), c_u.end(), c_u.begin(),
+                [min_val_c_u, max_val_c_u](const double x) { return (x - min_val_c_u) / (max_val_c_u - min_val_c_u); });
+
+                for(auto vec_i = 0; vec_i < c_u.size(); vec_i++){
+
+                    Double_t loc_x, loc_y;
+
+                    u_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if(c_u.at(vec_i) < 0.33){
+                        TColor *loc_color = new TColor(0, 0, 3 * c_u.at(vec_i));
+                    }else if(c_u.at(vec_i) >= 0.33 && c_u.at(vec_i) < 0.66){
+                        TColor *loc_color = new TColor(0, 3 * c_u.at(vec_i) / 2, 0);
+                    }else if(c_u.at(vec_i) > 1){
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    }else{
+                        TColor *loc_color = new TColor(c_u.at(vec_i), 0, 0);
+                    }
+
+
+                    
+                    
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    u_graph->GetListOfFunctions()->Add(loc_marker);
+
+
+                }
+
+            }
             loc_pad->cd(4);u_graph->Draw("AP");
             
 
@@ -3190,9 +3235,46 @@ void view_data_entries()
             v_graph->GetXaxis()->SetLimits(-1, 512);
             v_graph->GetHistogram()->SetMaximum(93);
             v_graph->GetHistogram()->SetMinimum(0);
-            v_graph->SetMarkerColor(kBlack);
+            //v_graph->SetMarkerColor(kBlack);
             v_graph->SetMarkerStyle(kFullCircle);
             v_graph->SetTitle("Hits detected on V plane; Time; Strip");
+            if(c_v.size() != 0){
+
+                auto min_val_c_v = 0;
+                auto max_val_c_v = 2000;
+
+                std::transform(c_v.begin(), c_v.end(), c_v.begin(),
+                [min_val_c_v, max_val_c_v](const double x) { return (x - min_val_c_v) / (max_val_c_v - min_val_c_v); });
+
+                for(auto vec_i = 0; vec_i < c_v.size(); vec_i++){
+
+                    Double_t loc_x, loc_y;
+
+                    v_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if(c_v.at(vec_i) < 0.33){
+                        TColor *loc_color = new TColor(0, 0, 3 * c_v.at(vec_i));
+                    }else if(c_v.at(vec_i) >= 0.33 && c_v.at(vec_i) < 0.66){
+                        TColor *loc_color = new TColor(0, 3 * c_v.at(vec_i) / 2, 0);
+                    }else if(c_v.at(vec_i) > 1){
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    }else{
+                        TColor *loc_color = new TColor(c_v.at(vec_i), 0, 0);
+                    }
+
+
+                    
+                    
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    v_graph->GetListOfFunctions()->Add(loc_marker);
+
+
+                }
+
+            }
             loc_pad->cd(5);v_graph->Draw("AP");
             
 
@@ -3200,10 +3282,50 @@ void view_data_entries()
             w_graph->GetXaxis()->SetLimits(-1, 512);
             w_graph->GetHistogram()->SetMaximum(93);
             w_graph->GetHistogram()->SetMinimum(0);
-            w_graph->SetMarkerColor(kBlack);
+            //w_graph->SetMarkerColor(kBlack);
             w_graph->SetMarkerStyle(kFullCircle);
             w_graph->SetTitle("Hits detected on W plane; Time; Strip");
+            if(c_w.size() != 0){
+
+                auto min_val_c_w = 0;
+                auto max_val_c_w = 2000;
+
+                std::transform(c_w.begin(), c_w.end(), c_w.begin(),
+                [min_val_c_w, max_val_c_w](const double x) { return (x - min_val_c_w) / (max_val_c_w - min_val_c_w); });
+
+                for(auto vec_i = 0; vec_i < c_w.size(); vec_i++){
+
+                    Double_t loc_x, loc_y;
+
+                    w_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if(c_w.at(vec_i) < 0.33){
+                        TColor *loc_color = new TColor(0, 0, 3 * c_w.at(vec_i));
+                    }else if(c_w.at(vec_i) >= 0.33 && c_w.at(vec_i) < 0.66){
+                        TColor *loc_color = new TColor(0, 3 * c_w.at(vec_i) / 2, 0);
+                    }else if(c_w.at(vec_i) > 1){
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    }else{
+                        TColor *loc_color = new TColor(c_w.at(vec_i), 0, 0);
+                    }
+
+
+                    
+                    
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    w_graph->GetListOfFunctions()->Add(loc_marker);
+
+
+                }
+
+            }
             loc_pad->cd(6);w_graph->Draw("AP");
+
+
+
             loc_pad->Modified();
             loc_pad->Update();
 
@@ -3216,11 +3338,12 @@ void view_data_entries()
 
         if(data_container.xyz_data.size() != 0){
 
-            std::vector<double> x, y, z;
+            std::vector<double> x, y, z, chg;
 
             x.push_back(-10.0);
             y.push_back(-10.0);
             z.push_back(-10.0);
+            chg.push_back(0.0);
     
 
 
@@ -3229,7 +3352,7 @@ void view_data_entries()
                 x.push_back(point_iter.data_x);
                 y.push_back(point_iter.data_y);
                 z.push_back(point_iter.data_z);
-
+                chg.push_back(point_iter.data_charge);
         
 
             }
@@ -3237,6 +3360,7 @@ void view_data_entries()
             x.push_back(150.0);
             y.push_back(150.0);
             z.push_back(150.0);
+            chg.push_back(0.0);
 
 
 
@@ -3246,9 +3370,46 @@ void view_data_entries()
             p_graph->GetXaxis()->SetLimits(-10, 150);
             p_graph->GetHistogram()->SetMaximum(150);
             p_graph->GetHistogram()->SetMinimum(-10);
-            p_graph->SetMarkerColor(kBlack);
+            //p_graph->SetMarkerColor(kBlack);
             p_graph->SetMarkerStyle(kFullCircle);
             p_graph->SetTitle("XY coordinates projection; X axis; Y axis");
+            if(chg.size() != 0){
+
+                auto min_val_chg = 0;
+                auto max_val_chg = 6000;
+
+                std::transform(chg.begin(), chg.end(), chg.begin(),
+                [min_val_chg, max_val_chg](const double x) { return (x - min_val_chg) / (max_val_chg - min_val_chg); });
+
+                for(auto vec_i = 0; vec_i < chg.size(); vec_i++){
+
+                    Double_t loc_x, loc_y;
+
+                    p_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if(chg.at(vec_i) < 0.33){
+                        TColor *loc_color = new TColor(0, 0, 3 * chg.at(vec_i));
+                    }else if(chg.at(vec_i) >= 0.33 && chg.at(vec_i) < 0.66){
+                        TColor *loc_color = new TColor(0, 3 * chg.at(vec_i) / 2, 0);
+                    }else if(chg.at(vec_i) > 1){
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    }else{
+                        TColor *loc_color = new TColor(chg.at(vec_i), 0, 0);
+                    }
+
+
+                    
+                    
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    p_graph->GetListOfFunctions()->Add(loc_marker);
+
+
+                }
+
+            }
             loc_pad->cd(7);p_graph->Draw("AP");
             loc_pad->Modified();
             loc_pad->Update();
@@ -3347,9 +3508,9 @@ void test()
     //test_hitdata();
     //test_unitXYZ();
 
-    //view_data_entries();
+    view_data_entries();
 
-    view_raw_data();
+    //view_raw_data();
 
     //create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data07.root", "/media/gant/Expansion/tpcanalcsv/data07.pdf");
 

@@ -236,7 +236,8 @@ int convertHitData::getHitInfo(Double_t peak_th)
             curr_point.plane = m_uvw_data.at(curr_iter).plane_val;
             curr_point.strip = m_uvw_data.at(curr_iter).strip_nr;
             curr_point.entry_nr = m_uvw_data.at(curr_iter).entry_nr;
-            curr_point.base_line = hist_iter->GetFunction("gaus_and_pol0")->GetParameter(0);
+            curr_point.base_line = m_uvw_data.at(curr_iter).baseline_val;//this is more relevant and can be used to calculate the charge
+            //curr_point.base_line = hist_iter->GetFunction("gaus_and_pol0")->GetParameter(0);
 
 
 

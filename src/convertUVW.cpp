@@ -276,7 +276,7 @@ int convertUVW::substractBl()
                     });
 
 
-        
+        data_el.baseline_val = baseline;
 
         //Extract the baseline from the signal. Make any elements lower than 0 equal to 0 so we don't have negative signal values.
         std::transform(data_el.signal_val.begin(), data_el.signal_val.end(), data_el.signal_val.begin(),
