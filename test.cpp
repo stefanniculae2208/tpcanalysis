@@ -15,6 +15,7 @@
 
 
 #include "TSystem.h"
+#include "TStyle.h"
 #include "TROOT.h"
 #include "TH2D.h"
 #include "TCanvas.h"
@@ -1882,7 +1883,7 @@ void view_raw_data()
 
 
 
-void create_entries_pdf(TString source_file, TString destination_file)
+void create_entries_pdf(TString source_file, TString destination_file, int read_entries)
 {
 
 
@@ -1977,6 +1978,10 @@ void create_entries_pdf(TString source_file, TString destination_file)
     
 
     uint32_t loop_nr = 0;
+
+
+    //only read the number of entries wanted
+    max_entries = std::min(max_entries, read_entries);
 
 
     while(entry_nr < max_entries){
@@ -2176,6 +2181,322 @@ void create_entries_pdf(TString source_file, TString destination_file)
 
         std::vector<double> x_u;
         std::vector<double> y_u;
+        std::vector<double> c_u;
+
+        std::vector<double> x_v;
+        std::vector<double> y_v;
+        std::vector<double> c_v;
+
+        std::vector<double> x_w;
+        std::vector<double> y_w;
+        std::vector<double> c_w;
+
+        
+
+        for(auto hit_iter : data_container.hit_data){
+
+            if(hit_iter.plane == 0){
+
+                x_u.push_back(hit_iter.peak_x);
+                y_u.push_back(hit_iter.strip);
+                c_u.push_back(hit_iter.peak_y + hit_iter.base_line);
+
+
+            }else if(hit_iter.plane == 1){
+
+                x_v.push_back(hit_iter.peak_x);
+                y_v.push_back(hit_iter.strip);
+                c_v.push_back(hit_iter.peak_y + hit_iter.base_line);
+
+            }else if(hit_iter.plane == 2){
+
+                x_w.push_back(hit_iter.peak_x);
+                y_w.push_back(hit_iter.strip);
+                c_w.push_back(hit_iter.peak_y + hit_iter.base_line);
+
+            }
+
+        }
+
+
+
+
+
+
+
+
+        
+
+
+        
+
+        
+        if(data_container.hit_data.size() != 0){
+            
+
+
+            u_graph = new TGraph(x_u.size(), x_u.data(), y_u.data());
+            u_graph->GetXaxis()->SetLimits(-1, 512);
+            u_graph->GetHistogram()->SetMaximum(73);
+            u_graph->GetHistogram()->SetMinimum(0);
+            //u_graph->SetMarkerColor(kBlack);
+            u_graph->SetMarkerStyle(kFullCircle);
+            u_graph->SetTitle("Hits detected on U plane; Time; Strip");
+            //Set marker colors Pink > Red > Green > Blue
+            if(c_u.size() != 0){
+
+                auto min_val_c_u = 0;
+                auto max_val_c_u = 2000;
+
+                std::transform(c_u.begin(), c_u.end(), c_u.begin(),
+                [min_val_c_u, max_val_c_u](const double x) { return (x - min_val_c_u) / (max_val_c_u - min_val_c_u); });
+
+                for(auto vec_i = 0; vec_i < c_u.size(); vec_i++){
+
+                    Double_t loc_x, loc_y;
+
+                    u_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if(c_u.at(vec_i) < 0.33){
+                        TColor *loc_color = new TColor(0, 0, 3 * c_u.at(vec_i));
+                    }else if(c_u.at(vec_i) >= 0.33 && c_u.at(vec_i) < 0.66){
+                        TColor *loc_color = new TColor(0, 3 * c_u.at(vec_i) / 2, 0);
+                    }else if(c_u.at(vec_i) > 1){
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    }else{
+                        TColor *loc_color = new TColor(c_u.at(vec_i), 0, 0);
+                    }
+
+
+                    
+                    
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    u_graph->GetListOfFunctions()->Add(loc_marker);
+
+
+                }
+
+            }
+            loc_pad->cd(4);u_graph->Draw("AP");
+            
+
+            v_graph = new TGraph(x_v.size(), x_v.data(), y_v.data());
+            v_graph->GetXaxis()->SetLimits(-1, 512);
+            v_graph->GetHistogram()->SetMaximum(93);
+            v_graph->GetHistogram()->SetMinimum(0);
+            //v_graph->SetMarkerColor(kBlack);
+            v_graph->SetMarkerStyle(kFullCircle);
+            v_graph->SetTitle("Hits detected on V plane; Time; Strip");
+            if(c_v.size() != 0){
+
+                auto min_val_c_v = 0;
+                auto max_val_c_v = 2000;
+
+                std::transform(c_v.begin(), c_v.end(), c_v.begin(),
+                [min_val_c_v, max_val_c_v](const double x) { return (x - min_val_c_v) / (max_val_c_v - min_val_c_v); });
+
+                for(auto vec_i = 0; vec_i < c_v.size(); vec_i++){
+
+                    Double_t loc_x, loc_y;
+
+                    v_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if(c_v.at(vec_i) < 0.33){
+                        TColor *loc_color = new TColor(0, 0, 3 * c_v.at(vec_i));
+                    }else if(c_v.at(vec_i) >= 0.33 && c_v.at(vec_i) < 0.66){
+                        TColor *loc_color = new TColor(0, 3 * c_v.at(vec_i) / 2, 0);
+                    }else if(c_v.at(vec_i) > 1){
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    }else{
+                        TColor *loc_color = new TColor(c_v.at(vec_i), 0, 0);
+                    }
+
+
+                    
+                    
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    v_graph->GetListOfFunctions()->Add(loc_marker);
+
+
+                }
+
+            }
+            loc_pad->cd(5);v_graph->Draw("AP");
+            
+
+            w_graph = new TGraph(x_w.size(), x_w.data(), y_w.data());
+            w_graph->GetXaxis()->SetLimits(-1, 512);
+            w_graph->GetHistogram()->SetMaximum(93);
+            w_graph->GetHistogram()->SetMinimum(0);
+            //w_graph->SetMarkerColor(kBlack);
+            w_graph->SetMarkerStyle(kFullCircle);
+            w_graph->SetTitle("Hits detected on W plane; Time; Strip");
+            if(c_w.size() != 0){
+
+                auto min_val_c_w = 0;
+                auto max_val_c_w = 2000;
+
+                std::transform(c_w.begin(), c_w.end(), c_w.begin(),
+                [min_val_c_w, max_val_c_w](const double x) { return (x - min_val_c_w) / (max_val_c_w - min_val_c_w); });
+
+                for(auto vec_i = 0; vec_i < c_w.size(); vec_i++){
+
+                    Double_t loc_x, loc_y;
+
+                    w_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if(c_w.at(vec_i) < 0.33){
+                        TColor *loc_color = new TColor(0, 0, 3 * c_w.at(vec_i));
+                    }else if(c_w.at(vec_i) >= 0.33 && c_w.at(vec_i) < 0.66){
+                        TColor *loc_color = new TColor(0, 3 * c_w.at(vec_i) / 2, 0);
+                    }else if(c_w.at(vec_i) > 1){
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    }else{
+                        TColor *loc_color = new TColor(c_w.at(vec_i), 0, 0);
+                    }
+
+
+                    
+                    
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    w_graph->GetListOfFunctions()->Add(loc_marker);
+
+
+                }
+
+            }
+            loc_pad->cd(6);w_graph->Draw("AP");
+
+
+
+            loc_pad->Modified();
+            loc_pad->Update();
+
+        }else{
+            u_graph = nullptr;
+            v_graph = nullptr;
+            w_graph = nullptr;
+        }
+
+
+        if(data_container.xyz_data.size() != 0){
+
+            std::vector<double> x, y, z, chg;
+
+            x.push_back(-10.0);
+            y.push_back(-10.0);
+            z.push_back(-10.0);
+            chg.push_back(0.0);
+    
+
+
+            for(auto point_iter : data_container.xyz_data){
+
+                x.push_back(point_iter.data_x);
+                y.push_back(point_iter.data_y);
+                z.push_back(point_iter.data_z);
+                chg.push_back(point_iter.data_charge);
+        
+
+            }
+
+            x.push_back(150.0);
+            y.push_back(150.0);
+            z.push_back(150.0);
+            chg.push_back(0.0);
+
+
+
+
+            
+            p_graph = new TGraph(x.size(), x.data(), y.data());
+            p_graph->GetXaxis()->SetLimits(-10, 150);
+            p_graph->GetHistogram()->SetMaximum(150);
+            p_graph->GetHistogram()->SetMinimum(-10);
+            //p_graph->SetMarkerColor(kBlack);
+            p_graph->SetMarkerStyle(kFullCircle);
+            p_graph->SetTitle("XY coordinates projection; X axis; Y axis");
+            if(chg.size() != 0){
+
+                auto min_val_chg = 0;
+                auto max_val_chg = 6000;
+
+                std::transform(chg.begin(), chg.end(), chg.begin(),
+                [min_val_chg, max_val_chg](const double x) { return (x - min_val_chg) / (max_val_chg - min_val_chg); });
+
+                for(auto vec_i = 0; vec_i < chg.size(); vec_i++){
+
+                    Double_t loc_x, loc_y;
+
+                    p_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if(chg.at(vec_i) < 0.33){
+                        TColor *loc_color = new TColor(0, 0, 3 * chg.at(vec_i));
+                    }else if(chg.at(vec_i) >= 0.33 && chg.at(vec_i) < 0.66){
+                        TColor *loc_color = new TColor(0, 3 * chg.at(vec_i) / 2, 0);
+                    }else if(chg.at(vec_i) > 1){
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    }else{
+                        TColor *loc_color = new TColor(chg.at(vec_i), 0, 0);
+                    }
+
+
+                    
+                    
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    p_graph->GetListOfFunctions()->Add(loc_marker);
+
+
+                }
+
+            }
+            loc_pad->cd(7);p_graph->Draw("AP");
+            loc_pad->Modified();
+            loc_pad->Update();
+
+            
+
+
+
+            p_graph3d = new TGraph2D(x.size(), x.data(), y.data(), z.data());
+            p_graph3d->SetMarkerColor(kBlue);
+            p_graph3d->SetMarkerStyle(kFullCircle);
+            p_graph3d->SetTitle("Reconstructed data in XYZ coordinates; X axis; Y axis; Z axis");
+            loc_pad->cd(8); p_graph3d->Draw("P0");
+            loc_pad->Modified();
+            loc_pad->Update();
+
+
+
+        }else{
+            p_graph = nullptr;
+            p_graph3d = nullptr;
+        }
+
+        entry_nr++;
+
+        loc_canv->Update();
+        loc_canv->Print(destination_file);
+
+    }
+
+
+
+/* 
+        std::vector<double> x_u;
+        std::vector<double> y_u;
 
         std::vector<double> x_v;
         std::vector<double> y_v;
@@ -2355,11 +2676,11 @@ void create_entries_pdf(TString source_file, TString destination_file)
 
 
 
-    }
+    } */
 
 
 
-
+    
 
     gErrorIgnoreLevel = kPrint;
     loc_canv->Print(destination_file + "]");
@@ -3483,6 +3804,183 @@ void view_data_entries()
 }
 
 
+void drawUVWimage(int entry_nr)
+{
+
+
+    generalDataStorage data_container;
+
+
+
+
+
+
+    auto goodFile = "./rootdata/data2.root";
+
+    auto goodTree = "tree";
+
+
+    loadData good_data(goodFile, goodTree);
+
+    auto returned_file = good_data.openFile();
+    auto err = good_data.readData();
+    err = good_data.decodeData(entry_nr);
+    data_container.root_raw_data = good_data.returnRawData();
+
+
+    convertUVW loc_conv_uvw(data_container.root_raw_data);
+
+
+    err = loc_conv_uvw.openSpecFile();
+
+    if(err != 0)
+        return;
+
+    err = loc_conv_uvw.makeConversion();
+    if(err != 0)
+        std::cout<<"Make conversion error code "<<err<<std::endl;
+
+
+
+    err = loc_conv_uvw.substractBl();
+
+    if(err != 0)
+        std::cout<<"Substractbl error code "<<err<<std::endl;
+
+
+    err = loc_conv_uvw.drawChargeHist();
+
+    if(err != 0)
+        std::cout<<"Draw Charge Hist error code "<<err<<std::endl;
+
+
+
+    data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+
+
+    
+
+
+
+    auto loc_canv = new TCanvas("uvw format", "UVW hists");
+    loc_canv->SetFrameLineColor(0);
+    loc_canv->SetFrameLineWidth(0);
+    loc_canv->SetBottomMargin(0);
+    loc_canv->SetTopMargin(0);
+    loc_canv->SetLeftMargin(0);
+    loc_canv->SetRightMargin(0);
+
+    
+    gStyle->SetOptStat(0);
+    
+
+    auto u_hists = new TH2D(Form("u_hists_%d", entry_nr), "", 512, 1, 513, 100, 1, 101);
+    auto v_hists = new TH2D(Form("v_hists_%d", entry_nr), "", 512, 1, 513, 100, 1, 101);
+    auto w_hists = new TH2D(Form("w_hists_%d", entry_nr), "", 512, 1, 513, 100, 1, 101);
+
+    u_hists->SetTickLength(0);
+    TAxis* u_axis = u_hists->GetYaxis();
+    u_axis->SetTickLength(0);
+    u_hists->SetLabelSize(0);
+    u_axis->SetLabelSize(0);
+
+    v_hists->SetTickLength(0);
+    TAxis* v_axis = v_hists->GetYaxis();
+    v_axis->SetTickLength(0);
+    v_hists->SetLabelSize(0);
+    v_axis->SetLabelSize(0);
+
+    w_hists->SetTickLength(0);
+    TAxis* w_axis = w_hists->GetYaxis();
+    w_axis->SetTickLength(0);
+    w_hists->SetLabelSize(0);
+    w_axis->SetLabelSize(0);
+
+    
+
+    
+
+
+
+
+    int bin = 0;
+    int strip = 1;
+
+    for(auto iter : data_container.uvw_data){
+
+        bin = 0;
+
+
+
+
+        if(iter.plane_val == 0){
+
+            for(auto sig_iter : iter.signal_val){
+
+                u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+                }
+
+        }
+
+
+        if(iter.plane_val == 1){
+
+            for(auto sig_iter : iter.signal_val){
+
+                v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 2){
+
+            for(auto sig_iter : iter.signal_val){
+
+                w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        }
+
+
+
+
+    u_hists->Draw("COLA");
+    loc_canv->Update();
+    loc_canv->Print("./converteddata/test_hist_u.png");
+
+
+
+
+    v_hists->Draw("COLA");
+    loc_canv->Update();
+    loc_canv->Print("./converteddata/test_hist_v.png");
+
+
+    w_hists->Draw("COLA");
+    loc_canv->Update();
+    loc_canv->Print("./converteddata/test_hist_w.png");
+
+
+
+
+
+    
+
+    loc_canv->Close();
+
+
+
+}
+
+
 
 void test()
 {
@@ -3508,11 +4006,11 @@ void test()
     //test_hitdata();
     //test_unitXYZ();
 
-    view_data_entries();
+    //view_data_entries();
 
     //view_raw_data();
 
-    //create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data07.root", "/media/gant/Expansion/tpcanalcsv/data07.pdf");
+    create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data08.root", "/media/gant/Expansion/tpcanalcsv/data08.pdf", 50);
 
     //writeXYZcvs(429);
 
@@ -3520,6 +4018,8 @@ void test()
 
 
     //writeFullCSV();
+
+    //drawUVWimage(429);
 
     
 
