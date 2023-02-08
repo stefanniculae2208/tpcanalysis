@@ -17,3 +17,4 @@ point_coords_w.csv
 testcalc.cpp
 entries.pdf
 converteddata/
+mass_convert.sh

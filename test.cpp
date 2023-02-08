@@ -3982,7 +3982,59 @@ void drawUVWimage(int entry_nr)
 
 
 
-void test()
+
+
+void mass_convertPDF(TString lin_arg)
+{
+
+
+    TString dirandfileName = lin_arg;
+
+    TString fileName = dirandfileName;
+
+    TString dir = dirandfileName;
+    int index = dir.Last('/');
+    dir.Remove(index+1,dir.Sizeof());
+
+
+    index = fileName.Last('/');//remove path
+
+
+
+    fileName.Remove(0, index+1);
+    fileName.Remove(fileName.Sizeof()-6, fileName.Sizeof());//remove .root
+    
+
+
+
+
+
+
+
+
+
+    TString mkdirCommand = ".! mkdir ";
+    mkdirCommand.Append(dir);
+    mkdirCommand.Append("pdffiles");
+
+    gROOT->ProcessLine(mkdirCommand);
+
+
+    TString pdfName = dir + "pdffiles/" + fileName + ".pdf";
+
+
+
+    create_entries_pdf(dirandfileName, pdfName, 50);
+
+
+
+
+
+}
+
+
+
+void test(TString lin_arg)
 {
 
 /*     auto getLib = "dict/build/libMyLib.so";
@@ -4020,6 +4072,10 @@ void test()
     //writeFullCSV();
 
     //drawUVWimage(429);
+
+    //mass_convertPDF(lin_arg);
+
+
 
     
 
