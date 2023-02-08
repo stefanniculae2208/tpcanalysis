@@ -2487,6 +2487,7 @@ void create_entries_pdf(TString source_file, TString destination_file, int read_
 
         entry_nr++;
 
+        loc_pad->Update();
         loc_canv->Update();
         loc_canv->Print(destination_file);
 
@@ -4058,11 +4059,11 @@ void test(TString lin_arg)
     //test_hitdata();
     //test_unitXYZ();
 
-    //view_data_entries();
+    view_data_entries();
 
     //view_raw_data();
 
-    create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data08.root", "/media/gant/Expansion/tpcanalcsv/data08.pdf", 50);
+    //create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data08.root", "/media/gant/Expansion/tpcanalcsv/data08.pdf", 50);
 
     //writeXYZcvs(429);
 

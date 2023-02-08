@@ -22,14 +22,16 @@ convertXYZ::convertXYZ(std::vector<hitPoints> hit_data)
 int convertXYZ::getNewVector(std::vector<hitPoints> hit_data)
 {
 
+    std::vector<hitPoints>().swap(m_hit_data);
+
+    std::vector<dataXYZ>().swap(m_points_xyz);
+
     if(hit_data.size() == 0)
         return -3;
 
-    std::vector<hitPoints>().swap(m_hit_data);
-
     m_hit_data = hit_data;
 
-    std::vector<dataXYZ>().swap(m_points_xyz);
+
 
     return 0;
 
