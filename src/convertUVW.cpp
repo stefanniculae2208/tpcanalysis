@@ -267,8 +267,8 @@ int convertUVW::substractBl()
 
         baseline = 0;
 
-
-
+        
+        //baseline = std::accumulate(data_el.signal_val.begin(), data_el.signal_val.begin() + sampleRegion, 0.0) / sampleRegion;
 
     
         //Calculate the baseline as the smallest non 0 element.
@@ -411,6 +411,9 @@ void convertUVW::smoothSignal(std::vector<double> &v)
 
 
 }
+
+
+
 
 
 

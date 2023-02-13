@@ -66,6 +66,7 @@ class convertUVW
 
 
 
+
     private:
 
     /// @brief The map used to make the conversion. Built from 'new_geometry_mini_eTPC.dat'.
