@@ -61,7 +61,9 @@ int convertXYZ::makeConversionXYZ()
     sortHitData();
 
 
-    calculateXYZ();
+    //calculateXYZ();
+
+    calculateXYZ_threaded();
 
 
 
@@ -129,6 +131,12 @@ void convertXYZ::calculateXYZ()
     auto end_w = std::upper_bound(m_hit_data.begin(), m_hit_data.end(), 2, [](const int v, const hitPoints& hp) { return v < hp.plane; });
 
 
+    /* std::vector<std::future<void>> futures;
+    std::vector<std::thread> threads;
+
+    unsigned int numThreads = std::thread::hardware_concurrency(); */
+
+
     for(auto it_u = start_u; it_u != end_u; ++it_u){
 
         if(it_u == m_hit_data.end()){
@@ -181,34 +189,13 @@ void convertXYZ::calculateXYZ()
 
                 }
 
-                std::pair<double, double> xy_from_uv;
-                std::pair<double, double> xy_from_vw;
-                std::pair<double, double> xy_from_uw;
+                //threads.push_back(std::thread(&convertXYZ::processHitData, this, (*it_u), (*it_v), (*it_w)));
 
-                xy_from_uv = calculateXYfromUV((*it_u).strip, (*it_v).strip);
-                xy_from_vw = calculateXYfromVW((*it_v).strip, (*it_w).strip);
-                xy_from_uw = calculateXYfromUW((*it_u).strip, (*it_w).strip);
+                //futures.push_back(std::async(std::launch::async, &convertXYZ::processHitData, this, (*it_u), (*it_v), (*it_w)));
 
-
-                if(evaluatePointsEquality(xy_from_uv, xy_from_vw, xy_from_uw)){
+                processHitData((*it_u), (*it_v), (*it_w));
 
                 
-                    
-
-                    dataXYZ loc_xyz;
-                    loc_xyz.data_x = (xy_from_uv.first + xy_from_vw.first + xy_from_uw.first)/3;
-                    loc_xyz.data_y = (xy_from_uv.second + xy_from_vw.second + xy_from_uw.second)/3;
-                    loc_xyz.data_z = drift_vel * time_unit * (*it_u).peak_x;
-                    loc_xyz.data_charge = (*it_u).peak_y + (*it_v).peak_y + (*it_w).peak_y
-                                        + (*it_u).base_line + (*it_v).base_line + (*it_w).base_line;
-
-                    m_points_xyz.push_back(loc_xyz);
-
-
-                }
-
-
-
             }
 
 
@@ -220,12 +207,158 @@ void convertXYZ::calculateXYZ()
     }
 
 
+    /* for (auto& loc_future : futures) {
+        loc_future.wait();
+    } */
+
+    /* for (auto& thread : threads) {
+        thread.join();
+    } */
+
 
 
 }
 
 
 
+
+void convertXYZ::calculateXYZ_threaded()
+{
+
+    //for now only 4 threads
+
+    unsigned int numThreads = std::thread::hardware_concurrency();
+
+    /* if(numThreads < 4){
+
+        std::cout<<"Less than 4 threads avalible: running without multithreading";
+        calculateXYZ();
+        return;
+
+    } */
+
+
+
+    //clear the vector
+    std::vector<dataXYZ>().swap(m_points_xyz);
+
+    auto start_u = std::lower_bound(m_hit_data.begin(), m_hit_data.end(), 0, [](const hitPoints& hp, const int v) { return hp.plane < v; });
+    auto end_u = std::upper_bound(m_hit_data.begin(), m_hit_data.end(), 0, [](const int v, const hitPoints& hp) { return v < hp.plane; });
+
+    auto start_v = std::lower_bound(m_hit_data.begin(), m_hit_data.end(), 1, [](const hitPoints& hp, const int v) { return hp.plane < v; });
+    auto end_v = std::upper_bound(m_hit_data.begin(), m_hit_data.end(), 1, [](const int v, const hitPoints& hp) { return v < hp.plane; });
+
+    auto start_w = std::lower_bound(m_hit_data.begin(), m_hit_data.end(), 2, [](const hitPoints& hp, const int v) { return hp.plane < v; });
+    auto end_w = std::upper_bound(m_hit_data.begin(), m_hit_data.end(), 2, [](const int v, const hitPoints& hp) { return v < hp.plane; });
+
+    //splitVectorOperation(start_u, end_u, start_v, end_v, start_w, end_w);
+
+    int segmentSize = (end_u - start_u) / numThreads;
+
+
+    // create the threads and pass the iterators for each segment to the splitVectorOperation function
+    std::vector<std::thread> threads;
+    for (int i = 0; i < (numThreads - 1); i++) {
+        threads.emplace_back(&convertXYZ::splitVectorOperation, this,
+                                 start_u + i * segmentSize, start_u + (i+1) * segmentSize, start_v, end_v, start_w, end_w);
+    }
+    threads.emplace_back(&convertXYZ::splitVectorOperation, this,
+                                 start_u + (numThreads - 1) * segmentSize, end_u, start_v, end_v, start_w, end_w);
+
+    // join the threads after they finish executing
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+
+
+}
+
+
+
+void convertXYZ::splitVectorOperation(std::vector<hitPoints>::iterator start_u, std::vector<hitPoints>::iterator end_u,
+                                std::vector<hitPoints>::iterator start_v, std::vector<hitPoints>::iterator end_v,
+                                std::vector<hitPoints>::iterator start_w, std::vector<hitPoints>::iterator end_w)
+{
+
+
+
+
+    for(auto it_u = start_u; it_u != end_u; ++it_u){
+
+        if(it_u == m_hit_data.end()){
+
+            if(m_verbose){
+                std::cout<<"Iterator it_u hit the end of the vector."<<std::endl;
+            }
+            break;
+
+        }
+
+
+        for(auto it_v = start_v; it_v != end_v; ++it_v){
+
+            if(it_u == m_hit_data.end()){
+
+                if(m_verbose){
+                    std::cout<<"Iterator it_v hit the end of the vector."<<std::endl;
+                }
+                break;
+
+            }
+
+            //see if the peaks are at the same location, continue if not
+            if(((*it_v).peak_x < ((*it_u).peak_x - (*it_u).fwhm / 2.355)) ||
+             ((*it_v).peak_x > ((*it_u).peak_x + (*it_u).fwhm / 2.355))){
+
+                continue;
+
+            }
+
+
+
+            for(auto it_w = start_w; it_v != end_w; ++it_w){
+
+                if(it_w == m_hit_data.end()){
+
+                    if(m_verbose){
+                        std::cout<<"Iterator it_w hit the end of the vector."<<std::endl;
+                    }
+                    break;
+
+                }
+
+                //see if this hit is also at the same location
+                if(((*it_w).peak_x < ((*it_v).peak_x - (*it_v).fwhm / 2.355)) ||
+                    ((*it_w).peak_x > ((*it_v).peak_x + (*it_v).fwhm / 2.355))){
+
+                        continue;
+
+                }
+
+                processHitData((*it_u), (*it_v), (*it_w));
+
+                
+
+
+                
+            }
+
+
+
+        }
+
+
+
+    }
+
+
+    
+
+    
+
+
+}
 
 
 
@@ -371,84 +504,42 @@ std::vector<dataXYZ> convertXYZ::returnXYZ()
 
 
 
-/* 
 
 
 
 
-
-std::pair<double, double> convertXYZ::calculateXYfromUV_V2(int strip_u, int strip_v)
+void convertXYZ::processHitData(const hitPoints& hit_u, const hitPoints& hit_v, const hitPoints& hit_w)
 {
 
     std::pair<double, double> xy_from_uv;
-
-
-    const auto deg30 = 30. * TMath::Pi() / 180.;
-    const auto slopeV = tan(-deg30);
-    const auto pitchV = 1.5 / cos(deg30);
-    const auto yV = 4.33 + (pitchV * strip_v);
-    
-    auto x = 106.5 - (strip_u * 1.5);
-    auto y = x * slopeV + yV;
-    xy_from_uv = {x, y};
-
-
-
-    return xy_from_uv;
-
-}
-
-std::pair<double, double> convertXYZ::calculateXYfromVW_V2(int strip_v, int strip_w)
-{
-    
     std::pair<double, double> xy_from_vw;
-
-
-
-
-    const auto deg30 = 30. * TMath::Pi() / 180.;
-    const auto slopeV = tan(-deg30);
-    const auto pitchV = 1.5 / cos(deg30);
-    const auto yV = 4.33 + (pitchV * strip_v);
-    
-    const auto slopeW = tan(deg30);
-    const auto pitchW = 1.5 / cos(deg30);
-    const auto yW = 99.593 - (pitchW * strip_w);
-
-    auto x = (yW - yV) / (slopeV - slopeW);
-    auto y = x * slopeV + yV;
-    
-    xy_from_vw = {x, y};
-
-    return xy_from_vw;
-
-}
-
-
-
-
-std::pair<double, double> convertXYZ::calculateXYfromUW_V2(int strip_u, int strip_w)
-{
-
     std::pair<double, double> xy_from_uw;
 
+    xy_from_uv = calculateXYfromUV(hit_u.strip, hit_v.strip);
+    xy_from_vw = calculateXYfromVW(hit_v.strip, hit_w.strip);
+    xy_from_uw = calculateXYfromUW(hit_u.strip, hit_w.strip);
 
 
-    const auto deg30 = 30. * TMath::Pi() / 180.;
-    const auto slopeW = tan(deg30);
-    const auto pitchW = 1.5 / cos(deg30);
-    const auto yW = 99.593 - (pitchW * strip_w);
-    
-    auto x = 106.5 - (strip_u * 1.5);
-    auto y = x * slopeW + yW;
-    xy_from_uw = {x, y};
+    if(evaluatePointsEquality(xy_from_uv, xy_from_vw, xy_from_uw)){
+
+                
+                    
+
+        dataXYZ loc_xyz;
+        loc_xyz.data_x = (xy_from_uv.first + xy_from_vw.first + xy_from_uw.first)/3;
+        loc_xyz.data_y = (xy_from_uv.second + xy_from_vw.second + xy_from_uw.second)/3;
+        loc_xyz.data_z = drift_vel * time_unit * hit_u.peak_x;
+        loc_xyz.data_charge = hit_u.peak_y + hit_v.peak_y + hit_w.peak_y
+            + hit_u.base_line + hit_v.base_line + hit_w.base_line;
+
+
+        std::lock_guard<std::mutex> lock(m_points_xyz_mutex);
+        m_points_xyz.push_back(loc_xyz);
+
+
+    }
 
 
 
-    return xy_from_uw;
 
 }
-
-
-
- */

@@ -417,6 +417,127 @@ void convertUVW::smoothSignal(std::vector<double> &v)
 
 
 
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
+int convertUVW::buildNormalizationMap()
+{
+
+    const std::string filename = "ch_norm_ratios.csv";
+
+    std::ifstream file(filename);
+
+    if (!file.is_open()) {
+        std::cerr << "Error: Failed to open file " << filename << std::endl;
+        return -1;
+    }
+
+
+
+    // Read and discard the first line
+    std::string line;
+    std::getline(file, line);
+
+    // Parse the data from the file and add it to the map
+    while (std::getline(file, line)) {
+
+        std::istringstream iss(line);
+        std::string field;
+        int plane, strip;
+        double ratio;
+
+        std::getline(iss, field, ',');
+        plane = std::stoi(field);
+        std::getline(iss, field, ',');
+        strip = std::stoi(field);
+        std::getline(iss, field, ',');
+        ratio = std::stod(field);
+
+        //m_ch_ratio_map[std::make_pair(plane, strip)] = ratio;
+        m_ch_ratio_map.insert({std::make_pair(plane, strip), ratio});
+
+    }
+
+
+
+    file.close();
+
+
+
+
+    return 0;
+
+}
+
+
+
+
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
+int convertUVW::normalizeChannels()
+{
+
+    if(m_ch_ratio_map.size() == 0){
+
+        std::cerr<<"Error map is empty."<<std::endl;
+        return -3;
+
+    }
+
+    if(m_uvw_vec.size() == 0){
+
+        std::cerr<<"Error UVW vector is empty."<<std::endl;
+        return -3;
+
+    }
+
+
+
+    for(auto &uvw_entry : m_uvw_vec){
+
+        if(uvw_entry.plane_val == 0){
+
+            auto loc_ratio = m_ch_ratio_map.at({0, uvw_entry.strip_nr});
+            
+
+            std::transform(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), uvw_entry.signal_val.begin(), 
+                                [loc_ratio](double sig_el){ return sig_el / loc_ratio; });
+
+        }else if(uvw_entry.plane_val == 1){
+
+            auto loc_ratio = m_ch_ratio_map.at({1, uvw_entry.strip_nr});
+
+            std::transform(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), uvw_entry.signal_val.begin(), 
+                                [loc_ratio](double sig_el){ return sig_el / loc_ratio; });
+
+        }
+        else if(uvw_entry.plane_val == 2){
+
+            auto loc_ratio = m_ch_ratio_map.at({2, uvw_entry.strip_nr});
+
+            std::transform(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), uvw_entry.signal_val.begin(), 
+                                [loc_ratio](double sig_el){ return sig_el / loc_ratio; });
+                
+        }
+
+    }
+
+
+    return 0;
+
+}
+
+
+
+
+
+
+
 
 
 

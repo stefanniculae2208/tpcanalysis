@@ -5,6 +5,10 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <mutex>
+#include <future>
+#include <thread>
+
 
 
 
@@ -73,6 +77,8 @@ class convertXYZ
     /// @brief Used for debug.
     bool m_verbose = false;
 
+    std::mutex m_points_xyz_mutex;
+
 
 
 
@@ -89,6 +95,13 @@ class convertXYZ
     int evaluatePointsEquality(const std::pair<double, double> xy_from_uv, const std::pair<double, double> xy_from_vw, const std::pair<double, double> xy_from_uw);
 
     void calculateXYZ();
+    void calculateXYZ_threaded();
+
+    void processHitData(const hitPoints& hit_u, const hitPoints& hit_v, const hitPoints& hit_w);
+
+    void splitVectorOperation(std::vector<hitPoints>::iterator start_u, std::vector<hitPoints>::iterator end_u,
+                                std::vector<hitPoints>::iterator start_v, std::vector<hitPoints>::iterator end_v,
+                                std::vector<hitPoints>::iterator start_w, std::vector<hitPoints>::iterator end_w);
 
 
     

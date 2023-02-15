@@ -64,6 +64,10 @@ class convertUVW
 
     int drawChargeHist();
 
+    int buildNormalizationMap();
+
+    int normalizeChannels();
+
 
 
 
@@ -83,6 +87,9 @@ class convertUVW
 
     /// @brief Used for debugging
     bool m_verbose = false;
+
+    /// @brief Used for saving the data found in the normalization csv.
+    std::map<std::pair<int, int>, double> m_ch_ratio_map;
 
 
 

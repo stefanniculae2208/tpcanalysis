@@ -38,7 +38,254 @@
 
 
 
-void view_raw_data(TString fileName)
+
+
+void createNormCSV()
+{
+
+    TString filename = "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root";
+
+    auto goodTree = "tree";
+
+
+    loadData good_data(filename, goodTree);
+
+    auto err = good_data.openFile();
+
+
+    err = good_data.readData();
+
+
+    auto max_entries = good_data.returnNEntries();
+
+
+    convertUVW loc_conv_uvw;
+
+    err = loc_conv_uvw.openSpecFile();
+
+    if(err != 0)
+        return;
+
+
+    generalDataStorage data_container;
+
+
+
+
+
+
+
+    //we always use 20 entries
+    std::array<std::array<double, 20>, 3> entry_mean = {{}};
+    
+    std::array<double, 3> total_mean = {};
+
+    std::array<int, 20> entry_nrs = {7, 15, 22, 36, 37, 40, 49, 52, 53, 55,
+                                     56, 61, 65, 68, 78, 102, 103, 143, 152, 161};
+
+
+
+
+
+    for(auto i = 0; i < 20; i++){
+
+        auto err = good_data.decodeData(entry_nrs.at(i));
+        if(err != 0){
+            std::cout<<"Error decode data code "<<err<<std::endl;
+        }
+
+        data_container.root_raw_data = good_data.returnRawData();
+
+        std::cout<<"RAW data size is "<<data_container.root_raw_data.size()<<std::endl;
+
+
+
+
+
+
+
+
+        
+        loc_conv_uvw.setRawData(data_container.root_raw_data);
+
+        
+
+        err = loc_conv_uvw.makeConversion();
+        if(err != 0)
+            std::cout<<"Make conversion error code "<<err<<std::endl;
+
+
+
+
+
+        data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+
+        int count_u = 0;
+        int count_v = 0;
+        int count_w = 0;
+
+
+        for(auto &uvw_entry : data_container.uvw_data){
+
+            if(uvw_entry.plane_val == 0){
+
+                entry_mean[0][i] += std::accumulate(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), 0.0)
+                                         / uvw_entry.signal_val.size();
+                                    
+                count_u++;
+
+            }else if(uvw_entry.plane_val == 1){
+
+                entry_mean[1][i] += std::accumulate(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), 0.0)
+                                         / uvw_entry.signal_val.size();
+
+                count_v++;
+
+            }
+            else if(uvw_entry.plane_val == 2){
+
+                entry_mean[2][i] += std::accumulate(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), 0.0)
+                                         / uvw_entry.signal_val.size();
+
+                count_w++;
+
+            }
+
+        }
+
+        entry_mean[0][i] /= count_u;
+        entry_mean[1][i] /= count_v;
+        entry_mean[2][i] /= count_w;
+
+
+
+    }
+
+
+    total_mean[0] = std::accumulate(entry_mean[0].begin(), entry_mean[0].end(), 0.0) / entry_mean[0].size();
+    total_mean[1] = std::accumulate(entry_mean[1].begin(), entry_mean[1].end(), 0.0) / entry_mean[1].size();
+    total_mean[2] = std::accumulate(entry_mean[2].begin(), entry_mean[2].end(), 0.0) / entry_mean[2].size();
+
+
+
+
+
+    std::array<std::array<std::array<double, 20>, 93>, 3> entry_ch_ratio = {{{}}};
+
+    std::array<std::array<double, 93>, 3> total_ch_ratio = {{}};
+
+
+
+    for(auto i = 0; i < 20; i++){
+
+        auto err = good_data.decodeData(entry_nrs.at(i));
+        
+
+        data_container.root_raw_data = good_data.returnRawData();
+
+
+
+
+
+
+
+
+
+        
+        loc_conv_uvw.setRawData(data_container.root_raw_data);
+
+        
+
+        err = loc_conv_uvw.makeConversion();
+        
+
+
+
+
+
+        data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+
+        for(auto &uvw_entry : data_container.uvw_data){
+
+            if(uvw_entry.plane_val == 0){
+
+                double loc_mean = std::accumulate(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), 0.0)
+                                         / uvw_entry.signal_val.size();
+
+                entry_ch_ratio[0][uvw_entry.strip_nr][i] = loc_mean / total_mean[0];
+
+
+            }else if(uvw_entry.plane_val == 1){
+
+                double loc_mean = std::accumulate(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), 0.0)
+                                         / uvw_entry.signal_val.size();
+
+                entry_ch_ratio[1][uvw_entry.strip_nr][i] = loc_mean / total_mean[1];
+
+            }
+            else if(uvw_entry.plane_val == 2){
+
+                double loc_mean = std::accumulate(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), 0.0)
+                                         / uvw_entry.signal_val.size();
+
+                entry_ch_ratio[2][uvw_entry.strip_nr][i] = loc_mean / total_mean[2];
+                
+            }
+
+        }
+
+        
+
+
+
+    }
+
+
+    std::ofstream out_file("./ch_norm_ratios.csv");
+
+    out_file<<"plane,strip,ratio\n";
+
+
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 93; j++) {
+            double sum = std::accumulate(entry_ch_ratio[i][j].begin(), entry_ch_ratio[i][j].end(), 0.0);
+            total_ch_ratio[i][j] = sum / entry_ch_ratio[i][j].size();
+
+            out_file<<i<<","<<j<<","<<total_ch_ratio[i][j]<<"\n";
+
+        }
+    }
+
+
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+    out_file.close();
+
+
+
+
+}
+
+
+
+
+
+void view_raw_data(TString fileName, int norm_opt = 0)
 {
 
 
@@ -67,6 +314,10 @@ void view_raw_data(TString fileName)
 
     err = loc_conv_uvw.openSpecFile();
 
+    if(err != 0)
+        return;
+
+    err = loc_conv_uvw.buildNormalizationMap();
     if(err != 0)
         return;
 
@@ -204,12 +455,25 @@ void view_raw_data(TString fileName)
             std::cout<<"Make conversion error code "<<err<<std::endl;
 
 
+        //use norm_opt to set normalization on or off
+        if(norm_opt){
+
+            err = loc_conv_uvw.normalizeChannels();
+            if(err != 0)
+                std::cout<<"Normalize channels error code "<<err<<std::endl;
+
+        }
 
 
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
         std::cout<<"UVW data size is "<<data_container.uvw_data.size()<<std::endl;
+
+
+
+
+
 
 
         if(u_hists != nullptr)
@@ -1827,7 +2091,7 @@ void drawXYimage(int entry_nr)
 
 
 
-void view_data_entries(TString fileName)
+void view_data_entries(TString fileName, int norm_opt = 0)
 {
 
 
@@ -1858,6 +2122,11 @@ void view_data_entries(TString fileName)
 
     if(err != 0)
         return;
+
+    err = loc_conv_uvw.buildNormalizationMap();
+    if(err != 0)
+        return;
+
 
     
 
@@ -2011,6 +2280,16 @@ void view_data_entries(TString fileName)
         err = loc_conv_uvw.makeConversion();
         if(err != 0)
             std::cout<<"Make conversion error code "<<err<<std::endl;
+
+        
+        //use norm_opt to set normalization on or off
+        if(norm_opt){
+
+            err = loc_conv_uvw.normalizeChannels();
+            if(err != 0)
+                std::cout<<"Normalize channels error code "<<err<<std::endl;
+
+        }
 
 
 
@@ -2814,14 +3093,21 @@ void mass_convertRawPDF(TString lin_arg, int nr_entries)
 
 
 
+
+
+
+
+
+
+
 void runmacro(TString lin_arg)
 {
 
-    //view_data_entries("./rootdata/data2.root");
+    view_data_entries("./rootdata/data2.root", 1);
 
-    view_raw_data("./rootdata/data2.root");
+    //view_raw_data("./rootdata/data2.root", 1);
 
-    //create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data08.root", "/media/gant/Expansion/tpcanalcsv/data08.pdf", 50);
+    //create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data08.root", "/media/gant/Expansion/tpcanalcsv/data08.pdf", 10000);
 
     /* create_raw_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T16-20-10.736_0000.root",
                          "/media/gant/Expansion/tpcanalcsv/CoBo_2018-06-20T16-20-10.736_0000.pdf", 10000); */
@@ -2839,6 +3125,8 @@ void runmacro(TString lin_arg)
     //mass_convertPDF(lin_arg);
 
     //mass_convertRawPDF(lin_arg, 10000);
+
+    //createNormCSV();
 
 
 
