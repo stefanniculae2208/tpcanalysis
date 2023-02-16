@@ -100,13 +100,16 @@ std::vector<TH1D*> convertHitData::returnHistData()
  * The parameters obtained from the histogram fitting are saved in the hitData type vector.
  * OLD: The peak threshold in taken as an input variable.
  * OLD: The peak threshold is 2.5 times the mean of the signal.
- * NEW: The peak threshold is not the maximum value between 2.5 times the mean of the signal and
+ * OLD: The peak threshold is not the maximum value between 2.5 times the mean of the signal and
  * 0.75 times the maximum value of the signal. Might need to be adjusted further.
+ * NEW: The peak threshold is not the maximum value between sensitivity_avg times the mean of the signal and
+ * sensitivity_max times the maximum value of the signal. Might need to be adjusted further.
  * 
- * @param peak_th the threshold for peak detection
+ * @param sensitivity_avg The 
+ * @param sensitivity_max 
  * @return int error codes
  */
-int convertHitData::getHitInfo(Double_t peak_th)
+int convertHitData::getHitInfo(Double_t sensitivity_avg, Double_t sensitivity_max)
 {
 
     //This makes it so the canvas doesn't open a window every time and disrupt the user.
@@ -143,8 +146,9 @@ int convertHitData::getHitInfo(Double_t peak_th)
         m_raw_hist_data.push_back(loc_hist);
 
 
-        double loc_peak_th = std::max(0.75 * (*std::max_element(iter.signal_val.begin(), iter.signal_val.end())), 
-                                        2.5 * (std::accumulate(iter.signal_val.begin(), iter.signal_val.end(), 0.0)/iter.signal_val.size()));
+        double loc_peak_th = std::max(sensitivity_max * (*std::max_element(iter.signal_val.begin(), iter.signal_val.end())), 
+                                        sensitivity_avg * (std::accumulate(iter.signal_val.begin(), iter.signal_val.end(), 0.0) 
+                                        / iter.signal_val.size()));
 
         peak_th_vec.push_back(loc_peak_th);
 

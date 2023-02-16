@@ -3,8 +3,12 @@
 
 
 
-//This class will help store the useful data in an organised manner
 
+/**
+ * @brief Used for data storage.
+ * The information is stored here in the XYZ format.
+ * 
+ */
 class dataXYZ
 {
 
@@ -13,12 +17,16 @@ class dataXYZ
     dataXYZ(){};
     ~dataXYZ(){};
 
+    /// @brief The location on X.
     double data_x;
 
+    /// @brief The location on Y.
     double data_y;
 
+    /// @brief The location on Z.
     double data_z;
 
+    /// @brief The value of the charge.
     double data_charge;
 
     

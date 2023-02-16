@@ -112,7 +112,7 @@ void convertXYZ::sortHitData()
  * @brief This function does the actual conversion.
  * First we iterate through all the hits first for U, then for V, and finally for W.
  * We check if the hits happen at the same time. If yes, we calculate X and Y using 3 methods and if the values are the same
- * we calculate the Z value from the time information and add the point to our converted vector.
+ * We calculate the Z value from the time information and add the point to our converted vector.
  * 
  */
 void convertXYZ::calculateXYZ()
@@ -131,10 +131,6 @@ void convertXYZ::calculateXYZ()
     auto end_w = std::upper_bound(m_hit_data.begin(), m_hit_data.end(), 2, [](const int v, const hitPoints& hp) { return v < hp.plane; });
 
 
-    /* std::vector<std::future<void>> futures;
-    std::vector<std::thread> threads;
-
-    unsigned int numThreads = std::thread::hardware_concurrency(); */
 
 
     for(auto it_u = start_u; it_u != end_u; ++it_u){
@@ -189,9 +185,7 @@ void convertXYZ::calculateXYZ()
 
                 }
 
-                //threads.push_back(std::thread(&convertXYZ::processHitData, this, (*it_u), (*it_v), (*it_w)));
 
-                //futures.push_back(std::async(std::launch::async, &convertXYZ::processHitData, this, (*it_u), (*it_v), (*it_w)));
 
                 processHitData((*it_u), (*it_v), (*it_w));
 
@@ -207,41 +201,38 @@ void convertXYZ::calculateXYZ()
     }
 
 
-    /* for (auto& loc_future : futures) {
-        loc_future.wait();
-    } */
-
-    /* for (auto& thread : threads) {
-        thread.join();
-    } */
-
 
 
 }
 
 
 
-
+/**
+ * @brief This function does the actual conversion.
+ * First we iterate through all the hits first for U, then for V, and finally for W.
+ * We check if the hits happen at the same time. If yes, we calculate X and Y using 3 methods and if the values are the same.
+ * If the values are the same, it means that the 3 strips the hits were detected on intersect in one point.
+ * This point represent the real location of the hit in XY coordintaes.
+ * We calculate the Z value from the time information and add the point to our converted vector.
+ * The only difference from convertXYZ::calculateXYZ() is that this function uses multi-threading in hopes of being more efficient.
+ * 
+ */
 void convertXYZ::calculateXYZ_threaded()
 {
 
-    //for now only 4 threads
 
+    //Use this to find out the number of supported threads.
     unsigned int numThreads = std::thread::hardware_concurrency();
 
-    /* if(numThreads < 4){
 
-        std::cout<<"Less than 4 threads avalible: running without multithreading";
-        calculateXYZ();
-        return;
-
-    } */
 
 
 
     //clear the vector
     std::vector<dataXYZ>().swap(m_points_xyz);
 
+    //The vectors have been ordered based on their planes. We use this to find out where the hits on each plane start and end.
+    //This way we don't need to crate a new vector.
     auto start_u = std::lower_bound(m_hit_data.begin(), m_hit_data.end(), 0, [](const hitPoints& hp, const int v) { return hp.plane < v; });
     auto end_u = std::upper_bound(m_hit_data.begin(), m_hit_data.end(), 0, [](const int v, const hitPoints& hp) { return v < hp.plane; });
 
@@ -251,12 +242,13 @@ void convertXYZ::calculateXYZ_threaded()
     auto start_w = std::lower_bound(m_hit_data.begin(), m_hit_data.end(), 2, [](const hitPoints& hp, const int v) { return hp.plane < v; });
     auto end_w = std::upper_bound(m_hit_data.begin(), m_hit_data.end(), 2, [](const int v, const hitPoints& hp) { return v < hp.plane; });
 
-    //splitVectorOperation(start_u, end_u, start_v, end_v, start_w, end_w);
 
+    //Calculate the size of each segment based on the number of supported threads.
+    //We then split the vector is segments of this size.
     int segmentSize = (end_u - start_u) / numThreads;
 
 
-    // create the threads and pass the iterators for each segment to the splitVectorOperation function
+    //Create the threads and pass the iterators for each segment to the splitVectorOperation function.
     std::vector<std::thread> threads;
     for (int i = 0; i < (numThreads - 1); i++) {
         threads.emplace_back(&convertXYZ::splitVectorOperation, this,
@@ -265,7 +257,7 @@ void convertXYZ::calculateXYZ_threaded()
     threads.emplace_back(&convertXYZ::splitVectorOperation, this,
                                  start_u + (numThreads - 1) * segmentSize, end_u, start_v, end_v, start_w, end_w);
 
-    // join the threads after they finish executing
+    //Join the threads after they finish executing.
     for (auto& thread : threads) {
         thread.join();
     }
@@ -275,7 +267,16 @@ void convertXYZ::calculateXYZ_threaded()
 }
 
 
-
+/**
+ * @brief 
+ * 
+ * @param start_u 
+ * @param end_u 
+ * @param start_v 
+ * @param end_v 
+ * @param start_w 
+ * @param end_w 
+ */
 void convertXYZ::splitVectorOperation(std::vector<hitPoints>::iterator start_u, std::vector<hitPoints>::iterator end_u,
                                 std::vector<hitPoints>::iterator start_v, std::vector<hitPoints>::iterator end_v,
                                 std::vector<hitPoints>::iterator start_w, std::vector<hitPoints>::iterator end_w)
@@ -507,7 +508,14 @@ std::vector<dataXYZ> convertXYZ::returnXYZ()
 
 
 
-
+/**
+ * @brief Using three simultaneous hits, this funcion calculates if the strips the hits were detected on intersect.
+ * If yes, then we use the intersection point as the real (as in XY physical coordinates) life location of the hits.
+ * 
+ * @param hit_u The hit on the U plane.
+ * @param hit_v The hit on the U plane.
+ * @param hit_w The hit on the U plane.
+ */
 void convertXYZ::processHitData(const hitPoints& hit_u, const hitPoints& hit_v, const hitPoints& hit_w)
 {
 

@@ -242,21 +242,18 @@ int convertUVW::drawChargeHist()
 
 /**
  * @brief Substracts the baseline from the signal and smooths the signal using the rolling average algorithm.
+ * Should be done after normalizing the channels.
  * OLD: The baseline is calculated as the mean of the first 64 bins from the signal.
- * NEW: The baseline is now the smallest non 0 element in the vector.
+ * NEW: The baseline is now the smallest non 0 element in all of the signal vectors.
  * 
  * @return int error codes
  */
 int convertUVW::substractBl()
 {
 
-    const int sampleRegion = 64;
-
-    double baseline = 0;
 
 
-    if(m_uvw_vec.size() < sampleRegion)
-        return -3;//invalid size
+    double baseline = calculateBaseline();
 
 
 
@@ -265,17 +262,7 @@ int convertUVW::substractBl()
 
     for(auto &data_el : m_uvw_vec){
 
-        baseline = 0;
 
-        
-        //baseline = std::accumulate(data_el.signal_val.begin(), data_el.signal_val.begin() + sampleRegion, 0.0) / sampleRegion;
-
-    
-        //Calculate the baseline as the smallest non 0 element.
-        auto start_iter = std::next(data_el.signal_val.begin(), 20);
-        baseline = *std::min_element(start_iter, data_el.signal_val.end(), [](int a, int b) {
-                        return (a > 0 && b > 0) ? (a < b) : (a > b);
-                    });
 
 
         data_el.baseline_val = baseline;
@@ -336,7 +323,7 @@ std::vector<dataUVW> convertUVW::returnDataUVW()
 
 /**
  * @brief Writes the data from m_uvw_vec to a .csv file.
- * The format of the .csv file is the following:
+ *  The format of the .csv file is the following:
  *  First column is the plane value.
  *  Second colums is the strip number.
  *  Third column in the entry number. (Sould be the same for every element)
@@ -418,7 +405,7 @@ void convertUVW::smoothSignal(std::vector<double> &v)
 
 
 /**
- * @brief 
+ * @brief Uses the ch_norm_ratios to build a std::map used when normalizing the channels.
  * 
  * @return int 
  */
@@ -475,7 +462,9 @@ int convertUVW::buildNormalizationMap()
 
 
 /**
- * @brief 
+ * @brief Uses the ch_norm_ratios.csv file to normalize the Channels. Each signal on each channel is divided by a channel specific
+ * ratio. This is done in order to make sure the values on each channel are proportional with each other.
+ * Should be done before substracting the baseline.
  * 
  * @return int 
  */
@@ -529,6 +518,36 @@ int convertUVW::normalizeChannels()
 
 
     return 0;
+
+}
+
+
+
+/**
+ * @brief Calculates the baseline by finding the smallest non 0 value on all the channels.
+ * 
+ * @return double 
+ */
+double convertUVW::calculateBaseline()
+{
+
+    double baseline = std::numeric_limits<double>::max();
+
+    //Calculate the baseline as the smallest non 0 element.
+    
+
+    for(auto &data_el : m_uvw_vec){
+
+        auto start_iter = std::next(data_el.signal_val.begin(), 20);
+        double loc_baseline = *std::min_element(start_iter, data_el.signal_val.end(), [](int a, int b) {
+                        return (a > 0 && b > 0) ? (a < b) : (a > b);
+                    });
+
+        baseline = std::min(baseline, loc_baseline);
+
+    }
+
+    return baseline;
 
 }
 

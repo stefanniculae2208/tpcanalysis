@@ -32,7 +32,7 @@ class convertHitData
 
 
 
-    int getHitInfo(Double_t peak_th = (double)50);
+    int getHitInfo(Double_t sensitivity_avg = (double)2.5, Double_t sensitivity_max = (double)0.75);
 
     int setUVWData(std::vector<dataUVW> uvw_data);
 

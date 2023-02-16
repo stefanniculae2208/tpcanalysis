@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <numeric>
+#include <limits>
 
 
 #include "rawData.hpp"
@@ -97,6 +98,8 @@ class convertUVW
     void calculateChargeHist();
 
     void smoothSignal(std::vector<double> &v);
+
+    double calculateBaseline();
 
     
 

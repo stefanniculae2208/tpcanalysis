@@ -19,9 +19,8 @@
 
 
 /**
- * @brief a general data storage class that contains object of different types
- * each object of generalDataStorage type must only contain 1 entry from the tree
- * when reading multiple entries you should have a std::vector<generalDataStorage>
+ * @brief A general data storage class that contains object of different types.
+ * Each object of generalDataStorage type must only contain 1 entry from the tree.
  * 
  */
 class generalDataStorage
@@ -34,15 +33,22 @@ class generalDataStorage
 
 
 
-
+    /// @brief Stores the raw data from the root file.
     std::vector<rawData> root_raw_data;
+
+    /// @brief Stores the data in the UVW format.
     std::vector<dataUVW> uvw_data;
+
+    /// @brief Stores the data in the XYZ format.
     std::vector<dataXYZ> xyz_data;
 
+    /// @brief Stores the hit information.
     std::vector<hitPoints> hit_data;
+
+    /// @brief Stores the histograms for each channel in an entry. Redundant and will be removed.
     std::vector<TH1D*> raw_hist_container;
 
-    //number of entries from the tree
+    //The number of entries from the tree.
     Long64_t n_entries;
 
     

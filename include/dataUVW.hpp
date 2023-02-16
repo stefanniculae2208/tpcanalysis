@@ -5,6 +5,11 @@
 #include <vector>
 
 
+/**
+ * @brief Used for data storage.
+ * The information is stored here in the UVW format.
+ * 
+ */
 class dataUVW
 {
     public:
@@ -12,11 +17,20 @@ class dataUVW
     ~dataUVW(){};
 
 
+    /// @brief The plane the signal belongs to. O is U plane, 1 is V plane, 2 is W plane.
+    int plane_val = INT32_MAX;
 
-    int plane_val = INT32_MAX;//absurd default value
-    int strip_nr = INT32_MAX;//absurd default value
+    /// @brief The number of the strip. Interval [1, 72].
+    int strip_nr = INT32_MAX;
+
+    /// @brief The number of the entry the signal belongs to.
     int entry_nr = INT32_MAX;
-    double baseline_val = INT32_MAX;//the baseline extracted from the signal
+
+    
+    /// @brief  The baseline extracted from the signal.
+    double baseline_val = INT32_MAX;
+
+    /// @brief The signal vector.
     std::vector<double> signal_val;
 
 

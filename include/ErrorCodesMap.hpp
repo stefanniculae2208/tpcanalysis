@@ -5,6 +5,10 @@
 #include <string>
 
 
+/**
+ * @brief Used to understand error codes returned by functions.
+ * 
+ */
 static const std::map<int, std::string> ErrorCodesMap
 {
 

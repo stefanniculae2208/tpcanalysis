@@ -73,6 +73,7 @@ class loadData
     /// @brief The number of entries in the TTree.
     Long64_t m_nEntries = 0;
 
+    /// @brief Used for TTree::SetBranchAddress. Stores the actual data after using m_roottree->GetEntry(entryNr).
     GDataFrame *m_data_branch;
 
 
