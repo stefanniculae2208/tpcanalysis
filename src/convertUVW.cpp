@@ -38,6 +38,22 @@ int convertUVW::setRawData(std::vector<rawData> data_vec)
 
 
 
+int convertUVW::setUVWData(std::vector<dataUVW> data_vec)
+{
+
+    std::vector<rawData>().swap(m_data_vec);
+
+    std::vector<dataUVW>().swap(m_uvw_vec);
+
+    if(data_vec.size() == 0)
+        return -3;
+
+    m_uvw_vec = data_vec;
+
+}
+
+
+
 
 
 /**

@@ -53,6 +53,8 @@ class convertUVW
 
     int setRawData(std::vector<rawData> data_vec);
 
+    int setUVWData(std::vector<dataUVW> data_vec);
+
     int openSpecFile();
 
     int makeConversion();

@@ -3377,6 +3377,10 @@ void printPeaksByChannel(TString fileName, int entry_nr, int plane, int norm_opt
     loc_pad->cd(9); w_hists_ord->Draw("COLZ");
 
 
+    loc_conv_uvw.setUVWData(data_container_ord.uvw_data);
+    loc_conv_uvw.drawChargeHist();
+
+
 
 
 
