@@ -19,3 +19,4 @@ entries.pdf
 converteddata/
 mass_convert.sh
 .cache
+__pycache__/

@@ -243,7 +243,7 @@ void createNormCSV()
     }
 
 
-    std::ofstream out_file("./ch_norm_ratios.csv");
+    std::ofstream out_file("./utils/ch_norm_ratios.csv");
 
     out_file<<"plane,strip,ratio\n";
 
@@ -282,6 +282,249 @@ void createNormCSV()
 }
 
 
+namespace reorderCh
+{
+    struct planeInfo_U
+    {
+
+        static const int plane_nr = 0;
+        static const int plane_size = 72;
+        inline static const std::string plane_file = "./utils/channelorder_u.txt";
+
+    };
+
+    struct planeInfo_V
+    {
+
+        static const int plane_nr = 1;
+        static const int plane_size = 92;
+        inline static const std::string plane_file = "./utils/channelorder_v.txt";
+
+    };
+
+    struct planeInfo_W
+    {
+
+        static const int plane_nr = 2;
+        static const int plane_size = 92;
+        inline static const std::string plane_file = "./utils/channelorder_w.txt";
+
+    };
+
+    template<typename pI>
+    void reorderChfromFile(std::vector<dataUVW> &uvw_vec)
+    {
+
+        std::ifstream file(pI::plane_file.c_str());
+
+        if (!file.is_open()) {
+            std::cerr << "Error: Failed to open file " << pI::plane_file << std::endl;
+            return;
+        }
+
+
+        int index = 1;
+
+        std::string line;
+
+        std::map<int, int> ch_map;
+
+        while (std::getline(file, line)) {
+
+            ch_map.insert({std::stoi(line), index});
+
+            index++;
+
+        }
+
+
+        for(auto &uvw_data : uvw_vec){
+
+            if(uvw_data.plane_val == pI::plane_nr)
+                uvw_data.strip_nr = ch_map.at(uvw_data.strip_nr);
+
+        }
+
+
+
+
+        file.close();
+
+
+
+
+
+    }
+
+
+
+    template<typename pI>
+    void calculateReorder(TString fileName)
+    {
+
+        auto goodFile = fileName;
+
+        auto goodTree = "tree";
+
+        generalDataStorage data_container;
+
+
+        loadData good_data(goodFile, goodTree);
+
+        auto err = good_data.openFile();
+        err = good_data.readData();
+        auto max_entries = good_data.returnNEntries();
+
+
+        convertUVW loc_conv_uvw;
+
+        err = loc_conv_uvw.openSpecFile();
+
+        if(err != 0)
+            return;
+
+        err = loc_conv_uvw.buildNormalizationMap();
+        if(err != 0)
+            return;
+
+
+
+
+        std::array<std::array<std::map<int, int>, 3>, 101> strip_order;
+    
+
+
+        std::ifstream file("TODO.txt");
+
+        if (!file.is_open()) {
+            std::cerr << "Error: Failed to open file " << pI::plane_file << std::endl;
+            return;
+        }
+
+
+        int index = 0;
+
+        std::string line;
+
+
+        while(std::getline(file, line)) {
+
+
+            int entry_nr = std::stoi(line);
+
+            err = good_data.decodeData(entry_nr);
+            if(err != 0){
+                std::cout<<"Error decode data code "<<err<<std::endl;
+            }
+
+
+                
+            loc_conv_uvw.setRawData(data_container.root_raw_data);
+
+                
+
+            err = loc_conv_uvw.makeConversion();
+            if(err != 0)
+                    std::cout<<"Make conversion error code "<<err<<std::endl;
+
+
+
+                
+            //use norm_opt to set normalization on or off
+            err = loc_conv_uvw.normalizeChannels();
+            if(err != 0)
+                std::cout<<"Normalize channels error code "<<err<<std::endl;
+
+
+
+
+            err = loc_conv_uvw.substractBl();
+            if(err != 0)
+                std::cout<<"Substractbl error code "<<err<<std::endl;
+
+
+            data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+            std::cout<<"UVW data size is "<<data_container.uvw_data.size()<<std::endl;
+
+
+
+            //Order by plane and strip
+            std::sort(data_container.uvw_data.begin(), data_container.uvw_data.end(), [](const dataUVW &a, const dataUVW &b)
+                        { return 1e6 * a.plane_val + a.strip_nr < 1e6 * a.plane_val + b.strip_nr; });
+
+            
+            std::array<std::array<std::size_t, 93>, 3> max_index;
+
+
+            for(auto uvw_el : data_container.uvw_data){
+
+                auto max_it = std::max_element(uvw_el.signal_val.begin(), uvw_el.signal_val.end());
+                max_index[uvw_el.plane_val][uvw_el.strip_nr] = std::distance(uvw_el.signal_val.begin(), max_it);
+
+            }
+
+
+
+
+            std::sort(data_container.uvw_data.begin(), data_container.uvw_data.end(), [max_index](const dataUVW &a, const dataUVW &b)
+                        { return max_index[a.plane_val][a.strip_nr] < max_index[b.plane_val][b.strip_nr]; });
+
+
+
+
+
+
+
+
+
+            generalDataStorage data_container_ord;
+
+            
+
+            std::array<int, 3> plane_counter = {};
+
+
+
+
+            for(auto i = 0; i< data_container.uvw_data.size(); i++){
+
+                plane_counter[data_container.uvw_data.at(i).plane_val]++;
+                data_container_ord.uvw_data.push_back(data_container.uvw_data.at(i));
+                data_container_ord.uvw_data.at(i).strip_nr = plane_counter[data_container.uvw_data.at(i).plane_val];
+
+                strip_order[index][data_container.uvw_data.at(i).plane_val].insert({
+                    data_container_ord.uvw_data.at(i).strip_nr, data_container.uvw_data.at(i).strip_nr 
+                });
+
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+            index++;
+
+        }
+
+
+        file.close();
+
+
+        
+
+
+    }
+
+
+}
 
 
 
@@ -3106,7 +3349,456 @@ void printPeaksByChannel(TString fileName, int entry_nr, int plane, int norm_opt
     
 
 
-    //convertHitData loc_convert_hit;
+    
+
+
+
+    
+
+    err = good_data.decodeData(entry_nr);
+    if(err != 0){
+        std::cout<<"Error decode data code "<<err<<std::endl;
+    }
+
+    data_container.root_raw_data = good_data.returnRawData();
+
+    std::cout<<"RAW data size is "<<data_container.root_raw_data.size()<<std::endl;
+
+
+
+
+
+
+
+
+        
+    loc_conv_uvw.setRawData(data_container.root_raw_data);
+
+        
+
+    err = loc_conv_uvw.makeConversion();
+    if(err != 0)
+            std::cout<<"Make conversion error code "<<err<<std::endl;
+
+
+
+    generalDataStorage data_container_raw;
+
+    data_container_raw.uvw_data = loc_conv_uvw.returnDataUVW();
+
+
+
+        
+    //use norm_opt to set normalization on or off
+    if(norm_opt){
+
+        err = loc_conv_uvw.normalizeChannels();
+        if(err != 0)
+            std::cout<<"Normalize channels error code "<<err<<std::endl;
+
+    }
+
+
+
+    err = loc_conv_uvw.substractBl();
+
+    if(err != 0)
+        std::cout<<"Substractbl error code "<<err<<std::endl;
+
+
+    data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+    std::cout<<"UVW data size is "<<data_container.uvw_data.size()<<std::endl;
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+    auto loc_canv = new TCanvas("View entries canvas", "View entries", 1500, 1000);
+    auto loc_pad = new TPad("pad name", "pad title", 0,0,1,1);
+    loc_pad->Divide(3, 3);
+    loc_pad->Draw();
+    
+    TH2D *u_hists = nullptr;
+    TH2D *v_hists = nullptr;
+    TH2D *w_hists = nullptr;
+
+    TH2D *u_hists_ord = nullptr;
+    TH2D *v_hists_ord = nullptr;
+    TH2D *w_hists_ord = nullptr;
+
+    TH2D *u_hists_raw = nullptr;
+    TH2D *v_hists_raw = nullptr;
+    TH2D *w_hists_raw = nullptr;
+
+
+
+
+
+
+
+    u_hists = new TH2D(Form("u_hists_%d", entry_nr), Form("Histogram for U entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+    v_hists = new TH2D(Form("v_hists_%d", entry_nr), Form("Histogram for V entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+    w_hists = new TH2D(Form("w_hists_%d", entry_nr), Form("Histogram for W entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+
+
+
+
+
+
+    int bin = 0;
+
+
+    for(auto iter : data_container.uvw_data){
+
+        bin = 0;
+
+
+
+
+        if(iter.plane_val == 0){
+
+            for(auto sig_iter : iter.signal_val){
+
+                u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 1){
+
+            for(auto sig_iter : iter.signal_val){
+
+                v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 2){
+
+            for(auto sig_iter : iter.signal_val){
+
+                w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+    }
+
+    loc_pad->cd(4); u_hists->Draw("COLZ");
+    loc_pad->cd(5); v_hists->Draw("COLZ");
+    loc_pad->cd(6); w_hists->Draw("COLZ");
+
+
+
+    
+    //Order by plane and strip
+    std::sort(data_container.uvw_data.begin(), data_container.uvw_data.end(), [](const dataUVW &a, const dataUVW &b)
+                { return 1e6 * a.plane_val + a.strip_nr < 1e6 * a.plane_val + b.strip_nr; });
+
+    
+    std::array<std::array<std::size_t, 93>, 3> max_index;
+
+
+    for(auto uvw_el : data_container.uvw_data){
+
+        auto max_it = std::max_element(uvw_el.signal_val.begin(), uvw_el.signal_val.end());
+        max_index[uvw_el.plane_val][uvw_el.strip_nr] = std::distance(uvw_el.signal_val.begin(), max_it);
+
+    }
+
+
+
+
+    std::sort(data_container.uvw_data.begin(), data_container.uvw_data.end(), [max_index](const dataUVW &a, const dataUVW &b)
+                { return max_index[a.plane_val][a.strip_nr] < max_index[b.plane_val][b.strip_nr]; });
+
+
+
+
+
+
+
+
+
+    generalDataStorage data_container_ord;
+
+    
+
+    std::array<int, 3> plane_counter = {};
+
+    std::array<std::map<int, int>, 3> strip_order;
+
+
+    for(auto i = 0; i< data_container.uvw_data.size(); i++){
+
+        plane_counter[data_container.uvw_data.at(i).plane_val]++;
+        data_container_ord.uvw_data.push_back(data_container.uvw_data.at(i));
+        data_container_ord.uvw_data.at(i).strip_nr = plane_counter[data_container.uvw_data.at(i).plane_val];
+
+        strip_order[data_container.uvw_data.at(i).plane_val].insert({
+            data_container_ord.uvw_data.at(i).strip_nr, data_container.uvw_data.at(i).strip_nr 
+        });
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+    u_hists_ord = new TH2D(Form("u_ord_hists_%d", entry_nr), Form("Histogram ord for U entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+    v_hists_ord = new TH2D(Form("v_ord_hists_%d", entry_nr), Form("Histogram ord for V entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+    w_hists_ord = new TH2D(Form("w_ord_hists_%d", entry_nr), Form("Histogram ord for W entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+
+
+
+
+
+
+    for(auto iter : data_container_ord.uvw_data){
+
+        bin = 0;
+
+
+
+
+        if(iter.plane_val == 0){
+
+            for(auto sig_iter : iter.signal_val){
+
+                u_hists_ord->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 1){
+
+            for(auto sig_iter : iter.signal_val){
+
+                v_hists_ord->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 2){
+
+            for(auto sig_iter : iter.signal_val){
+
+                w_hists_ord->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+    }
+
+    
+    loc_pad->cd(7); u_hists_ord->Draw("COLZ");
+    loc_pad->cd(8); v_hists_ord->Draw("COLZ");
+    loc_pad->cd(9); w_hists_ord->Draw("COLZ");
+
+
+    loc_conv_uvw.setUVWData(data_container_ord.uvw_data);
+    loc_conv_uvw.drawChargeHist();
+
+
+
+
+
+
+
+    u_hists_raw = new TH2D(Form("u_raw_hists_%d", entry_nr), Form("Histogram for U entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+    v_hists_raw = new TH2D(Form("v_raw_hists_%d", entry_nr), Form("Histogram for V entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+    w_hists_raw = new TH2D(Form("w_raw_hists_%d", entry_nr), Form("Histogram for W entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+
+
+
+
+
+
+
+
+    for(auto iter : data_container_raw.uvw_data){
+
+        bin = 0;
+
+
+
+
+        if(iter.plane_val == 0){
+
+            for(auto sig_iter : iter.signal_val){
+
+                u_hists_raw->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 1){
+
+            for(auto sig_iter : iter.signal_val){
+
+                v_hists_raw->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+        if(iter.plane_val == 2){
+
+            for(auto sig_iter : iter.signal_val){
+
+                w_hists_raw->SetBinContent(++bin, iter.strip_nr, sig_iter);
+
+            }
+
+        }
+
+
+    }
+
+    loc_pad->cd(1); u_hists_raw->Draw("COLZ");
+    loc_pad->cd(2); v_hists_raw->Draw("COLZ");
+    loc_pad->cd(3); w_hists_raw->Draw("COLZ");
+
+    
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+    std::ofstream out_file("./converteddata/channelorder_u.csv");
+
+    out_file<<"old,new\n";
+
+    int index_u = 1;
+
+    for(auto i = 0; i < data_container.uvw_data.size(); i++){
+
+        if(data_container.uvw_data.at(i).plane_val == 0){
+
+            out_file << strip_order[0][index_u] <<"\n";
+            index_u++;
+
+
+        }
+
+    }
+
+
+
+
+    out_file.close();
+
+
+
+
+
+
+
+
+
+
+    loc_canv->Update();
+
+    loc_canv->WaitPrimitive();
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+void printReorderedChannels(TString fileName, int entry_nr, int plane, int norm_opt = 0)
+{
+
+
+
+    auto goodFile = fileName;
+
+    auto goodTree = "tree";
+
+    generalDataStorage data_container;
+
+
+    loadData good_data(goodFile, goodTree);
+
+    auto err = good_data.openFile();
+    err = good_data.readData();
+    auto max_entries = good_data.returnNEntries();
+
+
+    convertUVW loc_conv_uvw;
+
+    err = loc_conv_uvw.openSpecFile();
+
+    if(err != 0)
+        return;
+
+    err = loc_conv_uvw.buildNormalizationMap();
+    if(err != 0)
+        return;
+
+
+    
+
+
 
     
 
@@ -3267,58 +3959,17 @@ void printPeaksByChannel(TString fileName, int entry_nr, int plane, int norm_opt
 
     
 
-    std::sort(data_container.uvw_data.begin(), data_container.uvw_data.end(), [](const dataUVW &a, const dataUVW &b)
-                { return a.strip_nr < b.strip_nr; });
+
+
+
+
+
+    generalDataStorage data_container_ord = data_container;
+
+
+    reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(data_container_ord.uvw_data);
 
     
-    std::array<std::array<std::size_t, 93>, 3> max_index;
-
-
-    for(auto uvw_el : data_container.uvw_data){
-
-        auto max_it = std::max_element(uvw_el.signal_val.begin(), uvw_el.signal_val.end());
-        max_index[uvw_el.plane_val][uvw_el.strip_nr] = std::distance(uvw_el.signal_val.begin(), max_it);
-
-    }
-
-
-
-
-    std::sort(data_container.uvw_data.begin(), data_container.uvw_data.end(), [max_index](const dataUVW &a, const dataUVW &b)
-                { return max_index[a.plane_val][a.strip_nr] < max_index[b.plane_val][b.strip_nr]; });
-
-
-
-
-
-
-
-
-
-    generalDataStorage data_container_ord;
-
-    
-
-    std::array<int, 3> plane_counter = {};
-
-
-    for(auto i = 0; i< data_container.uvw_data.size(); i++){
-
-        data_container_ord.uvw_data.push_back(data_container.uvw_data.at(i));
-        data_container_ord.uvw_data.at(i).strip_nr = plane_counter[data_container.uvw_data.at(i).plane_val];
-
-        plane_counter[data_container.uvw_data.at(i).plane_val]++;
-
-    }
-
-
-
-
-
-
-
-
-
 
     u_hists_ord = new TH2D(Form("u_ord_hists_%d", entry_nr), Form("Histogram ord for U entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
     v_hists_ord = new TH2D(Form("v_ord_hists_%d", entry_nr), Form("Histogram ord for V entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
@@ -3378,7 +4029,6 @@ void printPeaksByChannel(TString fileName, int entry_nr, int plane, int norm_opt
 
 
     loc_conv_uvw.setUVWData(data_container_ord.uvw_data);
-    loc_conv_uvw.drawChargeHist();
 
 
 
@@ -3386,9 +4036,9 @@ void printPeaksByChannel(TString fileName, int entry_nr, int plane, int norm_opt
 
 
 
-    u_hists_raw = new TH2D(Form("u_hists_%d", entry_nr), Form("Histogram for U entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
-    v_hists_raw = new TH2D(Form("v_hists_%d", entry_nr), Form("Histogram for V entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
-    w_hists_raw = new TH2D(Form("w_hists_%d", entry_nr), Form("Histogram for W entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+    u_hists_raw = new TH2D(Form("u_raw_hists_%d", entry_nr), Form("Histogram raw for U entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+    v_hists_raw = new TH2D(Form("v_raw_hists_%d", entry_nr), Form("Histogram raw for V entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
+    w_hists_raw = new TH2D(Form("w_raw_hists_%d", entry_nr), Form("Histogram raw for W entry %d", entry_nr), 512, 1, 513, 100, 1, 101);
 
 
 
@@ -3450,6 +4100,7 @@ void printPeaksByChannel(TString fileName, int entry_nr, int plane, int norm_opt
 
 
 
+    
 
 
 
@@ -3461,8 +4112,7 @@ void printPeaksByChannel(TString fileName, int entry_nr, int plane, int norm_opt
 
 
 
-
-
+    
 
 
 
@@ -3488,14 +4138,7 @@ void printPeaksByChannel(TString fileName, int entry_nr, int plane, int norm_opt
 
 
 
-
-
 }
-
-
-
-
-
 
 
 
@@ -3529,9 +4172,9 @@ void runmacro(TString lin_arg)
 
     //createNormCSV();
 
-    printPeaksByChannel("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root", 187, 0, 1);
+    //printPeaksByChannel("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root", 424, 0, 1);
 
-
+    printReorderedChannels("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root", 174, 0, 1);
 
 
 

@@ -15,7 +15,7 @@ convertUVW::convertUVW(std::vector<rawData> data_vec)
 /**
  * @brief Sets the raw data vector to a new value.
  * 
- * @param data_vec the raw data vector to be set
+ * @param data_vec The raw data vector to be set.
  * @return error codes
  */
 int convertUVW::setRawData(std::vector<rawData> data_vec)
@@ -38,6 +38,14 @@ int convertUVW::setRawData(std::vector<rawData> data_vec)
 
 
 
+/**
+ * @brief Sets the UVW data vector to a new value.
+ * WARNING: This function should only be used for testing purposes if you want to, for some reason, change something about the
+ * UVW vector, for example wanting to see the charge histogram for a modified vector.
+ * 
+ * @param data_vec The UVW data vector to be set.
+ * @return int error codes
+ */
 int convertUVW::setUVWData(std::vector<dataUVW> data_vec)
 {
 
@@ -49,6 +57,8 @@ int convertUVW::setUVWData(std::vector<dataUVW> data_vec)
         return -3;
 
     m_uvw_vec = data_vec;
+
+    return 0;
 
 }
 
@@ -64,7 +74,7 @@ int convertUVW::setUVWData(std::vector<dataUVW> data_vec)
 int convertUVW::openSpecFile()
 {
 
-    std::string specfilename = "new_geometry_mini_eTPC.dat";
+    std::string specfilename = "./utils/new_geometry_mini_eTPC.dat";
 
     std::ifstream spec_file(specfilename.c_str());
 
@@ -428,7 +438,7 @@ void convertUVW::smoothSignal(std::vector<double> &v)
 int convertUVW::buildNormalizationMap()
 {
 
-    const std::string filename = "ch_norm_ratios.csv";
+    const std::string filename = "./utils/ch_norm_ratios.csv";
 
     std::ifstream file(filename);
 
