@@ -2,6 +2,7 @@
 #include <random>
 #include <cstdio>
 #include <limits>
+#include <map>
 
 
 #include "TString.h"
@@ -289,7 +290,10 @@ namespace reorderCh
 
         static const int plane_nr = 0;
         static const int plane_size = 72;
+        static const int cfg_size = 2;
+        static const int right_angle = 1;
         inline static const std::string plane_file = "./utils/channelorder_u.txt";
+        inline static const std::string cfg_file = "./utils/cfg_entries_u.txt";
 
     };
 
@@ -298,7 +302,10 @@ namespace reorderCh
 
         static const int plane_nr = 1;
         static const int plane_size = 92;
+        static const int cfg_size = 1;
+        static const int right_angle = 0;
         inline static const std::string plane_file = "./utils/channelorder_v.txt";
+        inline static const std::string cfg_file = "./utils/cfg_entries_v.txt";
 
     };
 
@@ -307,7 +314,10 @@ namespace reorderCh
 
         static const int plane_nr = 2;
         static const int plane_size = 92;
+        static const int cfg_size = 1;
+        static const int right_angle = 1;
         inline static const std::string plane_file = "./utils/channelorder_w.txt";
+        inline static const std::string cfg_file = "./utils/cfg_entries_w.txt";
 
     };
 
@@ -331,9 +341,13 @@ namespace reorderCh
 
         while (std::getline(file, line)) {
 
-            ch_map.insert({std::stoi(line), index});
+            if (ch_map.count(std::stoi(line)) == 0) {
+                ch_map.insert({std::stoi(line), index});
+            } else {
+                std::cerr<<"Error: key already exists in map at reorderChfromFile."<<std::endl;
+            }
 
-            index++;
+            ++index;
 
         }
 
@@ -390,14 +404,15 @@ namespace reorderCh
 
 
 
-        std::array<std::array<std::map<int, int>, 3>, 101> strip_order;
+
+        std::map<int, std::array<int, pI::cfg_size>> strip_order_map;
     
 
 
-        std::ifstream file("TODO.txt");
+        std::ifstream file(pI::cfg_file.c_str());
 
         if (!file.is_open()) {
-            std::cerr << "Error: Failed to open file " << pI::plane_file << std::endl;
+            std::cerr << "Error: Failed to open file " << pI::cfg_file << std::endl;
             return;
         }
 
@@ -417,15 +432,18 @@ namespace reorderCh
                 std::cout<<"Error decode data code "<<err<<std::endl;
             }
 
+            data_container.root_raw_data = good_data.returnRawData();
+
 
                 
             loc_conv_uvw.setRawData(data_container.root_raw_data);
 
+            //std::cout<<"RAW data size is "<<data_container.root_raw_data.size()<<std::endl;
+
                 
 
             err = loc_conv_uvw.makeConversion();
-            if(err != 0)
-                    std::cout<<"Make conversion error code "<<err<<std::endl;
+        
 
 
 
@@ -445,13 +463,13 @@ namespace reorderCh
 
             data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
-            std::cout<<"UVW data size is "<<data_container.uvw_data.size()<<std::endl;
+            //std::cout<<"UVW data size is "<<data_container.uvw_data.size()<<std::endl;
 
 
 
             //Order by plane and strip
             std::sort(data_container.uvw_data.begin(), data_container.uvw_data.end(), [](const dataUVW &a, const dataUVW &b)
-                        { return 1e6 * a.plane_val + a.strip_nr < 1e6 * a.plane_val + b.strip_nr; });
+                        { return 1e6 * a.plane_val + a.strip_nr < 1e6 * b.plane_val + b.strip_nr; });
 
             
             std::array<std::array<std::size_t, 93>, 3> max_index;
@@ -466,37 +484,39 @@ namespace reorderCh
 
 
 
-
-            std::sort(data_container.uvw_data.begin(), data_container.uvw_data.end(), [max_index](const dataUVW &a, const dataUVW &b)
+            if(pI::right_angle){
+                std::sort(data_container.uvw_data.begin(), data_container.uvw_data.end(), [max_index](const dataUVW &a, const dataUVW &b)
                         { return max_index[a.plane_val][a.strip_nr] < max_index[b.plane_val][b.strip_nr]; });
+            }else{
+                std::sort(data_container.uvw_data.begin(), data_container.uvw_data.end(), [max_index](const dataUVW &a, const dataUVW &b)
+                        { return max_index[a.plane_val][a.strip_nr] > max_index[b.plane_val][b.strip_nr]; });
+            }
 
 
 
 
 
 
-
-
-
-            generalDataStorage data_container_ord;
 
             
 
-            std::array<int, 3> plane_counter = {};
 
-
+            int val_counter = 0;
 
 
             for(auto i = 0; i< data_container.uvw_data.size(); i++){
 
-                plane_counter[data_container.uvw_data.at(i).plane_val]++;
-                data_container_ord.uvw_data.push_back(data_container.uvw_data.at(i));
-                data_container_ord.uvw_data.at(i).strip_nr = plane_counter[data_container.uvw_data.at(i).plane_val];
+                if(data_container.uvw_data.at(i).plane_val == pI::plane_nr){
 
-                strip_order[index][data_container.uvw_data.at(i).plane_val].insert({
-                    data_container_ord.uvw_data.at(i).strip_nr, data_container.uvw_data.at(i).strip_nr 
-                });
+                    ++val_counter;
 
+                    
+
+                    strip_order_map[data_container.uvw_data.at(i).strip_nr][index] = val_counter;
+
+
+
+                }
 
             }
 
@@ -510,12 +530,102 @@ namespace reorderCh
 
 
 
-            index++;
+            ++index;
 
         }
 
 
         file.close();
+
+
+        std::map<int, int> strip_order;
+
+        
+
+        for(auto &map_entry : strip_order_map){
+
+            /* auto &strip_values = map_entry.second;
+
+            auto most_frequent_value = *std::max_element(strip_values.begin(), strip_values.end(),
+                [&](int a, int b)
+                 { return std::count(strip_values.begin(), strip_values.end(), a) 
+                 < std::count(strip_values.begin(), strip_values.end(), b); }
+            );
+
+            while(strip_order.count(most_frequent_value) > 0){
+
+                auto it = std::find(strip_values.begin(), strip_values.end(), most_frequent_value);
+                if (it == strip_values.end()) {
+                    most_frequent_value = -1; // no valid value found
+                    break;
+                }
+                ++most_frequent_value;
+
+            } */
+
+
+
+            auto &strip_values = map_entry.second;
+
+            // Create a map to count the frequency of each value.
+            std::unordered_map<int, int> frequency_map;
+            for (int value : strip_values) {
+                frequency_map[value]++;
+            }
+
+
+            std::vector<std::pair<int, int>> frequency_pairs(frequency_map.begin(), frequency_map.end());
+            std::sort(frequency_pairs.begin(), frequency_pairs.end(),
+                    [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+                        return a.second > b.second;
+                    });
+
+
+            int most_frequent_value = 0;
+            for (const auto& pair : frequency_pairs) {
+                if (strip_order.count(pair.first) == 0) {
+                    most_frequent_value = pair.first;
+                    break;
+                }
+            }
+
+
+
+
+
+
+
+            if(strip_order.count(most_frequent_value) == 0){
+                strip_order.insert({most_frequent_value, map_entry.first});
+            }else{
+                std::cerr<<"Error: key "<<most_frequent_value<<" already exists in map at calculateReorder."<<std::endl;
+            }
+            
+
+        }
+
+
+        
+
+
+
+
+        std::ofstream out_file(pI::plane_file);
+
+
+        for(auto &map_entry : strip_order){
+
+            out_file<<map_entry.second<<"\n";
+
+        }
+
+
+
+
+        out_file.close();
+
+
+        
 
 
         
@@ -826,7 +936,7 @@ void view_raw_data(TString fileName, int norm_opt = 0)
 
 
 
-void create_entries_pdf(TString source_file, TString destination_file, int read_entries)
+void create_entries_pdf(TString source_file, TString destination_file, int read_entries, int norm_opt = 0)
 {
 
 
@@ -858,6 +968,10 @@ void create_entries_pdf(TString source_file, TString destination_file, int read_
 
     err = loc_conv_uvw.openSpecFile();
 
+    if(err != 0)
+        return;
+
+    err = loc_conv_uvw.buildNormalizationMap();
     if(err != 0)
         return;
 
@@ -964,6 +1078,16 @@ void create_entries_pdf(TString source_file, TString destination_file, int read_
             std::cout<<"Make conversion error code "<<err<<"\n";
 
 
+        //use norm_opt to set normalization on or off
+        if(norm_opt){
+
+            err = loc_conv_uvw.normalizeChannels();
+            if(err != 0)
+                std::cout<<"Normalize channels error code "<<err<<std::endl;
+
+        }
+
+
 
         err = loc_conv_uvw.substractBl();
 
@@ -974,6 +1098,13 @@ void create_entries_pdf(TString source_file, TString destination_file, int read_
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
         std::cout<<"UVW data size is "<<data_container.uvw_data.size()<<"\n";
+
+
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(data_container.uvw_data);
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_V>(data_container.uvw_data);
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(data_container.uvw_data);
+
+        
 
 
         err = loc_convert_hit.setUVWData(data_container.uvw_data);
@@ -1364,7 +1495,6 @@ void create_entries_pdf(TString source_file, TString destination_file, int read_
             p_graph->GetXaxis()->SetLimits(-10, 150);
             p_graph->GetHistogram()->SetMaximum(150);
             p_graph->GetHistogram()->SetMinimum(-10);
-            //p_graph->SetMarkerColor(kBlack);
             p_graph->SetMarkerStyle(kFullCircle);
             p_graph->SetTitle("XY coordinates projection; X axis; Y axis");
             if(chg.size() != 0){
@@ -1435,191 +1565,6 @@ void create_entries_pdf(TString source_file, TString destination_file, int read_
 
     }
 
-
-
-/* 
-        std::vector<double> x_u;
-        std::vector<double> y_u;
-
-        std::vector<double> x_v;
-        std::vector<double> y_v;
-
-        std::vector<double> x_w;
-        std::vector<double> y_w;
-
-        
-
-        for(auto hit_iter : data_container.hit_data){
-
-            if(hit_iter.plane == 0){
-
-                x_u.push_back(hit_iter.peak_x);
-                y_u.push_back(hit_iter.strip);
-
-
-            }else if(hit_iter.plane == 1){
-
-                x_v.push_back(hit_iter.peak_x);
-                y_v.push_back(hit_iter.strip);
-
-            }else if(hit_iter.plane == 2){
-
-                x_w.push_back(hit_iter.peak_x);
-                y_w.push_back(hit_iter.strip);
-
-            }
-
-        }
-
-
-
-
-
-
-
-
-        
-
-
-        
-
-        
-        if(data_container.hit_data.size() != 0){
-
-        
-
-
-            u_graph = new TGraph(x_u.size(), x_u.data(), y_u.data());
-            u_graph->GetXaxis()->SetLimits(-1, 512);
-            u_graph->GetHistogram()->SetMaximum(73);
-            u_graph->GetHistogram()->SetMinimum(0);
-            u_graph->SetMarkerColor(kBlack);
-            u_graph->SetMarkerStyle(kFullCircle);
-            u_graph->SetTitle("Hits detected on U plane; Time; Strip");
-            loc_pad->cd(4);u_graph->Draw("AP");
-            
-
-            v_graph = new TGraph(x_v.size(), x_v.data(), y_v.data());
-            v_graph->GetXaxis()->SetLimits(-1, 512);
-            v_graph->GetHistogram()->SetMaximum(93);
-            v_graph->GetHistogram()->SetMinimum(0);
-            v_graph->SetMarkerColor(kBlack);
-            v_graph->SetMarkerStyle(kFullCircle);
-            v_graph->SetTitle("Hits detected on V plane; Time; Strip");
-            loc_pad->cd(5);v_graph->Draw("AP");
-            
-
-            w_graph = new TGraph(x_w.size(), x_w.data(), y_w.data());
-            w_graph->GetXaxis()->SetLimits(-1, 512);
-            w_graph->GetHistogram()->SetMaximum(93);
-            w_graph->GetHistogram()->SetMinimum(0);
-            w_graph->SetMarkerColor(kBlack);
-            w_graph->SetMarkerStyle(kFullCircle);
-            w_graph->SetTitle("Hits detected on W plane; Time; Strip");
-            loc_pad->cd(6);w_graph->Draw("AP");
-            loc_pad->Modified();
-            loc_pad->Update();
-
-        }else{
-            u_graph = nullptr;
-            v_graph = nullptr;
-            w_graph = nullptr;
-        }
-
-
-        if(data_container.xyz_data.size() != 0){
-
-            std::vector<double> x, y, z;
-
-            x.push_back(-10.0);
-            y.push_back(-10.0);
-            z.push_back(-10.0);
-    
-
-
-            for(auto point_iter : data_container.xyz_data){
-
-                x.push_back(point_iter.data_x);
-                y.push_back(point_iter.data_y);
-                z.push_back(point_iter.data_z);
-
-        
-
-            }
-
-            x.push_back(150.0);
-            y.push_back(150.0);
-            z.push_back(150.0);
-
-
-
-
-            
-            p_graph = new TGraph(x.size(), x.data(), y.data());
-            p_graph->GetXaxis()->SetLimits(-10, 150);
-            p_graph->GetHistogram()->SetMaximum(150);
-            p_graph->GetHistogram()->SetMinimum(-10);
-            p_graph->SetMarkerColor(kBlack);
-            p_graph->SetMarkerStyle(kFullCircle);
-            p_graph->SetTitle("XY coordinates projection; X axis; Y axis");
-            loc_pad->cd(7);p_graph->Draw("AP");
-            loc_pad->Modified();
-            loc_pad->Update();
-
-            
-
-
-
-            p_graph3d = new TGraph2D(x.size(), x.data(), y.data(), z.data());
-            p_graph3d->SetMarkerColor(kBlue);
-            p_graph3d->SetMarkerStyle(kFullCircle);
-            p_graph3d->SetTitle("Reconstructed data in XYZ coordinates; X axis; Y axis; Z axis");
-            loc_pad->cd(8); p_graph3d->Draw("P0");
-            loc_pad->Modified();
-            loc_pad->Update();
-
-
-
-        }else{
-            p_graph = nullptr;
-            p_graph3d = nullptr;
-        }
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        entry_nr++;
-
-        loc_canv->Update();
-        loc_canv->Print(destination_file);
-
-
-
-
-
-    } */
 
 
 
@@ -2543,6 +2488,13 @@ void view_data_entries(TString fileName, int norm_opt = 0)
         std::cout<<"UVW data size is "<<data_container.uvw_data.size()<<std::endl;
 
 
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(data_container.uvw_data);
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_V>(data_container.uvw_data);
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(data_container.uvw_data);
+
+
+
+
         err = loc_convert_hit.setUVWData(data_container.uvw_data);
         if(err != 0)
             std::cout<<"Error set UVW data code "<<err<<std::endl;
@@ -3316,7 +3268,7 @@ void mass_convertRawPDF(TString lin_arg, int nr_entries)
 
 
 
-
+//Only to test the theory. Only uses 1 entry from 1 file to do the reorder. Not good.
 void printPeaksByChannel(TString fileName, int entry_nr, int plane, int norm_opt = 0)
 {
 
@@ -3765,6 +3717,7 @@ void printPeaksByChannel(TString fileName, int entry_nr, int plane, int norm_opt
 
 
 
+
 void printReorderedChannels(TString fileName, int entry_nr, int plane, int norm_opt = 0)
 {
 
@@ -3968,6 +3921,8 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane, int norm_
 
 
     reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(data_container_ord.uvw_data);
+    reorderCh::reorderChfromFile<reorderCh::planeInfo_V>(data_container_ord.uvw_data);
+    reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(data_container_ord.uvw_data);
 
     
 
@@ -4151,9 +4106,10 @@ void runmacro(TString lin_arg)
 
     //view_raw_data("./rootdata/data2.root", 1);
 
-    //create_entries_pdf("/media/gant/Expansion/tpcanalcsv/data08.root", "/media/gant/Expansion/tpcanalcsv/data08.pdf", 10000);
+    create_entries_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root",
+                         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/finalpdf/CoBo_2018-06-20T10-35-30.853_0005.pdf", 10000, 1);
 
-    /* create_raw_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T16-20-10.736_0000.root",
+    /* create_raw_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root",
                          "/media/gant/Expansion/tpcanalcsv/CoBo_2018-06-20T16-20-10.736_0000.pdf", 10000); */
 
 
@@ -4174,7 +4130,14 @@ void runmacro(TString lin_arg)
 
     //printPeaksByChannel("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root", 424, 0, 1);
 
-    printReorderedChannels("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root", 174, 0, 1);
+    /* reorderCh::calculateReorder<reorderCh::planeInfo_U>
+    ("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root");
+    reorderCh::calculateReorder<reorderCh::planeInfo_V>
+    ("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root");
+    reorderCh::calculateReorder<reorderCh::planeInfo_W>
+    ("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root");
+
+    printReorderedChannels("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root", 134, 0, 1); */
 
 
 

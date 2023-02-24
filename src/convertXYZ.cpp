@@ -250,7 +250,7 @@ void convertXYZ::calculateXYZ_threaded()
 
     //Create the threads and pass the iterators for each segment to the splitVectorOperation function.
     std::vector<std::thread> threads;
-    for (int i = 0; i < (numThreads - 1); i++) {
+    for (auto i = 0; i < (numThreads - 1); i++) {
         threads.emplace_back(&convertXYZ::splitVectorOperation, this,
                                  start_u + i * segmentSize, start_u + (i+1) * segmentSize, start_v, end_v, start_w, end_w);
     }
