@@ -4,13 +4,11 @@
 #include <map>
 #include <string>
 
-
 /**
  * @brief Used to understand error codes returned by functions.
- * 
+ *
  */
-static const std::map<int, std::string> ErrorCodesMap
-{
+static const std::map<int, std::string> ErrorCodesMap{
 
     {0, "Success!"},
     {-1, "File is not open."},
@@ -19,7 +17,5 @@ static const std::map<int, std::string> ErrorCodesMap
     {-4, "There exists unassigned data."}
 
 };
-
-
 
 #endif

@@ -1,39 +1,31 @@
 #ifndef loadData_hpp
 #define loadData_hpp 1
 
-
 #include <iostream>
-
 
 #include "rawData.hpp"
 
-
-
-#include "TString.h"
 #include "TFile.h"
+#include "TString.h"
 #include "TTree.h"
-#include <TSystem.h>
 #include <TROOT.h>
-
+#include <TSystem.h>
 
 // From GET
-#include "../dict/include/GDataSample.h"
 #include "../dict/include/GDataChannel.h"
-#include "../dict/include/GFrameHeader.h"
 #include "../dict/include/GDataFrame.h"
+#include "../dict/include/GDataSample.h"
+#include "../dict/include/GFrameHeader.h"
 
 using namespace GET;
-
-
 
 /**
  * @brief Reads the specified TTree from the specified '.root' file.
  * Can only decode one entry at a time.
- * 
+ *
  */
-class loadData
-{
-    public:
+class loadData {
+  public:
     loadData(){};
     ~loadData();
 
@@ -49,12 +41,7 @@ class loadData
 
     Long64_t returnNEntries();
 
-
-
-
-
-    private:
-
+  private:
     /// @brief The name of the file to be opened.
     TString m_filename;
 
@@ -73,14 +60,9 @@ class loadData
     /// @brief The number of entries in the TTree.
     Long64_t m_nEntries = 0;
 
-    /// @brief Used for TTree::SetBranchAddress. Stores the actual data after using m_roottree->GetEntry(entryNr).
+    /// @brief Used for TTree::SetBranchAddress. Stores the actual data after
+    /// using m_roottree->GetEntry(entryNr).
     GDataFrame *m_data_branch;
-
-
-
 };
-
-
-
 
 #endif

@@ -1,185 +1,153 @@
 #include "../include/convertUVW.hpp"
 
-
 /**
  * @brief Construct a new convert U V W::convert U V W object
- * 
+ *
  * @param data_vec the raw data vector to be converted to the UVW format
  */
-convertUVW::convertUVW(std::vector<rawData> data_vec)
-{
-    m_data_vec = data_vec;
-}
-
+convertUVW::convertUVW(std::vector<rawData> data_vec) { m_data_vec = data_vec; }
 
 /**
  * @brief Sets the raw data vector to a new value.
- * 
+ *
  * @param data_vec The raw data vector to be set.
  * @return error codes
  */
-int convertUVW::setRawData(std::vector<rawData> data_vec)
-{
+int convertUVW::setRawData(std::vector<rawData> data_vec) {
 
     std::vector<rawData>().swap(m_data_vec);
 
     std::vector<dataUVW>().swap(m_uvw_vec);
 
-    if(data_vec.size() == 0)
+    if (data_vec.size() == 0)
         return -3;
 
     m_data_vec = data_vec;
-    
-
 
     return 0;
-
 }
-
-
 
 /**
  * @brief Sets the UVW data vector to a new value.
- * WARNING: This function should only be used for testing purposes if you want to, for some reason, change something about the
- * UVW vector, for example wanting to see the charge histogram for a modified vector.
- * 
+ * WARNING: This function should only be used for testing purposes if you want
+ * to, for some reason, change something about the UVW vector, for example
+ * wanting to see the charge histogram for a modified vector.
+ *
  * @param data_vec The UVW data vector to be set.
  * @return int error codes
  */
-int convertUVW::setUVWData(std::vector<dataUVW> data_vec)
-{
+int convertUVW::setUVWData(std::vector<dataUVW> data_vec) {
 
     std::vector<rawData>().swap(m_data_vec);
 
     std::vector<dataUVW>().swap(m_uvw_vec);
 
-    if(data_vec.size() == 0)
+    if (data_vec.size() == 0)
         return -3;
 
     m_uvw_vec = data_vec;
 
     return 0;
-
 }
-
-
-
-
 
 /**
  * @brief Opens the specification file and makes the map.
- * 
+ *
  * @return error codes
  */
-int convertUVW::openSpecFile()
-{
+int convertUVW::openSpecFile() {
 
     std::string specfilename = "./utils/new_geometry_mini_eTPC.dat";
 
     std::ifstream spec_file(specfilename.c_str());
 
-    if(!spec_file.is_open()){
+    if (!spec_file.is_open()) {
         std::cerr << "Error opening file." << std::endl;
         return -1;
     }
 
     std::string buf;
 
-    while(std::getline(spec_file, buf)){
+    while (std::getline(spec_file, buf)) {
 
-        if(buf[0] == std::string("#")){
+        if (buf[0] == std::string("#")) {
             continue;
-        }else if(buf[0] == std::string("U") || buf[0] == std::string("V") || buf[0] == std::string("W")){
+        } else if (buf[0] == std::string("U") || buf[0] == std::string("V") ||
+                   buf[0] == std::string("W")) {
 
             std::stringstream line(buf);
             std::string filler;
             std::string plane;
             int strip;
-            int AGET;//chip nr
+            int AGET;   // chip nr
             int channel;
 
-            line >> plane >> filler >> strip >> filler >> filler
-	        >> AGET >> channel >> filler >> filler >> filler;
-
+            line >> plane >> filler >> strip >> filler >> filler >> AGET >>
+                channel >> filler >> filler >> filler;
 
             GEM gem = GEM::size;
-            if(plane == std::string("U")) gem = GEM::U;
-            else if(plane == std::string("V")) gem = GEM::V;
-            else if(plane == std::string("W")) gem = GEM::W;
+            if (plane == std::string("U"))
+                gem = GEM::U;
+            else if (plane == std::string("V"))
+                gem = GEM::V;
+            else if (plane == std::string("W"))
+                gem = GEM::W;
 
             fPositionMap.insert({{AGET, channel}, {gem, strip}});
-            
-
-            
         }
-
     }
 
-
-
-
     return 0;
-
 }
-
-
-
 
 /**
  * @brief Makes the conversion to the UVW format.
- * 
+ *
  * @return error codes
  */
-int convertUVW::makeConversion()
-{
-    auto i  = 0;
+int convertUVW::makeConversion() {
+    auto i = 0;
     auto err_code = 0;
 
     dataUVW loc_data_uvw;
 
-    if(m_data_vec.size() == 0)
+    if (m_data_vec.size() == 0)
         return -3;
 
+    for (auto &data_inst : m_data_vec) {
 
-
-
-    for(auto &data_inst : m_data_vec){
-
-        try{
-            auto uvwPosition = fPositionMap.at({data_inst.chip_nr, data_inst.ch_nr});
+        try {
+            auto uvwPosition =
+                fPositionMap.at({data_inst.chip_nr, data_inst.ch_nr});
             loc_data_uvw.plane_val = int(uvwPosition.first);
             loc_data_uvw.strip_nr = int(uvwPosition.second);
             loc_data_uvw.signal_val = data_inst.signal_val;
             loc_data_uvw.entry_nr = data_inst.entry_nr;
             m_uvw_vec.push_back(loc_data_uvw);
-        }catch(...){
-            if(m_verbose){
-                std::cout << "AGET: " << data_inst.chip_nr << "\tChannel: " << data_inst.ch_nr << " is not assigned." << std::endl;
+        } catch (...) {
+            if (m_verbose) {
+                std::cout << "AGET: " << data_inst.chip_nr
+                          << "\tChannel: " << data_inst.ch_nr
+                          << " is not assigned." << std::endl;
             }
-                
+
             m_data_vec.erase(m_data_vec.begin() + i);
-            err_code = -4;//there exists data not assigned     
+            err_code = -4;   // there exists data not assigned
         }
 
         i++;
-
     }
 
-
-
     return err_code;
-
 }
 
-
-
 /**
- * @brief Calculates the charge for each time bin. The charge is calculated by adding the charge from each strip on each plane
- * for the same time bin. OBSOLETE for now.
- * 
+ * @brief Calculates the charge for each time bin. The charge is calculated by
+ * adding the charge from each strip on each plane for the same time bin.
+ * OBSOLETE for now.
+ *
  */
-void convertUVW::calculateChargeHist()
-{
+void convertUVW::calculateChargeHist() {
 
     std::array<double, 512> charge_val;
 
@@ -187,7 +155,8 @@ void convertUVW::calculateChargeHist()
 
     /* for(auto &data_el : m_uvw_vec){
 
-        for(auto i = 0; static_cast<std::vector<double>::size_type>(i) < data_el.signal_val.size(); i++){
+        for(auto i = 0; static_cast<std::vector<double>::size_type>(i) <
+    data_el.signal_val.size(); i++){
 
             if(i > 511){
                 std::cout<<"Error: signal has more than 512 bins.\n";
@@ -199,52 +168,46 @@ void convertUVW::calculateChargeHist()
 
     } */
 
-
-    //Adds the elements in the i-th bin from each signal vector to i-th element of the charge vector. If there are more than 512 elements
-    //in one signal the value for the charge there is 0 because the signal is not valid (something went wrong).
+    // Adds the elements in the i-th bin from each signal vector to i-th element
+    // of the charge vector. If there are more than 512 elements in one signal
+    // the value for the charge there is 0 because the signal is not valid
+    // (something went wrong).
     for (std::size_t i = 0; i < charge_val.size(); i++) {
-        charge_val.at(i) = std::accumulate(m_uvw_vec.begin(), m_uvw_vec.end(), 0.0, [i](double acc, const dataUVW& el) {
-            return acc + (i < el.signal_val.size() ? el.signal_val.at(i) : 0);
-        });
+        charge_val.at(i) = std::accumulate(
+            m_uvw_vec.begin(), m_uvw_vec.end(), 0.0,
+            [i](double acc, const dataUVW &el) {
+                return acc +
+                       (i < el.signal_val.size() ? el.signal_val.at(i) : 0);
+            });
     }
-
-
-
-
-
 
     m_charge_hist = new TH1D("Charge_hist", "Charge histogram", 512, 1, 512);
 
     m_charge_hist->SetContent(charge_val.data());
 
-    /* for(auto i = 0; static_cast<std::vector<double>::size_type>(i) < charge_val.size(); i++){
+    /* for(auto i = 0; static_cast<std::vector<double>::size_type>(i) <
+    charge_val.size(); i++){
 
         m_charge_hist->SetBinContent(i, charge_val.at(i));
 
     } */
-
 }
 
-
-
-
 /**
- * @brief Draws the histogram of the charge added on each time bin. The histogram isn't deleted so it should only be used for testing
- * and not in a real program. OBSOLETE for now
- * 
+ * @brief Draws the histogram of the charge added on each time bin. The
+ * histogram isn't deleted so it should only be used for testing and not in a
+ * real program. OBSOLETE for now
+ *
  * @return int error codes
  */
-int convertUVW::drawChargeHist()
-{
+int convertUVW::drawChargeHist() {
 
-    if(m_charge_hist == nullptr){
+    if (m_charge_hist == nullptr) {
 
         calculateChargeHist();
-
     }
-    
 
-    if(m_charge_hist->GetEntries() == 0){
+    if (m_charge_hist->GetEntries() == 0) {
         return -3;
     }
 
@@ -255,97 +218,50 @@ int convertUVW::drawChargeHist()
     charge_canv->Update();
 
     return 0;
-
 }
 
-
-
-
-
-
-
-
-
 /**
- * @brief Substracts the baseline from the signal and smooths the signal using the rolling average algorithm.
- * Should be done after normalizing the channels.
- * OLD: The baseline is calculated as the mean of the first 64 bins from the signal.
- * NEW: The baseline is now the smallest non 0 element in all of the signal vectors.
- * 
+ * @brief Substracts the baseline from the signal and smooths the signal using
+ * the rolling average algorithm. Should be done after normalizing the channels.
+ * OLD: The baseline is calculated as the mean of the first 64 bins from the
+ * signal. NEW: The baseline is now the smallest non 0 element in all of the
+ * signal vectors.
+ *
  * @return int error codes
  */
-int convertUVW::substractBl()
-{
-
-
+int convertUVW::substractBl() {
 
     double baseline = calculateBaseline();
 
-
-
-
-
-
-    for(auto &data_el : m_uvw_vec){
-
-
-
+    for (auto &data_el : m_uvw_vec) {
 
         data_el.baseline_val = baseline;
 
-        //Extract the baseline from the signal. Make any elements lower than 0 equal to 0 so we don't have negative signal values.
-        std::transform(data_el.signal_val.begin(), data_el.signal_val.end(), data_el.signal_val.begin(),
-               [baseline](double sig_el) { return std::max(0.0, (sig_el - baseline)); });
-
-
-
+        // Extract the baseline from the signal. Make any elements lower than 0
+        // equal to 0 so we don't have negative signal values.
+        std::transform(data_el.signal_val.begin(), data_el.signal_val.end(),
+                       data_el.signal_val.begin(), [baseline](double sig_el) {
+                           return std::max(0.0, (sig_el - baseline));
+                       });
 
         smoothSignal(data_el.signal_val);
 
-
-        //Set the final 12 elements to 0 because of artifacts. To be removed when working with good data.
-        std::fill(data_el.signal_val.begin() + 500, data_el.signal_val.begin() + 512, 0);
-
-        
-
-
-        
-
+        // Set the final 12 elements to 0 because of artifacts. To be removed
+        // when working with good data.
+        std::fill(data_el.signal_val.begin() + 500,
+                  data_el.signal_val.begin() + 512, 0);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     return 0;
-
 }
-
-
 
 /**
  * @brief Returns the dataUVW vector containing the converted data.
- * 
- * @return std::vector<dataUVW> the vector to be returned containing the data converted to UVW
+ *
+ * @return std::vector<dataUVW> the vector to be returned containing the data
+ * converted to UVW
  */
-std::vector<dataUVW> convertUVW::returnDataUVW()
-{
-
-    return m_uvw_vec;
-
-}
-
-
-
+std::vector<dataUVW> convertUVW::returnDataUVW() { return m_uvw_vec; }
 
 /**
  * @brief Writes the data from m_uvw_vec to a .csv file.
@@ -354,12 +270,11 @@ std::vector<dataUVW> convertUVW::returnDataUVW()
  *  Second colums is the strip number.
  *  Third column in the entry number. (Sould be the same for every element)
  *  The remaining columns contain the values of the signal.
- *  
+ *
  * @param file_name the name of the .csv file
  * @return int error codes
  */
-int convertUVW::convertToCSV(std::string file_name)
-{
+int convertUVW::convertToCSV(std::string file_name) {
 
     std::ofstream out_file(file_name);
 
@@ -368,75 +283,61 @@ int convertUVW::convertToCSV(std::string file_name)
         return -1;
     }
 
-    //header
+    // header
     out_file << "plane_val,strip_nr,entry_nr,signal_val\n";
 
+    for (auto &data_entry : m_uvw_vec) {
 
-    for(auto &data_entry : m_uvw_vec){
+        out_file << data_entry.plane_val << "," << data_entry.strip_nr << ","
+                 << data_entry.entry_nr << ",";
 
-        out_file << data_entry.plane_val << "," << data_entry.strip_nr << "," << data_entry.entry_nr << ",";
-
-        for(auto i = 0; static_cast<std::vector<double>::size_type>(i) < data_entry.signal_val.size(); i++){
+        for (auto i = 0; static_cast<std::vector<double>::size_type>(i) <
+                         data_entry.signal_val.size();
+             i++) {
 
             out_file << data_entry.signal_val[i];
-            if (static_cast<std::vector<double>::size_type>(i) < data_entry.signal_val.size() - 1) {
+            if (static_cast<std::vector<double>::size_type>(i) <
+                data_entry.signal_val.size() - 1) {
                 out_file << ",";
             }
-
         }
 
         out_file << "\n";
-
     }
-
-
-
-
 
     out_file.close();
 
     return 0;
-
 }
-
-
-
 
 /**
  * @brief Smooths the signal using the rolling average algorithm.
- * 
+ *
  * @param v the signal to be smoothed
  * @return std::vector<double> the smoothed signal
  */
-void convertUVW::smoothSignal(std::vector<double> &v)
-{
+void convertUVW::smoothSignal(std::vector<double> &v) {
     int window_size = 8;
-
 
     for (auto i = 0; i < v.size(); i++) {
 
-        int start = std::max(0, i - window_size / 2); // Start index of the window
-        int end = std::min(int(v.size()) - 1, i + window_size / 2); // End index of the window
+        int start =
+            std::max(0, i - window_size / 2);   // Start index of the window
+        int end = std::min(int(v.size()) - 1,
+                           i + window_size / 2);   // End index of the window
 
-
-        v.at(i) = std::accumulate(&v.at(start), &v.at(end), 0.0) / (end - start); // Average of the elements in the window
+        v.at(i) = std::accumulate(&v.at(start), &v.at(end), 0.0) /
+                  (end - start);   // Average of the elements in the window
     }
-
-
 }
 
-
-
-
-
-
 /**
- * @brief Uses the ch_norm_ratios to build a std::map used when normalizing the channels.
- * 
- * @return int 
+ * @brief Uses the ch_norm_ratios to build a std::map used when normalizing the
+ * channels.
+ *
+ * @return int
  */
-int convertUVW::buildNormalizationMap()
-{
+int convertUVW::buildNormalizationMap() {
 
     const std::string filename = "./utils/ch_norm_ratios.csv";
 
@@ -446,8 +347,6 @@ int convertUVW::buildNormalizationMap()
         std::cerr << "Error: Failed to open file " << filename << std::endl;
         return -1;
     }
-
-
 
     // Read and discard the first line
     std::string line;
@@ -468,123 +367,92 @@ int convertUVW::buildNormalizationMap()
         std::getline(iss, field, ',');
         ratio = std::stod(field);
 
-        //m_ch_ratio_map[std::make_pair(plane, strip)] = ratio;
+        // m_ch_ratio_map[std::make_pair(plane, strip)] = ratio;
         m_ch_ratio_map.insert({std::make_pair(plane, strip), ratio});
-
     }
-
-
 
     file.close();
 
-
-
-
     return 0;
-
 }
 
-
-
-
 /**
- * @brief Uses the ch_norm_ratios.csv file to normalize the Channels. Each signal on each channel is divided by a channel specific
- * ratio. This is done in order to make sure the values on each channel are proportional with each other.
- * Should be done before substracting the baseline.
- * 
- * @return int 
+ * @brief Uses the ch_norm_ratios.csv file to normalize the Channels. Each
+ * signal on each channel is divided by a channel specific ratio. This is done
+ * in order to make sure the values on each channel are proportional with each
+ * other. Should be done before substracting the baseline.
+ *
+ * @return int
  */
-int convertUVW::normalizeChannels()
-{
+int convertUVW::normalizeChannels() {
 
-    if(m_ch_ratio_map.size() == 0){
+    if (m_ch_ratio_map.size() == 0) {
 
-        std::cerr<<"Error map is empty."<<std::endl;
+        std::cerr << "Error map is empty." << std::endl;
         return -3;
-
     }
 
-    if(m_uvw_vec.size() == 0){
+    if (m_uvw_vec.size() == 0) {
 
-        std::cerr<<"Error UVW vector is empty."<<std::endl;
+        std::cerr << "Error UVW vector is empty." << std::endl;
         return -3;
-
     }
 
+    for (auto &uvw_entry : m_uvw_vec) {
 
-
-    for(auto &uvw_entry : m_uvw_vec){
-
-        if(uvw_entry.plane_val == 0){
+        if (uvw_entry.plane_val == 0) {
 
             auto loc_ratio = m_ch_ratio_map.at({0, uvw_entry.strip_nr});
-            
 
-            std::transform(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), uvw_entry.signal_val.begin(), 
-                                [loc_ratio](double sig_el){ return sig_el / loc_ratio; });
+            std::transform(
+                uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(),
+                uvw_entry.signal_val.begin(),
+                [loc_ratio](double sig_el) { return sig_el / loc_ratio; });
 
-        }else if(uvw_entry.plane_val == 1){
+        } else if (uvw_entry.plane_val == 1) {
 
             auto loc_ratio = m_ch_ratio_map.at({1, uvw_entry.strip_nr});
 
-            std::transform(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), uvw_entry.signal_val.begin(), 
-                                [loc_ratio](double sig_el){ return sig_el / loc_ratio; });
+            std::transform(
+                uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(),
+                uvw_entry.signal_val.begin(),
+                [loc_ratio](double sig_el) { return sig_el / loc_ratio; });
 
-        }
-        else if(uvw_entry.plane_val == 2){
+        } else if (uvw_entry.plane_val == 2) {
 
             auto loc_ratio = m_ch_ratio_map.at({2, uvw_entry.strip_nr});
 
-            std::transform(uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(), uvw_entry.signal_val.begin(), 
-                                [loc_ratio](double sig_el){ return sig_el / loc_ratio; });
-                
+            std::transform(
+                uvw_entry.signal_val.begin(), uvw_entry.signal_val.end(),
+                uvw_entry.signal_val.begin(),
+                [loc_ratio](double sig_el) { return sig_el / loc_ratio; });
         }
-
     }
 
-
     return 0;
-
 }
 
-
-
 /**
- * @brief Calculates the baseline by finding the smallest non 0 value on all the channels.
- * 
- * @return double 
+ * @brief Calculates the baseline by finding the smallest non 0 value on all the
+ * channels.
+ *
+ * @return double
  */
-double convertUVW::calculateBaseline()
-{
+double convertUVW::calculateBaseline() {
 
     double baseline = std::numeric_limits<double>::max();
 
-    //Calculate the baseline as the smallest non 0 element.
-    
+    // Calculate the baseline as the smallest non 0 element.
 
-    for(auto &data_el : m_uvw_vec){
+    for (auto &data_el : m_uvw_vec) {
 
         auto start_iter = std::next(data_el.signal_val.begin(), 20);
-        double loc_baseline = *std::min_element(start_iter, data_el.signal_val.end(), [](int a, int b) {
-                        return (a > 0 && b > 0) ? (a < b) : (a > b);
-                    });
+        double loc_baseline = *std::min_element(
+            start_iter, data_el.signal_val.end(),
+            [](int a, int b) { return (a > 0 && b > 0) ? (a < b) : (a > b); });
 
         baseline = std::min(baseline, loc_baseline);
-
     }
 
     return baseline;
-
 }
-
-
-
-
-
-
-
-
-
-
-
-

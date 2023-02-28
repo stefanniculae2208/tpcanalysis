@@ -1,19 +1,14 @@
 #ifndef dataXYZ_hpp
 #define dataXYZ_hpp 1
 
-
-
-
 /**
  * @brief Used for data storage.
  * The information is stored here in the XYZ format.
- * 
+ *
  */
-class dataXYZ
-{
+class dataXYZ {
 
-    public:
-    
+  public:
     dataXYZ(){};
     ~dataXYZ(){};
 
@@ -28,24 +23,6 @@ class dataXYZ
 
     /// @brief The value of the charge.
     double data_charge;
-
-    
-
-
-
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif

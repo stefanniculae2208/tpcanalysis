@@ -3,35 +3,23 @@
 
 #include <vector>
 
-
-#include "rawData.hpp"
-#include "dataXYZ.hpp"
 #include "dataUVW.hpp"
+#include "dataXYZ.hpp"
 #include "hitPoints.hpp"
-
-
+#include "rawData.hpp"
 
 #include "TH1.h"
 
-
-
-
-
-
 /**
  * @brief A general data storage class that contains object of different types.
- * Each object of generalDataStorage type must only contain 1 entry from the tree.
- * 
+ * Each object of generalDataStorage type must only contain 1 entry from the
+ * tree.
+ *
  */
-class generalDataStorage
-{
-    public:
+class generalDataStorage {
+  public:
     generalDataStorage(){};
     ~generalDataStorage(){};
-
-
-
-
 
     /// @brief Stores the raw data from the root file.
     std::vector<rawData> root_raw_data;
@@ -45,20 +33,12 @@ class generalDataStorage
     /// @brief Stores the hit information.
     std::vector<hitPoints> hit_data;
 
-    /// @brief Stores the histograms for each channel in an entry. Redundant and will be removed.
-    std::vector<TH1D*> raw_hist_container;
+    /// @brief Stores the histograms for each channel in an entry. Redundant and
+    /// will be removed.
+    std::vector<TH1D *> raw_hist_container;
 
-    //The number of entries from the tree.
+    // The number of entries from the tree.
     Long64_t n_entries;
-
-    
-
-
 };
-
-
-
-
-
 
 #endif
