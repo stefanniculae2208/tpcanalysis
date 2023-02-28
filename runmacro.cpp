@@ -29,6 +29,10 @@
 #include "dict/src/GDataSample.cpp"
 #include "dict/src/GFrameHeader.cpp"
 
+/**
+ * @brief Creates the .csv file used to normalize the channels.
+ *
+ */
 void createNormCSV() {
 
     TString filename = "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
@@ -201,7 +205,15 @@ void createNormCSV() {
     out_file.close();
 }
 
+/**
+ * @brief Tools used to reorder the channels to the correct order.
+ *
+ */
 namespace reorderCh {
+/**
+ * @brief Contains constants used for the U plane.
+ *
+ */
 struct planeInfo_U {
 
     static const int plane_nr = 0;
@@ -212,6 +224,10 @@ struct planeInfo_U {
     inline static const std::string cfg_file = "./utils/cfg_entries_u.txt";
 };
 
+/**
+ * @brief Contains constants used for the V plane.
+ *
+ */
 struct planeInfo_V {
 
     static const int plane_nr = 1;
@@ -222,6 +238,10 @@ struct planeInfo_V {
     inline static const std::string cfg_file = "./utils/cfg_entries_v.txt";
 };
 
+/**
+ * @brief Contains constants used for the W plane.
+ *
+ */
 struct planeInfo_W {
 
     static const int plane_nr = 2;
@@ -232,6 +252,14 @@ struct planeInfo_W {
     inline static const std::string cfg_file = "./utils/cfg_entries_w.txt";
 };
 
+/**
+ * @brief Uses the channelorder_*.txt files from ./utils/ to reorder the
+ * channels to the correct order. Works for 1 plane at a time.
+ *
+ * @tparam pI One of the planeInfo_U, planeInfo_V or planeInfo_W structs,
+ * depending on the plane to be reordered.
+ * @param uvw_vec The vector to be reordered.
+ */
 template <typename pI> void reorderChfromFile(std::vector<dataUVW> &uvw_vec) {
 
     std::ifstream file(pI::plane_file.c_str());
@@ -270,6 +298,16 @@ template <typename pI> void reorderChfromFile(std::vector<dataUVW> &uvw_vec) {
     file.close();
 }
 
+/**
+ * @brief Calculates the order in which the channels need to be reordered. Only
+ * use this if you want to find a better order. The file used is taken as an
+ * argument and the entries used are taken from ./utils/cfg_entries_*.txt. The
+ * number of entries need to be changed in the planeInfo_* structs.
+ *
+ * @tparam pI One of the planeInfo_U, planeInfo_V or planeInfo_W structs,
+ * depending on the plane to be reordered.
+ * @param fileName The .root file used for the reorder.
+ */
 template <typename pI> void calculateReorder(TString fileName) {
 
     auto goodFile = fileName;
@@ -438,7 +476,14 @@ template <typename pI> void calculateReorder(TString fileName) {
 
 }   // namespace reorderCh
 
-void view_raw_data(TString fileName, int norm_opt = 0) {
+/**
+ * @brief Allows the viewing of the raw data from the given file.
+ *
+ * @param fileName The file to viewed.
+ * @param norm_opt The normalization option. 1 if you want the channels to be
+ * normalized, else 0.
+ */
+void view_raw_data(TString fileName, int norm_opt = 1) {
 
     int entry_nr = -1;
     int max_entries;
@@ -621,8 +666,17 @@ void view_raw_data(TString fileName, int norm_opt = 0) {
     loc_canv->WaitPrimitive();
 }
 
+/**
+ * @brief Create a pdf file containing the entries from the .root file.
+ *
+ * @param source_file The source .root file.
+ * @param destination_file The name and loation of the pdf file to be created.
+ * @param read_entries The number of entries read.
+ * @param norm_opt The normalization option. 1 if you want the channels to be
+ * normalized, else 0.
+ */
 void create_entries_pdf(TString source_file, TString destination_file,
-                        int read_entries, int norm_opt = 0) {
+                        int read_entries, int norm_opt = 1) {
 
     int entry_nr = 0;
     int max_entries;
@@ -1111,6 +1165,13 @@ void create_entries_pdf(TString source_file, TString destination_file,
     std::cout << "\n\n\nDONE!!!!!\n\n\n" << std::endl;
 }
 
+/**
+ * @brief Create a pdf file with the raw data entries/
+ *
+ * @param source_file The source .root file.
+ * @param destination_file The name and loation of the pdf file to be created.
+ * @param read_entries The number of entries read.
+ */
 void create_raw_pdf(TString source_file, TString destination_file,
                     int read_entries) {
 
@@ -1263,11 +1324,19 @@ void create_raw_pdf(TString source_file, TString destination_file,
     std::cout << "\n\n\nDONE!!!!!\n\n\n" << std::endl;
 }
 
-void writeXYZcvs(int entry_nr) {
+/**
+ * @brief Writes the calculated XYZ values from the given entry from the given
+ * file to a .csv file.
+ *
+ * @param filename The name of the .root file.
+ * @param entry_nr The entry number to be converted.
+ */
+void writeXYZcvs(TString filename = "./rootdata/data2.root",
+                 int entry_nr = 429) {
 
     generalDataStorage data_container;
 
-    auto goodFile = "./rootdata/data2.root";
+    auto goodFile = filename;
 
     auto goodTree = "tree";
 
@@ -1341,9 +1410,14 @@ void writeXYZcvs(int entry_nr) {
     out_file.close();
 }
 
-void writeFullCSV() {
+/**
+ * @brief Converts all of the entries to XYZ and writes them in a .csv file.
+ *
+ * @param filename The name of the .root file.
+ */
+void writeFullXYZCSV(TString filename = "./rootdata/data2.root") {
 
-    auto goodFile = "./rootdata/data2.root";
+    auto goodFile = filename;
 
     auto goodTree = "tree";
 
@@ -1449,11 +1523,18 @@ void writeFullCSV() {
     out_file.close();
 }
 
-void drawXYimage(int entry_nr) {
+/**
+ * @brief Draws an XY image of the entry from the .root file specified.
+ *
+ * @param filename The name of the .root file.
+ * @param entry_nr The entry number to be converted.
+ */
+void drawXYimage(TString filename = "./rootdata/data2.root",
+                 int entry_nr = 429) {
 
     generalDataStorage data_container;
 
-    auto goodFile = "./rootdata/data2.root";
+    auto goodFile = filename;
 
     auto goodTree = "tree";
 
@@ -1547,7 +1628,17 @@ void drawXYimage(int entry_nr) {
     loc_canv->Close();
 }
 
-void view_data_entries(TString fileName, int norm_opt = 0) {
+/**
+ * @brief Allows the viewing of the data from the .root file in 3 formats:
+ * - UVW with the baseline extracted.
+ * - Hits detected for each plane.
+ * - The reconstructed XYZ points.
+ *
+ * @param fileName The name of the .root file.
+ * @param norm_opt The normalization option. 1 if you want the channels to be
+ * normalized, else 0.
+ */
+void view_data_entries(TString fileName, int norm_opt = 1) {
 
     int entry_nr = -1;
     int max_entries;
@@ -2062,11 +2153,18 @@ void view_data_entries(TString fileName, int norm_opt = 0) {
     loc_canv->WaitPrimitive();
 }
 
-void drawUVWimage(int entry_nr) {
+/**
+ * @brief Draws an UVW image of the entry from the .root file specified.
+ *
+ * @param filename The name of the .root file.
+ * @param entry_nr The entry number to be converted.
+ */
+void drawUVWimage(TString filename = "./rootdata/data2.root",
+                  int entry_nr = 429) {
 
     generalDataStorage data_container;
 
-    auto goodFile = "./rootdata/data2.root";
+    auto goodFile = filename;
 
     auto goodTree = "tree";
 
@@ -2182,6 +2280,13 @@ void drawUVWimage(int entry_nr) {
     loc_canv->Close();
 }
 
+/**
+ * @brief Hepls with the mass conversion to pdf. Uses the create_entries_pdf()
+ * function.
+ *
+ * @param lin_arg The file to be converted, taken from the command line
+ * argument.
+ */
 void mass_convertPDF(TString lin_arg) {
 
     TString dirandfileName = lin_arg;
@@ -2208,7 +2313,15 @@ void mass_convertPDF(TString lin_arg) {
     create_entries_pdf(dirandfileName, pdfName, 50);
 }
 
-void mass_convertRawPDF(TString lin_arg, int nr_entries) {
+/**
+ * @brief Hepls with the mass conversion to pdf. Uses the create_raw_pdf()
+ * function.
+ *
+ * @param lin_arg The file to be converted, taken from the command line
+ * argument.
+ * @param nr_entries THe number of entries to be converted.
+ */
+void mass_convertRawPDF(TString lin_arg, int nr_entries = 10000) {
 
     TString dirandfileName = lin_arg;
 
@@ -2234,8 +2347,17 @@ void mass_convertRawPDF(TString lin_arg, int nr_entries) {
     create_raw_pdf(dirandfileName, pdfName, nr_entries);
 }
 
+/**
+ * @brief For testing purposes only. Helps view the reordered channels.
+ *
+ * @param fileName The name of the .root file.
+ * @param entry_nr The entry number to be viewed.
+ * @param plane The plane to be viewed.
+ * @param norm_opt The normalization option. 1 if you want the channels to be
+ * normalized, else 0.s
+ */
 void printReorderedChannels(TString fileName, int entry_nr, int plane,
-                            int norm_opt = 0) {
+                            int norm_opt = 1) {
 
     auto goodFile = fileName;
 
