@@ -153,7 +153,7 @@ void createNormCSV() {
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
-        for (auto &uvw_entry : data_container.uvw_data) {
+        for (auto &&uvw_entry : data_container.uvw_data) {
 
             if (uvw_entry.plane_val == 0) {
 
@@ -289,7 +289,7 @@ template <typename pI> void reorderChfromFile(std::vector<dataUVW> &uvw_vec) {
         ++index;
     }
 
-    for (auto &uvw_data : uvw_vec) {
+    for (auto &&uvw_data : uvw_vec) {
 
         if (uvw_data.plane_val == pI::plane_nr)
             uvw_data.strip_nr = ch_map.at(uvw_data.strip_nr);
@@ -1469,7 +1469,7 @@ void writeXYZcvs(TString filename = "./rootdata/data2.root",
     // header
     out_file << "x,y,z\n";
 
-    for (auto &data_entry : data_container.xyz_data) {
+    for (auto &&data_entry : data_container.xyz_data) {
 
         out_file << data_entry.data_x << "," << data_entry.data_y << ","
                  << data_entry.data_z;
@@ -1579,7 +1579,7 @@ void writeFullXYZCSV(TString filename = "./rootdata/data2.root") {
         std::cout << "XYZ vector size " << data_container.xyz_data.size()
                   << "\n";
 
-        for (auto &data_entry : data_container.xyz_data) {
+        for (auto &&data_entry : data_container.xyz_data) {
 
             out_file << data_entry.data_x << "," << data_entry.data_y << ","
                      << data_entry.data_z << "," << entry_nr;
