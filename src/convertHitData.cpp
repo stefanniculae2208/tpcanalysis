@@ -16,7 +16,7 @@ convertHitData::convertHitData(std::vector<dataUVW> uvw_data) {
  */
 convertHitData::~convertHitData() {
 
-    for (auto loc_hist : m_raw_hist_data) {
+    for (auto &loc_hist : m_raw_hist_data) {
 
         if (loc_hist) {
 
@@ -71,9 +71,10 @@ std::vector<TH1D *> convertHitData::returnHistData() { return m_raw_hist_data; }
  * obtained from the histogram fitting are saved in the hitData type vector.
  * OLD: The peak threshold in taken as an input variable.
  * OLD: The peak threshold is 2.5 times the mean of the signal.
- * OLD: The peak threshold is not the maximum value between 2.5 times the mean
+ * OLD: The peak threshold is now the maximum value between 2.5 times the mean
  * of the signal and 0.75 times the maximum value of the signal. Might need to
- * be adjusted further. NEW: The peak threshold is not the maximum value between
+ * be adjusted further.
+ * NEW: The peak threshold is now the maximum value between
  * sensitivity_avg times the mean of the signal and sensitivity_max times the
  * maximum value of the signal. Might need to be adjusted further.
  *

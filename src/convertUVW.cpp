@@ -176,6 +176,7 @@ void convertUVW::calculateChargeHist() {
         charge_val.at(i) = std::accumulate(
             m_uvw_vec.begin(), m_uvw_vec.end(), 0.0,
             [i](double acc, const dataUVW &el) {
+                // the check is unnecessary but i leave it in for now
                 return acc +
                        (i < el.signal_val.size() ? el.signal_val.at(i) : 0);
             });

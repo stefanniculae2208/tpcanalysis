@@ -90,7 +90,7 @@ void createNormCSV() {
         int count_v = 0;
         int count_w = 0;
 
-        for (auto &uvw_entry : data_container.uvw_data) {
+        for (const auto &uvw_entry : data_container.uvw_data) {
 
             if (uvw_entry.plane_val == 0) {
 
@@ -385,7 +385,7 @@ template <typename pI> void calculateReorder(TString fileName) {
 
         std::array<std::array<std::size_t, 93>, 3> max_index;
 
-        for (auto uvw_el : data_container.uvw_data) {
+        for (const auto &uvw_el : data_container.uvw_data) {
 
             auto max_it = std::max_element(uvw_el.signal_val.begin(),
                                            uvw_el.signal_val.end());
@@ -429,7 +429,7 @@ template <typename pI> void calculateReorder(TString fileName) {
 
     std::map<int, int> strip_order;
 
-    for (auto &map_entry : strip_order_map) {
+    for (const auto &map_entry : strip_order_map) {
 
         auto &strip_values = map_entry.second;
 
@@ -466,7 +466,7 @@ template <typename pI> void calculateReorder(TString fileName) {
 
     std::ofstream out_file(pI::plane_file);
 
-    for (auto &map_entry : strip_order) {
+    for (const auto &map_entry : strip_order) {
 
         out_file << map_entry.second << "\n";
     }
@@ -475,6 +475,76 @@ template <typename pI> void calculateReorder(TString fileName) {
 }
 
 }   // namespace reorderCh
+
+namespace removeBackground {
+
+struct planeInfoU {
+    static const int plane_nr = 0;
+    inline static const std::string plane_hist_name = "Charge_hist_plane_u";
+};
+
+struct planeInfoV {
+    static const int plane_nr = 1;
+    inline static const std::string plane_hist_name = "Charge_hist_plane_v";
+};
+
+struct planeInfoW {
+    static const int plane_nr = 2;
+    inline static const std::string plane_hist_name = "Charge_hist_plane_w";
+};
+
+template <typename pI>
+void calculateChargeHist(std::vector<dataUVW> &uvw_vec, TH1D *&charge_hist) {
+
+    std::array<double, 512> charge_val;
+
+    std::vector<dataUVW> filtered_data;
+    std::copy_if(
+        uvw_vec.begin(), uvw_vec.end(), std::back_inserter(filtered_data),
+        [](const dataUVW &data) { return data.plane_val == pI::plane_nr; });
+
+    charge_val.fill(0);
+
+    for (std::size_t i = 0; i < charge_val.size(); i++) {
+        charge_val.at(i) =
+            std::accumulate(filtered_data.begin(), filtered_data.end(), 0.0,
+                            [i](double acc, const dataUVW &el) {
+                                return acc + el.signal_val.at(i);
+                            });
+    }
+
+    charge_hist =
+        new TH1D(pI::plane_hist_name.c_str(), "Charge histogram", 512, 1, 512);
+
+    charge_hist->SetContent(charge_val.data());
+}
+
+void viewChargeHist(std::vector<dataUVW> &uvw_vec) {
+
+    auto *charge_canv = new TCanvas("Charge_canvas", "Charge_canvas");
+    auto loc_pad = new TPad("charge_pad", "Charge pad", 0, 0, 1, 1);
+    loc_pad->Divide(3, 1);
+    loc_pad->Draw();
+
+    TH1D *charge_u;
+    TH1D *charge_v;
+    TH1D *charge_w;
+
+    calculateChargeHist<planeInfoU>(uvw_vec, charge_u);
+    calculateChargeHist<planeInfoV>(uvw_vec, charge_v);
+    calculateChargeHist<planeInfoW>(uvw_vec, charge_w);
+
+    loc_pad->cd(1);
+    charge_u->Draw();
+    loc_pad->cd(2);
+    charge_v->Draw();
+    loc_pad->cd(3);
+    charge_w->Draw();
+
+    charge_canv->Update();
+}
+
+}   // namespace removeBackground
 
 /**
  * @brief Allows the viewing of the raw data from the given file.
@@ -624,7 +694,7 @@ void view_raw_data(TString fileName, int norm_opt = 1) {
 
         int bin = 0;
 
-        for (auto iter : data_container.uvw_data) {
+        for (const auto &iter : data_container.uvw_data) {
 
             bin = 0;
 
@@ -843,13 +913,13 @@ void create_entries_pdf(TString source_file, TString destination_file,
 
         int bin = 0;
 
-        for (auto iter : data_container.uvw_data) {
+        for (const auto &iter : data_container.uvw_data) {
 
             bin = 0;
 
             if (iter.plane_val == 0) {
 
-                for (auto sig_iter : iter.signal_val) {
+                for (const auto &sig_iter : iter.signal_val) {
 
                     u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
                 }
@@ -857,7 +927,7 @@ void create_entries_pdf(TString source_file, TString destination_file,
 
             if (iter.plane_val == 1) {
 
-                for (auto sig_iter : iter.signal_val) {
+                for (const auto &sig_iter : iter.signal_val) {
 
                     v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
                 }
@@ -865,7 +935,7 @@ void create_entries_pdf(TString source_file, TString destination_file,
 
             if (iter.plane_val == 2) {
 
-                for (auto sig_iter : iter.signal_val) {
+                for (const auto &sig_iter : iter.signal_val) {
 
                     w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
                 }
@@ -891,7 +961,7 @@ void create_entries_pdf(TString source_file, TString destination_file,
         std::vector<double> y_w;
         std::vector<double> c_w;
 
-        for (auto hit_iter : data_container.hit_data) {
+        for (const auto &hit_iter : data_container.hit_data) {
 
             if (hit_iter.plane == 0) {
 
@@ -1069,7 +1139,7 @@ void create_entries_pdf(TString source_file, TString destination_file,
             z.push_back(-10.0);
             chg.push_back(0.0);
 
-            for (auto point_iter : data_container.xyz_data) {
+            for (const auto &point_iter : data_container.xyz_data) {
 
                 x.push_back(point_iter.data_x);
                 y.push_back(point_iter.data_y);
@@ -1266,13 +1336,13 @@ void create_raw_pdf(TString source_file, TString destination_file,
         int bin = 0;
         // int strip = 1;
 
-        for (auto iter : data_container.uvw_data) {
+        for (const auto &iter : data_container.uvw_data) {
 
             bin = 0;
 
             if (iter.plane_val == 0) {
 
-                for (auto sig_iter : iter.signal_val) {
+                for (const auto &sig_iter : iter.signal_val) {
 
                     u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
                 }
@@ -1280,7 +1350,7 @@ void create_raw_pdf(TString source_file, TString destination_file,
 
             if (iter.plane_val == 1) {
 
-                for (auto sig_iter : iter.signal_val) {
+                for (const auto &sig_iter : iter.signal_val) {
 
                     v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
                 }
@@ -1288,7 +1358,7 @@ void create_raw_pdf(TString source_file, TString destination_file,
 
             if (iter.plane_val == 2) {
 
-                for (auto sig_iter : iter.signal_val) {
+                for (const auto &sig_iter : iter.signal_val) {
 
                     w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
                 }
@@ -1590,7 +1660,7 @@ void drawXYimage(TString filename = "./rootdata/data2.root",
 
     std::vector<double> x, y, z;
 
-    for (auto point_iter : data_container.xyz_data) {
+    for (const auto &point_iter : data_container.xyz_data) {
 
         x.push_back(point_iter.data_x);
         y.push_back(point_iter.data_y);
@@ -1781,6 +1851,8 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
         reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(
             data_container.uvw_data);
 
+        removeBackground::viewChargeHist(data_container.uvw_data);
+
         err = loc_convert_hit.setUVWData(data_container.uvw_data);
         if (err != 0)
             std::cout << "Error set UVW data code " << err << std::endl;
@@ -1846,13 +1918,13 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
 
         int bin = 0;
 
-        for (auto iter : data_container.uvw_data) {
+        for (const auto &iter : data_container.uvw_data) {
 
             bin = 0;
 
             if (iter.plane_val == 0) {
 
-                for (auto sig_iter : iter.signal_val) {
+                for (const auto &sig_iter : iter.signal_val) {
 
                     u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
                 }
@@ -1860,7 +1932,7 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
 
             if (iter.plane_val == 1) {
 
-                for (auto sig_iter : iter.signal_val) {
+                for (const auto &sig_iter : iter.signal_val) {
 
                     v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
                 }
@@ -1868,7 +1940,7 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
 
             if (iter.plane_val == 2) {
 
-                for (auto sig_iter : iter.signal_val) {
+                for (const auto &sig_iter : iter.signal_val) {
 
                     w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
                 }
@@ -1894,7 +1966,7 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
         std::vector<double> y_w;
         std::vector<double> c_w;
 
-        for (auto hit_iter : data_container.hit_data) {
+        for (const auto &hit_iter : data_container.hit_data) {
 
             if (hit_iter.plane == 0) {
 
@@ -2072,7 +2144,7 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
             z.push_back(-10.0);
             chg.push_back(0.0);
 
-            for (auto point_iter : data_container.xyz_data) {
+            for (const auto &point_iter : data_container.xyz_data) {
 
                 x.push_back(point_iter.data_x);
                 y.push_back(point_iter.data_y);
@@ -2236,13 +2308,13 @@ void drawUVWimage(TString filename = "./rootdata/data2.root",
     int bin = 0;
     // int strip = 1;
 
-    for (auto iter : data_container.uvw_data) {
+    for (const auto &iter : data_container.uvw_data) {
 
         bin = 0;
 
         if (iter.plane_val == 0) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
@@ -2250,7 +2322,7 @@ void drawUVWimage(TString filename = "./rootdata/data2.root",
 
         if (iter.plane_val == 1) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
@@ -2258,7 +2330,7 @@ void drawUVWimage(TString filename = "./rootdata/data2.root",
 
         if (iter.plane_val == 2) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
@@ -2450,13 +2522,13 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
 
     int bin = 0;
 
-    for (auto iter : data_container.uvw_data) {
+    for (const auto &iter : data_container.uvw_data) {
 
         bin = 0;
 
         if (iter.plane_val == 0) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
@@ -2464,7 +2536,7 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
 
         if (iter.plane_val == 1) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
@@ -2472,7 +2544,7 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
 
         if (iter.plane_val == 2) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
@@ -2505,13 +2577,13 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
                            Form("Histogram ord for W entry %d", entry_nr), 512,
                            1, 513, 100, 1, 101);
 
-    for (auto iter : data_container_ord.uvw_data) {
+    for (const auto &iter : data_container_ord.uvw_data) {
 
         bin = 0;
 
         if (iter.plane_val == 0) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 u_hists_ord->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
@@ -2519,7 +2591,7 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
 
         if (iter.plane_val == 1) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 v_hists_ord->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
@@ -2527,7 +2599,7 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
 
         if (iter.plane_val == 2) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 w_hists_ord->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
@@ -2553,13 +2625,13 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
                            Form("Histogram raw for W entry %d", entry_nr), 512,
                            1, 513, 100, 1, 101);
 
-    for (auto iter : data_container_raw.uvw_data) {
+    for (const auto &iter : data_container_raw.uvw_data) {
 
         bin = 0;
 
         if (iter.plane_val == 0) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 u_hists_raw->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
@@ -2567,7 +2639,7 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
 
         if (iter.plane_val == 1) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 v_hists_raw->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
@@ -2575,7 +2647,7 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
 
         if (iter.plane_val == 2) {
 
-            for (auto sig_iter : iter.signal_val) {
+            for (const auto &sig_iter : iter.signal_val) {
 
                 w_hists_raw->SetBinContent(++bin, iter.strip_nr, sig_iter);
             }
