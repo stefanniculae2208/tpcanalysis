@@ -16,7 +16,7 @@ convertHitData::convertHitData(std::vector<dataUVW> uvw_data) {
  */
 convertHitData::~convertHitData() {
 
-    for (auto &loc_hist : m_raw_hist_data) {
+    for (auto &&loc_hist : m_raw_hist_data) {
 
         if (loc_hist) {
 
@@ -100,14 +100,14 @@ int convertHitData::getHitInfo(Double_t sensitivity_avg,
 
     std::vector<double> peak_th_vec;
 
-    for (auto &iter : m_uvw_data) {
+    for (const auto &iter : m_uvw_data) {
 
         auto loc_hist =
             new TH1D(Form("entry%d_hist_at_strip%d_plane%d", iter.entry_nr,
                           iter.strip_nr, iter.plane_val),
                      Form("hist%d", strip), 512, 1, 512);
 
-        for (auto &sig_iter : iter.signal_val) {
+        for (const auto &sig_iter : iter.signal_val) {
             loc_hist->SetBinContent(++bin, sig_iter);
         }
 
@@ -135,7 +135,7 @@ int convertHitData::getHitInfo(Double_t sensitivity_avg,
 
     int curr_iter = 0;
 
-    for (auto &hist_iter : m_raw_hist_data) {
+    for (const auto &hist_iter : m_raw_hist_data) {
 
         // find the peaks in the histogram with TSpectrum
         spec_analyzer->Search(hist_iter, 5, "nodraw", 0.2);
@@ -149,7 +149,7 @@ int convertHitData::getHitInfo(Double_t sensitivity_avg,
         int nrealpeaks = 0;              // number of valid peaks set to 0
 
         for (auto i = 0; i < npeaks; i++) {
-            if (pos_holder_y[i] > peak_th_vec.at(curr_iter)) {
+            if (pos_holder_y[i] > peak_th_vec[curr_iter]) {
                 peaks_x.push_back(pos_holder_x[i]);
                 peaks_y.push_back(pos_holder_y[i]);
                 nrealpeaks++;
@@ -171,13 +171,13 @@ int convertHitData::getHitInfo(Double_t sensitivity_avg,
         // std::cout<<"Function is "<<func_holder.Data()<<std::endl;
         gaus_and_pol0->SetParameter(0, 3);
         for (auto i = 0; i < nrealpeaks; i++) {
-            gaus_and_pol0->SetParameter((3 * i + 1), peaks_y.at(i));
-            gaus_and_pol0->SetParameter((3 * i + 2), peaks_x.at(i));
+            gaus_and_pol0->SetParameter((3 * i + 1), peaks_y[i]);
+            gaus_and_pol0->SetParameter((3 * i + 2), peaks_x[i]);
             gaus_and_pol0->SetParameter((3 * i + 3), 10);
             gaus_and_pol0->SetParLimits((3 * i + 3), 0, 1000);
         }
 
-        hist_iter->Fit("gaus_and_pol0", "Q");
+        TFitResultPtr result = hist_iter->Fit("gaus_and_pol0", "Q");
 
         for (auto i = 0; i < nrealpeaks; i++) {
 
@@ -189,11 +189,11 @@ int convertHitData::getHitInfo(Double_t sensitivity_avg,
                                     ->GetParameter((3 * i + 1));
             curr_point.fwhm = 2.355 * hist_iter->GetFunction("gaus_and_pol0")
                                           ->GetParameter((3 * i + 3));
-            curr_point.plane = m_uvw_data.at(curr_iter).plane_val;
-            curr_point.strip = m_uvw_data.at(curr_iter).strip_nr;
-            curr_point.entry_nr = m_uvw_data.at(curr_iter).entry_nr;
+            curr_point.plane = m_uvw_data[curr_iter].plane_val;
+            curr_point.strip = m_uvw_data[curr_iter].strip_nr;
+            curr_point.entry_nr = m_uvw_data[curr_iter].entry_nr;
             curr_point.base_line =
-                m_uvw_data.at(curr_iter)
+                m_uvw_data[curr_iter]
                     .baseline_val;   // this is more relevant and can be used to
                                      // calculate the charge
             // curr_point.base_line =

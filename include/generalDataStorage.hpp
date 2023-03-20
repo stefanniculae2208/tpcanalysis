@@ -19,6 +19,7 @@
 class generalDataStorage {
   public:
     generalDataStorage(){};
+
     ~generalDataStorage(){};
 
     /// @brief Stores the raw data from the root file.
@@ -37,8 +38,13 @@ class generalDataStorage {
     /// will be removed.
     std::vector<TH1D *> raw_hist_container;
 
-    // The number of entries from the tree.
-    Long64_t n_entries;
+    /// @brief The label obtained from filterEventsXY
+    int filter_label;
+
+    double mse_value;
+
+    // The number of the entry from the tree.
+    Long64_t n_entry;
 };
 
 #endif

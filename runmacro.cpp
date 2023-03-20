@@ -6,9 +6,11 @@
 
 #include "TString.h"
 #include "include/ErrorCodesMap.hpp"
+#include "src/cleanUVW.cpp"
 #include "src/convertHitData.cpp"
 #include "src/convertUVW.cpp"
 #include "src/convertXYZ.cpp"
+#include "src/filterEventsXY.cpp"
 #include "src/loadData.cpp"
 
 #include "include/generalDataStorage.hpp"
@@ -153,7 +155,7 @@ void createNormCSV() {
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
-        for (auto &&uvw_entry : data_container.uvw_data) {
+        for (const auto &uvw_entry : data_container.uvw_data) {
 
             if (uvw_entry.plane_val == 0) {
 
@@ -289,7 +291,7 @@ template <typename pI> void reorderChfromFile(std::vector<dataUVW> &uvw_vec) {
         ++index;
     }
 
-    for (auto &&uvw_data : uvw_vec) {
+    for (auto &uvw_data : uvw_vec) {
 
         if (uvw_data.plane_val == pI::plane_nr)
             uvw_data.strip_nr = ch_map.at(uvw_data.strip_nr);
@@ -333,6 +335,8 @@ template <typename pI> void calculateReorder(TString fileName) {
     if (err != 0)
         return;
 
+    cleanUVW loc_clean_uvw;
+
     std::map<int, std::array<int, pI::cfg_size>> strip_order_map;
 
     std::ifstream file(pI::cfg_file.c_str());
@@ -366,14 +370,26 @@ template <typename pI> void calculateReorder(TString fileName) {
         if (err != 0)
             std::cout << "Normalize channels error code " << err << std::endl;
 
-        err = loc_conv_uvw.substractBl();
+        /* err = loc_conv_uvw.substractBl();
         if (err != 0)
-            std::cout << "Substractbl error code " << err << std::endl;
+            std::cout << "Substractbl error code " << err << std::endl; */
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
         // std::cout<<"UVW data size is
         // "<<data_container.uvw_data.size()<<std::endl;
+
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+
+        data_container.uvw_data = loc_clean_uvw.returnDataUVW();
 
         // Order by plane and strip
         std::sort(data_container.uvw_data.begin(),
@@ -480,21 +496,40 @@ namespace removeBackground {
 
 struct planeInfoU {
     static const int plane_nr = 0;
+    static const int plane_size = 72;
     inline static const std::string plane_hist_name = "Charge_hist_plane_u";
 };
 
 struct planeInfoV {
     static const int plane_nr = 1;
+    static const int plane_size = 92;
     inline static const std::string plane_hist_name = "Charge_hist_plane_v";
 };
 
 struct planeInfoW {
     static const int plane_nr = 2;
+    static const int plane_size = 92;
     inline static const std::string plane_hist_name = "Charge_hist_plane_w";
 };
 
+double calculateBaseline(const std::array<double, 512> &charge_val) {
+
+    double baseline = std::numeric_limits<double>::max();
+
+    // Calculate the baseline as the smallest non 0 element.
+
+    auto start_iter = std::next(charge_val.begin(), 5);
+    baseline =
+        *std::min_element(start_iter, charge_val.end(), [](int a, int b) {
+            return (a > 0 && b > 0) ? (a < b) : (a > b);
+        });
+
+    return baseline;
+}
+
 template <typename pI>
-void calculateChargeHist(std::vector<dataUVW> &uvw_vec, TH1D *&charge_hist) {
+void calculateChargeHist(std::vector<dataUVW> &uvw_vec, TH1D *&charge_hist,
+                         const int extr_opt = 0) {
 
     std::array<double, 512> charge_val;
 
@@ -513,13 +548,39 @@ void calculateChargeHist(std::vector<dataUVW> &uvw_vec, TH1D *&charge_hist) {
                             });
     }
 
+    if (extr_opt) {
+
+        auto baseline = calculateBaseline(charge_val);
+
+        std::transform(charge_val.begin(), charge_val.end(), charge_val.begin(),
+                       [baseline](const double &sig_el) {
+                           return std::max(0.0, (sig_el - baseline));
+                       });
+
+        baseline /= pI::plane_size;
+
+        for (auto &data_el : uvw_vec) {
+
+            data_el.baseline_val += baseline;
+
+            // Extract the baseline from the signal. Make any elements lower
+            // than 0 equal to 10 so we don't have negative signal values.
+            // I didn't make them 0 because I have a problem with empty vectors.
+            std::transform(data_el.signal_val.begin(), data_el.signal_val.end(),
+                           data_el.signal_val.begin(),
+                           [baseline](const double &sig_el) {
+                               return std::max(10.0, (sig_el - baseline));
+                           });
+        }
+    }
+
     charge_hist =
         new TH1D(pI::plane_hist_name.c_str(), "Charge histogram", 512, 1, 512);
 
     charge_hist->SetContent(charge_val.data());
 }
 
-void viewChargeHist(std::vector<dataUVW> &uvw_vec) {
+void viewChargeHist(std::vector<dataUVW> &uvw_vec, const int extr_opt = 0) {
 
     auto *charge_canv = new TCanvas("Charge_canvas", "Charge_canvas");
     auto loc_pad = new TPad("charge_pad", "Charge pad", 0, 0, 1, 1);
@@ -530,9 +591,9 @@ void viewChargeHist(std::vector<dataUVW> &uvw_vec) {
     TH1D *charge_v;
     TH1D *charge_w;
 
-    calculateChargeHist<planeInfoU>(uvw_vec, charge_u);
-    calculateChargeHist<planeInfoV>(uvw_vec, charge_v);
-    calculateChargeHist<planeInfoW>(uvw_vec, charge_w);
+    calculateChargeHist<planeInfoU>(uvw_vec, charge_u, extr_opt);
+    calculateChargeHist<planeInfoV>(uvw_vec, charge_v, extr_opt);
+    calculateChargeHist<planeInfoW>(uvw_vec, charge_w, extr_opt);
 
     loc_pad->cd(1);
     charge_u->Draw();
@@ -772,6 +833,8 @@ void create_entries_pdf(TString source_file, TString destination_file,
     if (err != 0)
         return;
 
+    cleanUVW loc_clean_uvw;
+
     convertHitData loc_convert_hit;
 
     convertXYZ loc_conv_xyz;
@@ -832,10 +895,10 @@ void create_entries_pdf(TString source_file, TString destination_file,
                           << std::endl;
         }
 
-        err = loc_conv_uvw.substractBl();
+        /* err = loc_conv_uvw.substractBl();
 
         if (err != 0)
-            std::cout << "Substractbl error code " << err << "\n";
+            std::cout << "Substractbl error code " << err << "\n"; */
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
@@ -848,6 +911,20 @@ void create_entries_pdf(TString source_file, TString destination_file,
             data_container.uvw_data);
         reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(
             data_container.uvw_data);
+
+        loc_clean_uvw.setUVWData(data_container.uvw_data);
+
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+
+        data_container.uvw_data = loc_clean_uvw.returnDataUVW();
 
         err = loc_convert_hit.setUVWData(data_container.uvw_data);
         if (err != 0)
@@ -1428,15 +1505,15 @@ void writeXYZcvs(TString filename = "./rootdata/data2.root",
     if (err != 0)
         std::cout << "Make conversion error code " << err << std::endl;
 
-    err = loc_conv_uvw.substractBl();
+    /* err = loc_conv_uvw.substractBl();
 
     if (err != 0)
-        std::cout << "Substractbl error code " << err << std::endl;
+        std::cout << "Substractbl error code " << err << std::endl; */
 
-    err = loc_conv_uvw.drawChargeHist();
+    /* err = loc_conv_uvw.drawChargeHist();
 
     if (err != 0)
-        std::cout << "Draw Charge Hist error code " << err << std::endl;
+        std::cout << "Draw Charge Hist error code " << err << std::endl; */
 
     data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
@@ -1469,7 +1546,7 @@ void writeXYZcvs(TString filename = "./rootdata/data2.root",
     // header
     out_file << "x,y,z\n";
 
-    for (auto &&data_entry : data_container.xyz_data) {
+    for (const auto &data_entry : data_container.xyz_data) {
 
         out_file << data_entry.data_x << "," << data_entry.data_y << ","
                  << data_entry.data_z;
@@ -1501,6 +1578,8 @@ void writeFullXYZCSV(TString filename = "./rootdata/data2.root") {
     loadData good_data(goodFile, goodTree);
 
     convertUVW loc_conv_uvw;
+
+    cleanUVW loc_clean_uvw;
 
     convertHitData loc_convert_hit;
 
@@ -1541,15 +1620,36 @@ void writeFullXYZCSV(TString filename = "./rootdata/data2.root") {
         if (err != 0)
             std::cout << "Make conversion error code " << err << "\n";
 
-        err = loc_conv_uvw.substractBl();
+        /* err = loc_conv_uvw.substractBl();
 
         if (err != 0)
-            std::cout << "Substractbl error code " << err << "\n";
+            std::cout << "Substractbl error code " << err << "\n"; */
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
         std::cout << "UVW data size is " << data_container.uvw_data.size()
                   << "\n";
+
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(
+            data_container.uvw_data);
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_V>(
+            data_container.uvw_data);
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(
+            data_container.uvw_data);
+
+        loc_clean_uvw.setUVWData(data_container.uvw_data);
+
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+
+        data_container.uvw_data = loc_clean_uvw.returnDataUVW();
 
         err = loc_convert_hit.setUVWData(data_container.uvw_data);
         if (err != 0)
@@ -1579,7 +1679,7 @@ void writeFullXYZCSV(TString filename = "./rootdata/data2.root") {
         std::cout << "XYZ vector size " << data_container.xyz_data.size()
                   << "\n";
 
-        for (auto &&data_entry : data_container.xyz_data) {
+        for (const auto &data_entry : data_container.xyz_data) {
 
             out_file << data_entry.data_x << "," << data_entry.data_y << ","
                      << data_entry.data_z << "," << entry_nr;
@@ -1626,7 +1726,7 @@ void drawXYimage(TString filename = "./rootdata/data2.root",
     if (err != 0)
         std::cout << "Make conversion error code " << err << std::endl;
 
-    err = loc_conv_uvw.substractBl();
+    /* err = loc_conv_uvw.substractBl();
 
     if (err != 0)
         std::cout << "Substractbl error code " << err << std::endl;
@@ -1634,7 +1734,7 @@ void drawXYimage(TString filename = "./rootdata/data2.root",
     err = loc_conv_uvw.drawChargeHist();
 
     if (err != 0)
-        std::cout << "Draw Charge Hist error code " << err << std::endl;
+        std::cout << "Draw Charge Hist error code " << err << std::endl; */
 
     data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
@@ -1733,6 +1833,8 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
     err = loc_conv_uvw.buildNormalizationMap();
     if (err != 0)
         return;
+
+    cleanUVW loc_clean_uvw;
 
     convertHitData loc_convert_hit;
 
@@ -1834,10 +1936,10 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
                           << std::endl;
         }
 
-        err = loc_conv_uvw.substractBl();
+        /* err = loc_conv_uvw.substractBl();
 
         if (err != 0)
-            std::cout << "Substractbl error code " << err << std::endl;
+            std::cout << "Substractbl error code " << err << std::endl; */
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
@@ -1851,7 +1953,48 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
         reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(
             data_container.uvw_data);
 
-        removeBackground::viewChargeHist(data_container.uvw_data);
+        // removeBackground::viewChargeHist(data_container.uvw_data, 1);
+
+        loc_clean_uvw.setUVWData(data_container.uvw_data);
+
+        auto *charge_canv = new TCanvas("Charge_canvas", "Charge_canvas");
+        auto charge_pad = new TPad("charge_pad", "Charge pad", 0, 0, 1, 1);
+        charge_pad->Divide(3, 1);
+        charge_pad->Draw();
+
+        TH1D *charge_u;
+        TH1D *charge_v;
+        TH1D *charge_w;
+
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoU>(charge_u);
+        if (err != 0)
+            std::cerr << "Error getChargeHist code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoV>(charge_v);
+        if (err != 0)
+            std::cerr << "Error getChargeHist code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoW>(charge_w);
+        if (err != 0)
+            std::cerr << "Error getChargeHist code " << err << std::endl;
+
+        charge_pad->cd(1);
+        charge_u->Draw();
+        charge_pad->cd(2);
+        charge_v->Draw();
+        charge_pad->cd(3);
+        charge_w->Draw();
+
+        charge_canv->Update();
+
+        data_container.uvw_data = loc_clean_uvw.returnDataUVW();
 
         err = loc_convert_hit.setUVWData(data_container.uvw_data);
         if (err != 0)
@@ -2258,7 +2401,7 @@ void drawUVWimage(TString filename = "./rootdata/data2.root",
     if (err != 0)
         std::cout << "Make conversion error code " << err << std::endl;
 
-    err = loc_conv_uvw.substractBl();
+    /* err = loc_conv_uvw.substractBl();
 
     if (err != 0)
         std::cout << "Substractbl error code " << err << std::endl;
@@ -2266,7 +2409,7 @@ void drawUVWimage(TString filename = "./rootdata/data2.root",
     err = loc_conv_uvw.drawChargeHist();
 
     if (err != 0)
-        std::cout << "Draw Charge Hist error code " << err << std::endl;
+        std::cout << "Draw Charge Hist error code " << err << std::endl; */
 
     data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
@@ -2482,10 +2625,10 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
             std::cout << "Normalize channels error code " << err << std::endl;
     }
 
-    err = loc_conv_uvw.substractBl();
+    /* err = loc_conv_uvw.substractBl();
 
     if (err != 0)
-        std::cout << "Substractbl error code " << err << std::endl;
+        std::cout << "Substractbl error code " << err << std::endl; */
 
     data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
@@ -2666,15 +2809,563 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
     loc_canv->WaitPrimitive();
 }
 
+void create_labeled_pdf(TString source_file, TString destination_file,
+                        int read_entries, int norm_opt = 1) {
+
+    int entry_nr = 0;
+    int max_entries;
+
+    auto goodFile = source_file;
+
+    auto goodTree = "tree";
+
+    loadData good_data(goodFile, goodTree);
+
+    auto err = good_data.openFile();
+    err = good_data.readData();
+    max_entries = good_data.returnNEntries();
+
+    convertUVW loc_conv_uvw;
+
+    err = loc_conv_uvw.openSpecFile();
+
+    if (err != 0)
+        return;
+
+    err = loc_conv_uvw.buildNormalizationMap();
+    if (err != 0)
+        return;
+
+    cleanUVW loc_clean_uvw;
+
+    convertHitData loc_convert_hit;
+
+    convertXYZ loc_conv_xyz;
+
+    filterEventsXY loc_filter_xy;
+
+    gROOT->SetBatch(kTRUE);
+
+    auto loc_canv = new TCanvas("entries.pdf", "PDF", 1500, 1000);
+    auto loc_pad = new TPad("pad name", "pad title", 0, 0, 1, 1);
+    loc_pad->Divide(3, 3);
+    loc_pad->Draw();
+
+    TH2D *u_hists = nullptr;
+    TH2D *v_hists = nullptr;
+    TH2D *w_hists = nullptr;
+
+    TGraph *u_graph = nullptr;
+    TGraph *v_graph = nullptr;
+    TGraph *w_graph = nullptr;
+
+    TGraph *p_graph = nullptr;
+    TGraph2D *p_graph3d = nullptr;
+
+    loc_canv->Print(destination_file + "[");
+    gErrorIgnoreLevel = kWarning;
+
+    // only read the number of entries wanted
+    max_entries = std::min(max_entries, read_entries);
+
+    while (entry_nr < max_entries) {
+
+        generalDataStorage data_container;
+
+        std::cout << "\n\n\nNow at entry: " << entry_nr << " of " << max_entries
+                  << " for " << destination_file << "\n";
+
+        err = good_data.decodeData(entry_nr);
+        if (err != 0) {
+            std::cout << "Error decode data code " << err << "\n";
+        }
+
+        data_container.root_raw_data = good_data.returnRawData();
+
+        std::cout << "RAW data size is " << data_container.root_raw_data.size()
+                  << "\n";
+
+        loc_conv_uvw.setRawData(data_container.root_raw_data);
+
+        err = loc_conv_uvw.makeConversion();
+        if (err != 0)
+            std::cout << "Make conversion error code " << err << "\n";
+
+        // use norm_opt to set normalization on or off
+        if (norm_opt) {
+
+            err = loc_conv_uvw.normalizeChannels();
+            if (err != 0)
+                std::cout << "Normalize channels error code " << err
+                          << std::endl;
+        }
+
+        /* err = loc_conv_uvw.substractBl();
+
+        if (err != 0)
+            std::cout << "Substractbl error code " << err << "\n"; */
+
+        data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+        std::cout << "UVW data size is " << data_container.uvw_data.size()
+                  << "\n";
+
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(
+            data_container.uvw_data);
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_V>(
+            data_container.uvw_data);
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(
+            data_container.uvw_data);
+
+        loc_clean_uvw.setUVWData(data_container.uvw_data);
+
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+
+        data_container.uvw_data = loc_clean_uvw.returnDataUVW();
+
+        err = loc_convert_hit.setUVWData(data_container.uvw_data);
+        if (err != 0)
+            std::cout << "Error set UVW data code " << err << "\n";
+
+        err = loc_convert_hit.getHitInfo();
+        if (err != 0)
+            std::cout << "Error get hit info code " << err << "\n";
+
+        data_container.hit_data = loc_convert_hit.returnHitData();
+        data_container.raw_hist_container = loc_convert_hit.returnHistData();
+
+        std::cout << "Hit data size " << data_container.hit_data.size() << "\n";
+        std::cout << "Hist data size "
+                  << data_container.raw_hist_container.size() << "\n";
+
+        err = loc_conv_xyz.getNewVector(data_container.hit_data);
+        if (err != 0)
+            std::cout << "Error get new vector code " << err << "\n";
+
+        err = loc_conv_xyz.makeConversionXYZ();
+        if (err != 0)
+            std::cout << "Error make conversion XYZ code " << err << "\n";
+
+        data_container.xyz_data = loc_conv_xyz.returnXYZ();
+
+        std::cout << "XYZ vector size " << data_container.xyz_data.size()
+                  << "\n";
+
+        data_container.n_entry = entry_nr;
+
+        err = loc_filter_xy.filterAndPush(data_container);
+        if (err != 0)
+            std::cerr << "Error filter and push code " << err << "\n";
+
+        entry_nr++;
+    }
+
+    // loc_filter_xy.assignClass();
+    loc_filter_xy.assignClass_threaded();
+
+    auto event_vec = loc_filter_xy.returnEventVector();
+
+    for (const auto &curr_event : event_vec) {
+
+        entry_nr = curr_event.n_entry;
+
+        if (u_hists != nullptr)
+            u_hists->Reset();
+
+        if (v_hists != nullptr)
+            v_hists->Reset();
+
+        if (w_hists != nullptr)
+            w_hists->Reset();
+
+        if (u_graph != nullptr)
+            u_graph->Delete();
+
+        if (v_graph != nullptr)
+            v_graph->Delete();
+
+        if (w_graph != nullptr)
+            w_graph->Delete();
+
+        if (p_graph != nullptr)
+            p_graph->Delete();
+
+        if (p_graph3d != nullptr)
+            p_graph3d->Delete();
+
+        u_hists = new TH2D(Form("u_hists_%d", entry_nr),
+                           Form("Histogram for U entry %d", entry_nr), 512, 1,
+                           513, 100, 1, 101);
+        v_hists = new TH2D(Form("v_hists_%d", entry_nr),
+                           Form("Histogram for V entry %d", entry_nr), 512, 1,
+                           513, 100, 1, 101);
+        w_hists = new TH2D(Form("w_hists_%d", entry_nr),
+                           Form("Histogram for W entry %d", entry_nr), 512, 1,
+                           513, 100, 1, 101);
+
+        int bin = 0;
+
+        for (const auto &iter : curr_event.uvw_data) {
+
+            bin = 0;
+
+            if (iter.plane_val == 0) {
+
+                for (const auto &sig_iter : iter.signal_val) {
+
+                    u_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+                }
+            }
+
+            if (iter.plane_val == 1) {
+
+                for (const auto &sig_iter : iter.signal_val) {
+
+                    v_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+                }
+            }
+
+            if (iter.plane_val == 2) {
+
+                for (const auto &sig_iter : iter.signal_val) {
+
+                    w_hists->SetBinContent(++bin, iter.strip_nr, sig_iter);
+                }
+            }
+        }
+
+        loc_pad->cd(1);
+        u_hists->Draw("COLZ");
+        loc_pad->cd(2);
+        v_hists->Draw("COLZ");
+        loc_pad->cd(3);
+        w_hists->Draw("COLZ");
+
+        std::vector<double> x_u;
+        std::vector<double> y_u;
+        std::vector<double> c_u;
+
+        std::vector<double> x_v;
+        std::vector<double> y_v;
+        std::vector<double> c_v;
+
+        std::vector<double> x_w;
+        std::vector<double> y_w;
+        std::vector<double> c_w;
+
+        for (const auto &hit_iter : curr_event.hit_data) {
+
+            if (hit_iter.plane == 0) {
+
+                x_u.push_back(hit_iter.peak_x);
+                y_u.push_back(hit_iter.strip);
+                c_u.push_back(hit_iter.peak_y + hit_iter.base_line);
+
+            } else if (hit_iter.plane == 1) {
+
+                x_v.push_back(hit_iter.peak_x);
+                y_v.push_back(hit_iter.strip);
+                c_v.push_back(hit_iter.peak_y + hit_iter.base_line);
+
+            } else if (hit_iter.plane == 2) {
+
+                x_w.push_back(hit_iter.peak_x);
+                y_w.push_back(hit_iter.strip);
+                c_w.push_back(hit_iter.peak_y + hit_iter.base_line);
+            }
+        }
+
+        if (curr_event.hit_data.size() != 0) {
+
+            u_graph = new TGraph(x_u.size(), x_u.data(), y_u.data());
+            u_graph->GetXaxis()->SetLimits(-1, 512);
+            u_graph->GetHistogram()->SetMaximum(73);
+            u_graph->GetHistogram()->SetMinimum(0);
+            // u_graph->SetMarkerColor(kBlack);
+            u_graph->SetMarkerStyle(kFullCircle);
+            u_graph->SetTitle("Hits detected on U plane; Time; Strip");
+            // Set marker colors Pink > Red > Green > Blue
+            if (c_u.size() != 0) {
+
+                auto min_val_c_u = 0;
+                auto max_val_c_u = 2000;
+
+                std::transform(c_u.begin(), c_u.end(), c_u.begin(),
+                               [min_val_c_u, max_val_c_u](const double x) {
+                                   return (x - min_val_c_u) /
+                                          (max_val_c_u - min_val_c_u);
+                               });
+
+                for (auto vec_i = 0; vec_i < c_u.size(); vec_i++) {
+
+                    Double_t loc_x, loc_y;
+
+                    u_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if (c_u.at(vec_i) < 0.33) {
+                        TColor *loc_color = new TColor(0, 0, 3 * c_u.at(vec_i));
+                    } else if (c_u.at(vec_i) >= 0.33 && c_u.at(vec_i) < 0.66) {
+                        TColor *loc_color =
+                            new TColor(0, 3 * c_u.at(vec_i) / 2, 0);
+                    } else if (c_u.at(vec_i) > 1) {
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    } else {
+                        TColor *loc_color = new TColor(c_u.at(vec_i), 0, 0);
+                    }
+
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    u_graph->GetListOfFunctions()->Add(loc_marker);
+                }
+            }
+            loc_pad->cd(4);
+            u_graph->Draw("AP");
+
+            v_graph = new TGraph(x_v.size(), x_v.data(), y_v.data());
+            v_graph->GetXaxis()->SetLimits(-1, 512);
+            v_graph->GetHistogram()->SetMaximum(93);
+            v_graph->GetHistogram()->SetMinimum(0);
+            // v_graph->SetMarkerColor(kBlack);
+            v_graph->SetMarkerStyle(kFullCircle);
+            v_graph->SetTitle("Hits detected on V plane; Time; Strip");
+            if (c_v.size() != 0) {
+
+                auto min_val_c_v = 0;
+                auto max_val_c_v = 2000;
+
+                std::transform(c_v.begin(), c_v.end(), c_v.begin(),
+                               [min_val_c_v, max_val_c_v](const double x) {
+                                   return (x - min_val_c_v) /
+                                          (max_val_c_v - min_val_c_v);
+                               });
+
+                for (auto vec_i = 0; vec_i < c_v.size(); vec_i++) {
+
+                    Double_t loc_x, loc_y;
+
+                    v_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if (c_v.at(vec_i) < 0.33) {
+                        TColor *loc_color = new TColor(0, 0, 3 * c_v.at(vec_i));
+                    } else if (c_v.at(vec_i) >= 0.33 && c_v.at(vec_i) < 0.66) {
+                        TColor *loc_color =
+                            new TColor(0, 3 * c_v.at(vec_i) / 2, 0);
+                    } else if (c_v.at(vec_i) > 1) {
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    } else {
+                        TColor *loc_color = new TColor(c_v.at(vec_i), 0, 0);
+                    }
+
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    v_graph->GetListOfFunctions()->Add(loc_marker);
+                }
+            }
+            loc_pad->cd(5);
+            v_graph->Draw("AP");
+
+            w_graph = new TGraph(x_w.size(), x_w.data(), y_w.data());
+            w_graph->GetXaxis()->SetLimits(-1, 512);
+            w_graph->GetHistogram()->SetMaximum(93);
+            w_graph->GetHistogram()->SetMinimum(0);
+            // w_graph->SetMarkerColor(kBlack);
+            w_graph->SetMarkerStyle(kFullCircle);
+            w_graph->SetTitle("Hits detected on W plane; Time; Strip");
+            if (c_w.size() != 0) {
+
+                auto min_val_c_w = 0;
+                auto max_val_c_w = 2000;
+
+                std::transform(c_w.begin(), c_w.end(), c_w.begin(),
+                               [min_val_c_w, max_val_c_w](const double x) {
+                                   return (x - min_val_c_w) /
+                                          (max_val_c_w - min_val_c_w);
+                               });
+
+                for (auto vec_i = 0; vec_i < c_w.size(); vec_i++) {
+
+                    Double_t loc_x, loc_y;
+
+                    w_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if (c_w.at(vec_i) < 0.33) {
+                        TColor *loc_color = new TColor(0, 0, 3 * c_w.at(vec_i));
+                    } else if (c_w.at(vec_i) >= 0.33 && c_w.at(vec_i) < 0.66) {
+                        TColor *loc_color =
+                            new TColor(0, 3 * c_w.at(vec_i) / 2, 0);
+                    } else if (c_w.at(vec_i) > 1) {
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    } else {
+                        TColor *loc_color = new TColor(c_w.at(vec_i), 0, 0);
+                    }
+
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    w_graph->GetListOfFunctions()->Add(loc_marker);
+                }
+            }
+            loc_pad->cd(6);
+            w_graph->Draw("AP");
+
+            loc_pad->Modified();
+            loc_pad->Update();
+
+        } else {
+            u_graph = nullptr;
+            v_graph = nullptr;
+            w_graph = nullptr;
+        }
+
+        if (curr_event.xyz_data.size() != 0) {
+
+            std::vector<double> x, y, z, chg;
+
+            x.push_back(-10.0);
+            y.push_back(-10.0);
+            z.push_back(-10.0);
+            chg.push_back(0.0);
+
+            for (const auto &point_iter : curr_event.xyz_data) {
+
+                x.push_back(point_iter.data_x);
+                y.push_back(point_iter.data_y);
+                z.push_back(point_iter.data_z);
+                chg.push_back(point_iter.data_charge);
+            }
+
+            x.push_back(150.0);
+            y.push_back(150.0);
+            z.push_back(150.0);
+            chg.push_back(0.0);
+
+            p_graph = new TGraph(x.size(), x.data(), y.data());
+            p_graph->GetXaxis()->SetLimits(-10, 150);
+            p_graph->GetHistogram()->SetMaximum(150);
+            p_graph->GetHistogram()->SetMinimum(-10);
+            p_graph->SetMarkerStyle(kFullCircle);
+            p_graph->SetTitle(
+                Form("XY coordinates projection with size %d and MSE %f; "
+                     "LABEL: %d; X axis; Y axis",
+                     curr_event.xyz_data.size(), curr_event.mse_value,
+                     curr_event.filter_label));
+            if (chg.size() != 0) {
+
+                auto min_val_chg = 0;
+                auto max_val_chg = 6000;
+
+                std::transform(chg.begin(), chg.end(), chg.begin(),
+                               [min_val_chg, max_val_chg](const double x) {
+                                   return (x - min_val_chg) /
+                                          (max_val_chg - min_val_chg);
+                               });
+
+                for (auto vec_i = 0; vec_i < chg.size(); vec_i++) {
+
+                    Double_t loc_x, loc_y;
+
+                    p_graph->GetPoint(vec_i, loc_x, loc_y);
+
+                    Int_t ci = TColor::GetFreeColorIndex();
+
+                    if (chg.at(vec_i) < 0.33) {
+                        TColor *loc_color = new TColor(0, 0, 3 * chg.at(vec_i));
+                    } else if (chg.at(vec_i) >= 0.33 && chg.at(vec_i) < 0.66) {
+                        TColor *loc_color = new TColor(0, 3 * chg.at(vec_i), 0);
+                    } else if (chg.at(vec_i) > 1) {
+                        TColor *loc_color = new TColor(1, 0, 1);
+                    } else {
+                        TColor *loc_color = new TColor(chg.at(vec_i), 0, 0);
+                    }
+
+                    TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
+                    loc_marker->SetMarkerColor(ci);
+                    p_graph->GetListOfFunctions()->Add(loc_marker);
+                }
+            }
+            loc_pad->cd(7);
+            p_graph->Draw("AP");
+            loc_pad->Modified();
+            loc_pad->Update();
+
+            p_graph3d = new TGraph2D(x.size(), x.data(), y.data(), z.data());
+            p_graph3d->SetMarkerColor(kBlue);
+            p_graph3d->SetMarkerStyle(kFullCircle);
+            p_graph3d->SetTitle("Reconstructed data in XYZ coordinates; X "
+                                "axis; Y axis; Z axis");
+            loc_pad->cd(8);
+            p_graph3d->Draw("P0");
+            loc_pad->Modified();
+            loc_pad->Update();
+
+        } else {
+            p_graph = nullptr;
+            p_graph3d = nullptr;
+        }
+
+        std::cout << "Written entry " << entry_nr << "\n\n";
+
+        loc_pad->Update();
+        loc_canv->Update();
+        loc_canv->Print(destination_file);
+    }
+
+    gErrorIgnoreLevel = kPrint;
+    loc_canv->Print(destination_file + "]");
+
+    loc_canv->Close();
+
+    if (loc_canv) {
+        delete (loc_canv);
+        loc_canv = nullptr;
+    }
+
+    gROOT->SetBatch(kFALSE);
+
+    std::cout << "\n\n\nDONE!!!!!\n\n\n" << std::endl;
+}
+
 void runmacro(TString lin_arg) {
 
-    view_data_entries("./rootdata/data2.root", 1);
+    /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                      "CoBo_2018-06-20T10-51-39.459_0000.root",
+                      1); */
 
-    // view_raw_data("./rootdata/data2.root", 1);
+    /* view_raw_data("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                  "CoBo_2018-06-20T10-51-39.459_0000.root",
+                  1); */
 
-    /* create_entries_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root",
-                         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/finalpdf/CoBo_2018-06-20T10-35-30.853_0005.pdf",
-       10000, 1); */
+    /* create_entries_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                       "CoBo_2018-06-20T10-51-39.459_0000.root",
+                       "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/finalpdf/"
+                       "CoBo_2018-06-20T10-51-39.459_0000.pdf",
+                       10000, 1); */
+
+    /* create_labeled_pdf(
+        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+        "CoBo_2018-06-20T10-51-39.459_0000.root",
+        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledpdf/"
+        "CoBo_2018-06-20T10-51-39.459_0000.pdf",
+        100, 1); */
+
+    /* create_labeled_pdf(
+        "./rootdata/data2.root",
+        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledpdf/"
+        "data2.pdf",
+        10000, 1); */
 
     /* create_raw_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root",
                          "/media/gant/Expansion/tpcanalcsv/CoBo_2018-06-20T16-20-10.736_0000.pdf",
@@ -2684,7 +3375,7 @@ void runmacro(TString lin_arg) {
 
     // drawXYimage(429);
 
-    // writeFullCSV();
+    writeFullXYZCSV();
 
     // drawUVWimage(429);
 

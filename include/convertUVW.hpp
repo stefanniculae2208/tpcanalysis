@@ -44,13 +44,9 @@ class convertUVW {
 
     int makeConversion();
 
-    int substractBl();
-
     int convertToCSV(std::string file_name);
 
     std::vector<dataUVW> returnDataUVW();
-
-    int drawChargeHist();
 
     int buildNormalizationMap();
 
@@ -76,12 +72,6 @@ class convertUVW {
 
     /// @brief Used for saving the data found in the normalization csv.
     std::map<std::pair<int, int>, double> m_ch_ratio_map;
-
-    void calculateChargeHist();
-
-    void smoothSignal(std::vector<double> &v);
-
-    double calculateBaseline();
 };
 
 #endif

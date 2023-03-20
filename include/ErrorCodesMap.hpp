@@ -14,7 +14,7 @@ static const std::map<int, std::string> ErrorCodesMap{
     {-1, "File is not open."},
     {-2, "File does not contain the tree."},
     {-3, "Invalid size."},
-    {-4, "There exists unassigned data."}
+    {-4, "There exists unassigned data."},
 
 };
 
