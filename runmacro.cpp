@@ -2968,8 +2968,8 @@ void create_labeled_pdf(TString source_file, TString destination_file,
         entry_nr++;
     }
 
-    // loc_filter_xy.assignClass();
-    loc_filter_xy.assignClass_threaded();
+    loc_filter_xy.assignClass();
+    // loc_filter_xy.assignClass_threaded();
 
     auto event_vec = loc_filter_xy.returnEventVector();
 
@@ -3361,11 +3361,11 @@ void runmacro(TString lin_arg) {
         "CoBo_2018-06-20T10-51-39.459_0000.pdf",
         100, 1); */
 
-    /* create_labeled_pdf(
+    create_labeled_pdf(
         "./rootdata/data2.root",
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledpdf/"
         "data2.pdf",
-        10000, 1); */
+        200, 1);
 
     /* create_raw_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root",
                          "/media/gant/Expansion/tpcanalcsv/CoBo_2018-06-20T16-20-10.736_0000.pdf",
@@ -3375,7 +3375,7 @@ void runmacro(TString lin_arg) {
 
     // drawXYimage(429);
 
-    writeFullXYZCSV();
+    // writeFullXYZCSV();
 
     // drawUVWimage(429);
 

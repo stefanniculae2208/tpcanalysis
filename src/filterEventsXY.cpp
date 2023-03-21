@@ -49,6 +49,8 @@ int filterEventsXY::assignClass() {
         } else {
             event.filter_label = 2;
         }
+
+        event.mse_value = mse_value;
     }
 
     return 0;
