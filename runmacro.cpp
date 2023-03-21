@@ -2968,8 +2968,8 @@ void create_labeled_pdf(TString source_file, TString destination_file,
         entry_nr++;
     }
 
-    loc_filter_xy.assignClass();
-    // loc_filter_xy.assignClass_threaded();
+    // loc_filter_xy.assignClass();
+    loc_filter_xy.assignClass_threaded();
 
     auto event_vec = loc_filter_xy.returnEventVector();
 
@@ -3092,6 +3092,7 @@ void create_labeled_pdf(TString source_file, TString destination_file,
             // u_graph->SetMarkerColor(kBlack);
             u_graph->SetMarkerStyle(kFullCircle);
             u_graph->SetTitle("Hits detected on U plane; Time; Strip");
+
             // Set marker colors Pink > Red > Green > Blue
             if (c_u.size() != 0) {
 
@@ -3262,6 +3263,7 @@ void create_labeled_pdf(TString source_file, TString destination_file,
                      "LABEL: %d; X axis; Y axis",
                      curr_event.xyz_data.size(), curr_event.mse_value,
                      curr_event.filter_label));
+
             if (chg.size() != 0) {
 
                 auto min_val_chg = 0;
@@ -3280,16 +3282,29 @@ void create_labeled_pdf(TString source_file, TString destination_file,
                     p_graph->GetPoint(vec_i, loc_x, loc_y);
 
                     Int_t ci = TColor::GetFreeColorIndex();
+                    TColor *loc_color = new TColor(ci, 0, 0, 0);
 
-                    if (chg.at(vec_i) < 0.33) {
-                        TColor *loc_color = new TColor(0, 0, 3 * chg.at(vec_i));
-                    } else if (chg.at(vec_i) >= 0.33 && chg.at(vec_i) < 0.66) {
-                        TColor *loc_color = new TColor(0, 3 * chg.at(vec_i), 0);
-                    } else if (chg.at(vec_i) > 1) {
-                        TColor *loc_color = new TColor(1, 0, 1);
+                    if (chg[vec_i] < 0.33) {
+                        loc_color->SetRGB(0.0, 0.0, 3 * chg[vec_i]);
+                    } else if (chg[vec_i] >= 0.33 && chg[vec_i] < 0.66) {
+                        loc_color->SetRGB(0.0, 3 * chg[vec_i] / 2, 0.0);
+                    } else if (chg[vec_i] > 1) {
+                        loc_color->SetRGB(1.0, 0.0, 1.0);
                     } else {
-                        TColor *loc_color = new TColor(chg.at(vec_i), 0, 0);
+                        loc_color->SetRGB(chg[vec_i], 0.0, 0.0);
                     }
+
+                    /* if (chg[vec_i] < 0.33) {
+                        TColor *loc_color =
+                            new TColor(0.0, 0.0, 3 * chg[vec_i]);
+                    } else if (chg[vec_i] >= 0.33 && chg[vec_i] < 0.66) {
+                        TColor *loc_color =
+                            new TColor(0.0, 3 * chg[vec_i] / 2, 0.0);
+                    } else if (chg[vec_i] > 1) {
+                        TColor *loc_color = new TColor(1.0, 0.0, 1.0);
+                    } else {
+                        TColor *loc_color = new TColor(chg[vec_i], 0.0, 0.0);
+                    } */
 
                     TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
                     loc_marker->SetMarkerColor(ci);

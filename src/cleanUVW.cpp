@@ -90,7 +90,7 @@ template <typename pI> int cleanUVW::substractBl() {
         if (data_el.plane_val != pI::plane_nr)
             continue;
 
-        data_el.baseline_val += m_baseline;
+        data_el.baseline_val = m_baseline;
 
         // Extract the baseline from the signal. Make any elements lower
         // than 0 equal to 10 so we don't have negative signal values.

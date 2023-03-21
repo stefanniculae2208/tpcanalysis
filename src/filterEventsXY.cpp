@@ -116,6 +116,7 @@ void filterEventsXY::assignClassToEvent(
  */
 void filterEventsXY::calculateLinRegCoeff(
     const std::vector<dataXYZ> &curr_event, double &coeff_m, double &coeff_b) {
+
     auto vec_size = curr_event.size();
 
     // Calculate the means of x and y.
@@ -145,7 +146,7 @@ void filterEventsXY::calculateLinRegCoeff(
         });
 
     coeff_m = numerator / denominator;
-    coeff_b = y_mean + coeff_m * x_mean;
+    coeff_b = y_mean - coeff_m * x_mean;
 }
 
 /**

@@ -24,7 +24,7 @@ class filterEventsXY {
   private:
     std::vector<generalDataStorage> m_event_vec;
     static const std::size_t min_event_size = 50;
-    static constexpr double mse_limit = 400;
+    static constexpr double mse_limit = 12;
 
     void assignClassToEvent(std::vector<generalDataStorage>::iterator start_it,
                             std::vector<generalDataStorage>::iterator end_it);
