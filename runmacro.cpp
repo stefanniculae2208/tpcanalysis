@@ -3113,15 +3113,15 @@ void create_labeled_pdf(TString source_file, TString destination_file,
 
                     Int_t ci = TColor::GetFreeColorIndex();
 
-                    if (c_u.at(vec_i) < 0.33) {
-                        TColor *loc_color = new TColor(0, 0, 3 * c_u.at(vec_i));
-                    } else if (c_u.at(vec_i) >= 0.33 && c_u.at(vec_i) < 0.66) {
+                    if (c_u[vec_i] < 0.33) {
+                        TColor *loc_color = new TColor(0, 0, 3 * c_u[vec_i]);
+                    } else if (c_u[vec_i] >= 0.33 && c_u[vec_i] < 0.66) {
                         TColor *loc_color =
-                            new TColor(0, 3 * c_u.at(vec_i) / 2, 0);
-                    } else if (c_u.at(vec_i) > 1) {
+                            new TColor(0, 3 * c_u[vec_i] / 2, 0);
+                    } else if (c_u[vec_i] > 1) {
                         TColor *loc_color = new TColor(1, 0, 1);
                     } else {
-                        TColor *loc_color = new TColor(c_u.at(vec_i), 0, 0);
+                        TColor *loc_color = new TColor(c_u[vec_i], 0, 0);
                     }
 
                     TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
@@ -3158,15 +3158,15 @@ void create_labeled_pdf(TString source_file, TString destination_file,
 
                     Int_t ci = TColor::GetFreeColorIndex();
 
-                    if (c_v.at(vec_i) < 0.33) {
-                        TColor *loc_color = new TColor(0, 0, 3 * c_v.at(vec_i));
-                    } else if (c_v.at(vec_i) >= 0.33 && c_v.at(vec_i) < 0.66) {
+                    if (c_v[vec_i] < 0.33) {
+                        TColor *loc_color = new TColor(0, 0, 3 * c_v[vec_i]);
+                    } else if (c_v[vec_i] >= 0.33 && c_v.[vec_i] < 0.66) {
                         TColor *loc_color =
-                            new TColor(0, 3 * c_v.at(vec_i) / 2, 0);
-                    } else if (c_v.at(vec_i) > 1) {
+                            new TColor(0, 3 * c_v[vec_i] / 2, 0);
+                    } else if (c_v[vec_i] > 1) {
                         TColor *loc_color = new TColor(1, 0, 1);
                     } else {
-                        TColor *loc_color = new TColor(c_v.at(vec_i), 0, 0);
+                        TColor *loc_color = new TColor(c_v[vec_i], 0, 0);
                     }
 
                     TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
@@ -3203,15 +3203,15 @@ void create_labeled_pdf(TString source_file, TString destination_file,
 
                     Int_t ci = TColor::GetFreeColorIndex();
 
-                    if (c_w.at(vec_i) < 0.33) {
-                        TColor *loc_color = new TColor(0, 0, 3 * c_w.at(vec_i));
-                    } else if (c_w.at(vec_i) >= 0.33 && c_w.at(vec_i) < 0.66) {
+                    if (c_w[vec_i] < 0.33) {
+                        TColor *loc_color = new TColor(0, 0, 3 * c_w[vec_i]);
+                    } else if (c_w[vec_i] >= 0.33 && c_w[vec_i] < 0.66) {
                         TColor *loc_color =
-                            new TColor(0, 3 * c_w.at(vec_i) / 2, 0);
-                    } else if (c_w.at(vec_i) > 1) {
+                            new TColor(0, 3 * c_w[vec_i] / 2, 0);
+                    } else if (c_w[vec_i] > 1) {
                         TColor *loc_color = new TColor(1, 0, 1);
                     } else {
-                        TColor *loc_color = new TColor(c_w.at(vec_i), 0, 0);
+                        TColor *loc_color = new TColor(c_w[vec_i], 0, 0);
                     }
 
                     TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
@@ -3369,18 +3369,18 @@ void runmacro(TString lin_arg) {
                        "CoBo_2018-06-20T10-51-39.459_0000.pdf",
                        10000, 1); */
 
-    /* create_labeled_pdf(
+    create_labeled_pdf(
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
         "CoBo_2018-06-20T10-51-39.459_0000.root",
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledpdf/"
         "CoBo_2018-06-20T10-51-39.459_0000.pdf",
-        100, 1); */
+        10000, 1);
 
-    create_labeled_pdf(
+    /* create_labeled_pdf(
         "./rootdata/data2.root",
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledpdf/"
         "data2.pdf",
-        200, 1);
+        200, 1); */
 
     /* create_raw_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root",
                          "/media/gant/Expansion/tpcanalcsv/CoBo_2018-06-20T16-20-10.736_0000.pdf",
