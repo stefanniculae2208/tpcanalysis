@@ -7,7 +7,7 @@
  * @param event_entry The event to be added.
  * @return int Error codes.
  */
-int filterEventsXY::filterAndPush(generalDataStorage event_entry) {
+int filterEventsXY::filterAndPush(generalDataStorage &event_entry) {
     auto vec_size = event_entry.xyz_data.size();
 
     if (vec_size == 0)
@@ -19,10 +19,24 @@ int filterEventsXY::filterAndPush(generalDataStorage event_entry) {
     return 0;
 }
 
+int filterEventsXY::filterAndPush(generalDataStorage &&event_entry) noexcept {
+    auto vec_size = event_entry.xyz_data.size();
+
+    if (vec_size == 0)
+        return -3;
+
+    if (vec_size > (min_event_size - 1))
+        m_event_vec.push_back(std::move(event_entry));
+
+    return 0;
+}
+
 /**
  * @brief Uses linear regression and the Mean Squared Error to split the events
- * in different classes. THe classes should be based on how well the linear
+ * in different classes. The classes should be based on how well the linear
  * model fits the data set.
+ * The label 1 means the model fits appropriatedly and the label 2 means the
+ * model doesn't fit.
  *
  * @return int Error codes.
  */
@@ -56,6 +70,16 @@ int filterEventsXY::assignClass() {
     return 0;
 }
 
+/**
+ * @brief Uses linear regression and the Mean Squared Error to split the events
+ * in different classes. The classes should be based on how well the linear
+ * model fits the data set. It does the same thing as assignClass, only it uses
+ * multi threading in hopes of achieving better performance.
+ * The label 1 means the model fits appropriatedly and the label 2 means the
+ * model doesn't fit.
+ *
+ * @return int Error codes.
+ */
 int filterEventsXY::assignClass_threaded() {
 
     if (m_event_vec.size() == 0)
@@ -83,6 +107,15 @@ int filterEventsXY::assignClass_threaded() {
     return 0;
 }
 
+/**
+ * @brief Assigns a class to a number of events. Is used by
+ * assignClass_threaded. The vector containing all of the vents is split into
+ * different parts based on the number of threads and each part is worked on by
+ * this function.
+ *
+ * @param start_it The start of the part of the vector to be analyzed.
+ * @param end_it The end of the part of the vector to be analyzed.
+ */
 void filterEventsXY::assignClassToEvent(
     std::vector<generalDataStorage>::iterator start_it,
     std::vector<generalDataStorage>::iterator end_it) {
@@ -180,16 +213,4 @@ void filterEventsXY::calculateMSE(const std::vector<dataXYZ> &curr_event,
  */
 std::vector<generalDataStorage> filterEventsXY::returnEventVector() {
     return m_event_vec;
-}
-
-/**
- * @brief Returns the vector containing all of the events and their labels.
- * This function moves the vector so it might be faster, however the vector will
- * not be able to be used again inside this class, so be careful.
- *
- * @return std::vector<generalDataStorage>&& The vector
- * containing the events.
- */
-std::vector<generalDataStorage> &&filterEventsXY::moveEventVector() {
-    return std::move(m_event_vec);
 }

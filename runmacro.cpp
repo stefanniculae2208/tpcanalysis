@@ -220,8 +220,8 @@ struct planeInfo_U {
 
     static const int plane_nr = 0;
     static const int plane_size = 72;
-    static const int cfg_size = 2;
-    static const int right_angle = 1;
+    static const int cfg_size = 3;
+    static const int right_angle = 0;
     inline static const std::string plane_file = "./utils/channelorder_u.txt";
     inline static const std::string cfg_file = "./utils/cfg_entries_u.txt";
 };
@@ -365,7 +365,6 @@ template <typename pI> void calculateReorder(TString fileName) {
 
         err = loc_conv_uvw.makeConversion();
 
-        // use norm_opt to set normalization on or off
         err = loc_conv_uvw.normalizeChannels();
         if (err != 0)
             std::cout << "Normalize channels error code " << err << std::endl;
@@ -376,8 +375,12 @@ template <typename pI> void calculateReorder(TString fileName) {
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
-        // std::cout<<"UVW data size is
-        // "<<data_container.uvw_data.size()<<std::endl;
+        /* std::cout << "UVW data size is " << data_container.uvw_data.size()
+                  << std::endl; */
+
+        err = loc_clean_uvw.setUVWData(data_container.uvw_data);
+        if (err != 0)
+            std::cerr << "Error clean::setUVWData code " << err << std::endl;
 
         err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
         if (err != 0)
@@ -2961,7 +2964,7 @@ void create_labeled_pdf(TString source_file, TString destination_file,
 
         data_container.n_entry = entry_nr;
 
-        err = loc_filter_xy.filterAndPush(data_container);
+        err = loc_filter_xy.filterAndPush(std::move(data_container));
         if (err != 0)
             std::cerr << "Error filter and push code " << err << "\n";
 
@@ -3089,12 +3092,12 @@ void create_labeled_pdf(TString source_file, TString destination_file,
             u_graph->GetXaxis()->SetLimits(-1, 512);
             u_graph->GetHistogram()->SetMaximum(73);
             u_graph->GetHistogram()->SetMinimum(0);
-            // u_graph->SetMarkerColor(kBlack);
+            u_graph->SetMarkerColor(kBlack);
             u_graph->SetMarkerStyle(kFullCircle);
             u_graph->SetTitle("Hits detected on U plane; Time; Strip");
 
             // Set marker colors Pink > Red > Green > Blue
-            if (c_u.size() != 0) {
+            /* if (c_u.size() != 0) {
 
                 auto min_val_c_u = 0;
                 auto max_val_c_u = 2000;
@@ -3128,7 +3131,7 @@ void create_labeled_pdf(TString source_file, TString destination_file,
                     loc_marker->SetMarkerColor(ci);
                     u_graph->GetListOfFunctions()->Add(loc_marker);
                 }
-            }
+            } */
             loc_pad->cd(4);
             u_graph->Draw("AP");
 
@@ -3136,10 +3139,10 @@ void create_labeled_pdf(TString source_file, TString destination_file,
             v_graph->GetXaxis()->SetLimits(-1, 512);
             v_graph->GetHistogram()->SetMaximum(93);
             v_graph->GetHistogram()->SetMinimum(0);
-            // v_graph->SetMarkerColor(kBlack);
+            v_graph->SetMarkerColor(kBlack);
             v_graph->SetMarkerStyle(kFullCircle);
             v_graph->SetTitle("Hits detected on V plane; Time; Strip");
-            if (c_v.size() != 0) {
+            /* if (c_v.size() != 0) {
 
                 auto min_val_c_v = 0;
                 auto max_val_c_v = 2000;
@@ -3160,7 +3163,7 @@ void create_labeled_pdf(TString source_file, TString destination_file,
 
                     if (c_v[vec_i] < 0.33) {
                         TColor *loc_color = new TColor(0, 0, 3 * c_v[vec_i]);
-                    } else if (c_v[vec_i] >= 0.33 && c_v.[vec_i] < 0.66) {
+                    } else if (c_v[vec_i] >= 0.33 && c_v[vec_i] < 0.66) {
                         TColor *loc_color =
                             new TColor(0, 3 * c_v[vec_i] / 2, 0);
                     } else if (c_v[vec_i] > 1) {
@@ -3173,7 +3176,7 @@ void create_labeled_pdf(TString source_file, TString destination_file,
                     loc_marker->SetMarkerColor(ci);
                     v_graph->GetListOfFunctions()->Add(loc_marker);
                 }
-            }
+            } */
             loc_pad->cd(5);
             v_graph->Draw("AP");
 
@@ -3181,10 +3184,10 @@ void create_labeled_pdf(TString source_file, TString destination_file,
             w_graph->GetXaxis()->SetLimits(-1, 512);
             w_graph->GetHistogram()->SetMaximum(93);
             w_graph->GetHistogram()->SetMinimum(0);
-            // w_graph->SetMarkerColor(kBlack);
+            w_graph->SetMarkerColor(kBlack);
             w_graph->SetMarkerStyle(kFullCircle);
             w_graph->SetTitle("Hits detected on W plane; Time; Strip");
-            if (c_w.size() != 0) {
+            /* if (c_w.size() != 0) {
 
                 auto min_val_c_w = 0;
                 auto max_val_c_w = 2000;
@@ -3218,7 +3221,7 @@ void create_labeled_pdf(TString source_file, TString destination_file,
                     loc_marker->SetMarkerColor(ci);
                     w_graph->GetListOfFunctions()->Add(loc_marker);
                 }
-            }
+            } */
             loc_pad->cd(6);
             w_graph->Draw("AP");
 
@@ -3263,8 +3266,9 @@ void create_labeled_pdf(TString source_file, TString destination_file,
                      "LABEL: %d; X axis; Y axis",
                      curr_event.xyz_data.size(), curr_event.mse_value,
                      curr_event.filter_label));
+            p_graph->SetMarkerColor(kBlack);
 
-            if (chg.size() != 0) {
+            /* if (chg.size() != 0) {
 
                 auto min_val_chg = 0;
                 auto max_val_chg = 6000;
@@ -3294,23 +3298,12 @@ void create_labeled_pdf(TString source_file, TString destination_file,
                         loc_color->SetRGB(chg[vec_i], 0.0, 0.0);
                     }
 
-                    /* if (chg[vec_i] < 0.33) {
-                        TColor *loc_color =
-                            new TColor(0.0, 0.0, 3 * chg[vec_i]);
-                    } else if (chg[vec_i] >= 0.33 && chg[vec_i] < 0.66) {
-                        TColor *loc_color =
-                            new TColor(0.0, 3 * chg[vec_i] / 2, 0.0);
-                    } else if (chg[vec_i] > 1) {
-                        TColor *loc_color = new TColor(1.0, 0.0, 1.0);
-                    } else {
-                        TColor *loc_color = new TColor(chg[vec_i], 0.0, 0.0);
-                    } */
 
                     TMarker *loc_marker = new TMarker(loc_x, loc_y, 20);
                     loc_marker->SetMarkerColor(ci);
                     p_graph->GetListOfFunctions()->Add(loc_marker);
                 }
-            }
+            } */
             loc_pad->cd(7);
             p_graph->Draw("AP");
             loc_pad->Modified();
@@ -3369,18 +3362,18 @@ void runmacro(TString lin_arg) {
                        "CoBo_2018-06-20T10-51-39.459_0000.pdf",
                        10000, 1); */
 
-    create_labeled_pdf(
-        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-        "CoBo_2018-06-20T10-51-39.459_0000.root",
-        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledpdf/"
-        "CoBo_2018-06-20T10-51-39.459_0000.pdf",
-        10000, 1);
-
     /* create_labeled_pdf(
+        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+        "CoBo_2018-06-15T17-10-22.008_0000.root",
+        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledpdf/"
+        "CoBo_2018-06-15T17-10-22.008_0000.pdf",
+        1000, 1); */
+
+    create_labeled_pdf(
         "./rootdata/data2.root",
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledpdf/"
         "data2.pdf",
-        200, 1); */
+        10000, 1);
 
     /* create_raw_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root",
                          "/media/gant/Expansion/tpcanalcsv/CoBo_2018-06-20T16-20-10.736_0000.pdf",
@@ -3403,13 +3396,21 @@ void runmacro(TString lin_arg) {
     // printPeaksByChannel("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root",
     // 424, 0, 1);
 
-    /* reorderCh::calculateReorder<reorderCh::planeInfo_U>
-    ("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root");
-    reorderCh::calculateReorder<reorderCh::planeInfo_V>
-    ("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root");
-    reorderCh::calculateReorder<reorderCh::planeInfo_W>
-    ("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root");
+    /* reorderCh::calculateReorder<reorderCh::planeInfo_U>(
+        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+        "CoBo_2018-06-20T10-35-30.853_0005.root");
+    reorderCh::calculateReorder<reorderCh::planeInfo_V>(
+        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+        "CoBo_2018-06-20T10-35-30.853_0005.root");
+    reorderCh::calculateReorder<reorderCh::planeInfo_W>(
+        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+        "CoBo_2018-06-20T10-35-30.853_0005.root");
 
-    printReorderedChannels("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root",
-    134, 0, 1); */
+    printReorderedChannels("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                           "CoBo_2018-06-20T10-35-30.853_0005.root",
+                           174, 0, 1); */
+
+    /* printReorderedChannels("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                           "CoBo_2018-06-20T10-51-39.459_0000.root",
+                           79, 0, 1); */
 }
