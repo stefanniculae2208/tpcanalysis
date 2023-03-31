@@ -8,6 +8,7 @@
  * @return int Error codes.
  */
 int filterEventsXY::filterAndPush(generalDataStorage &event_entry) {
+
     auto vec_size = event_entry.xyz_data.size();
 
     if (vec_size == 0)
@@ -20,6 +21,7 @@ int filterEventsXY::filterAndPush(generalDataStorage &event_entry) {
 }
 
 int filterEventsXY::filterAndPush(generalDataStorage &&event_entry) noexcept {
+
     auto vec_size = event_entry.xyz_data.size();
 
     if (vec_size == 0)
@@ -27,6 +29,16 @@ int filterEventsXY::filterAndPush(generalDataStorage &&event_entry) noexcept {
 
     if (vec_size > (min_event_size - 1))
         m_event_vec.push_back(std::move(event_entry));
+
+    return 0;
+}
+
+int filterEventsXY::resetVector() {
+
+    if (m_event_vec.size() == 0)
+        return -3;
+
+    std::vector<generalDataStorage>().swap(m_event_vec);
 
     return 0;
 }

@@ -16,6 +16,7 @@ class filterEventsXY {
 
     int filterAndPush(generalDataStorage &event_entry);
     int filterAndPush(generalDataStorage &&event_entry) noexcept;
+    int resetVector();
     int assignClass();
     int assignClass_threaded();
 
