@@ -44,9 +44,9 @@ class processLine:
 
         # draw scatter
         ax.scatter(self._m_features[inliers][:, 0], self._m_features[inliers][:, 1],
-                   self._m_features[inliers][:, 2], c='b', marker='o', label='Inlier data')
+                   self._m_features[inliers][:, 2], c='b', marker='o', label='Inlier data', alpha=0.2)
         ax.scatter(self._m_features[outliers][:, 0], self._m_features[outliers][:, 1],
-                   self._m_features[outliers][:, 2], c='r', marker='o', label='Outlier data')
+                   self._m_features[outliers][:, 2], c='r', marker='o', label='Outlier data', alpha=0.2)
 
         # plot the fitted line in green
         line_points = np.linspace(self._m_features[inliers].min(
