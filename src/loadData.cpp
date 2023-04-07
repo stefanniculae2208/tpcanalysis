@@ -6,7 +6,7 @@
  * @param filename name of the file to be opened
  * @param treename name of the tree in the file
  */
-loadData::loadData(TString filename, TString treename) {
+loadData::loadData(const TString filename, const TString treename) {
 
     m_filename = filename;
     m_treename = treename;
@@ -93,7 +93,7 @@ int loadData::readData() {
  * @param entryNr the number of the entry from the tree to be decoded
  * @return int error codes
  */
-int loadData::decodeData(int entryNr) {
+int loadData::decodeData(const int entryNr) {
 
     if (m_rootfile->IsZombie()) {
 

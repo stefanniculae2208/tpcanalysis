@@ -67,8 +67,8 @@ int filterEventsXY::assignClass() {
         double coeff_b = 0;
         double mse_value = 0;
 
-        calculateLinRegCoeff(event.xyz_data, coeff_m, coeff_b);
-        calculateMSE(event.xyz_data, coeff_m, coeff_b, mse_value);
+        std::tie(coeff_m, coeff_b) = calculateLinRegCoeff(event.xyz_data);
+        mse_value = calculateMSE(event.xyz_data, coeff_m, coeff_b);
         if (mse_value < mse_limit) {
 
             event.filter_label = 1;
@@ -138,8 +138,8 @@ void filterEventsXY::assignClassToEvent(
         double coeff_b = 0;
         double mse_value = 0;
 
-        calculateLinRegCoeff((*it).xyz_data, coeff_m, coeff_b);
-        calculateMSE((*it).xyz_data, coeff_m, coeff_b, mse_value);
+        std::tie(coeff_m, coeff_b) = calculateLinRegCoeff((*it).xyz_data);
+        mse_value = calculateMSE((*it).xyz_data, coeff_m, coeff_b);
         if (mse_value < mse_limit) {
 
             (*it).filter_label = 1;
@@ -156,11 +156,13 @@ void filterEventsXY::assignClassToEvent(
  * regression algorithm. The linear model has the equation m*x + b = y.
  *
  * @param curr_event The current event to be analyzed.
- * @param coeff_m The m coefficient. To be used as output.
- * @param coeff_b The b coefficient. To be used as output.
+ * @return std::tuple<double, double> A tuple of form {coeff_m, coeff_b}.
  */
-void filterEventsXY::calculateLinRegCoeff(
-    const std::vector<dataXYZ> &curr_event, double &coeff_m, double &coeff_b) {
+std::tuple<double, double>
+filterEventsXY::calculateLinRegCoeff(const std::vector<dataXYZ> &curr_event) {
+
+    double coeff_m;
+    double coeff_b;
 
     auto vec_size = curr_event.size();
 
@@ -192,6 +194,8 @@ void filterEventsXY::calculateLinRegCoeff(
 
     coeff_m = numerator / denominator;
     coeff_b = y_mean - coeff_m * x_mean;
+
+    return {coeff_m, coeff_b};
 }
 
 /**
@@ -201,11 +205,14 @@ void filterEventsXY::calculateLinRegCoeff(
  * @param curr_event The event to be analyzed.
  * @param coeff_m The m coefficient.
  * @param coeff_b The b coefficient.
- * @param mse_value The computed value of the MSE. To be used as output.
+ * @return double The computed value of the MSE.
  */
-void filterEventsXY::calculateMSE(const std::vector<dataXYZ> &curr_event,
-                                  const double &coeff_m, const double &coeff_b,
-                                  double &mse_value) {
+double filterEventsXY::calculateMSE(const std::vector<dataXYZ> &curr_event,
+                                    const double &coeff_m,
+                                    const double &coeff_b) {
+
+    double mse_value;
+
     double sum_squared_diff = std::accumulate(
         curr_event.begin(), curr_event.end(), 0.0,
         [coeff_m, coeff_b](const double &acc, const dataXYZ &val) {
@@ -214,6 +221,8 @@ void filterEventsXY::calculateMSE(const std::vector<dataXYZ> &curr_event,
         });
 
     mse_value = sum_squared_diff / curr_event.size();
+
+    return mse_value;
 }
 
 /**

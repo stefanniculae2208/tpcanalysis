@@ -35,11 +35,10 @@ class filterEventsXY {
 
     void assignClassToEvent(std::vector<generalDataStorage>::iterator start_it,
                             std::vector<generalDataStorage>::iterator end_it);
-    void calculateLinRegCoeff(const std::vector<dataXYZ> &curr_event,
-                              double &coeff_m, double &coeff_b);
-    void calculateMSE(const std::vector<dataXYZ> &curr_event,
-                      const double &coeff_m, const double &coeff_b,
-                      double &mse_value);
+    std::tuple<double, double>
+    calculateLinRegCoeff(const std::vector<dataXYZ> &curr_event);
+    double calculateMSE(const std::vector<dataXYZ> &curr_event,
+                        const double &coeff_m, const double &coeff_b);
 };
 
 #endif

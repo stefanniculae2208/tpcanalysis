@@ -16,7 +16,7 @@ cleanUVW::cleanUVW(std::vector<dataUVW> uvw_vec)
 
     std::vector<dataUVW>().swap(m_uvw_vec);
 
-    m_uvw_vec = uvw_vec;
+    m_uvw_vec = std::move(uvw_vec);
 }
 
 /**
@@ -32,7 +32,7 @@ int cleanUVW::setUVWData(std::vector<dataUVW> uvw_vec) {
     if (uvw_vec.size() == 0)
         return -3;
 
-    m_uvw_vec = uvw_vec;
+    m_uvw_vec = std::move(uvw_vec);
 
     return 0;
 }
@@ -262,7 +262,7 @@ cleanUVW::savitzkyGolayFilter(const std::vector<double> &signal) {
         }
         smoothed_signal[i] = sum;
     }
-    return smoothed_signal;
+    return std::move(smoothed_signal);
 }
 
 std::vector<dataUVW> cleanUVW::returnDataUVW() { return m_uvw_vec; }

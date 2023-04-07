@@ -44,7 +44,7 @@ class convertUVW {
 
     int makeConversion();
 
-    int convertToCSV(std::string file_name);
+    int convertToCSV(const std::string file_name);
 
     std::vector<dataUVW> returnDataUVW();
 

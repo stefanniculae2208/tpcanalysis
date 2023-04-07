@@ -5,7 +5,9 @@
  *
  * @param data_vec the raw data vector to be converted to the UVW format
  */
-convertUVW::convertUVW(std::vector<rawData> data_vec) { m_data_vec = data_vec; }
+convertUVW::convertUVW(std::vector<rawData> data_vec) {
+    m_data_vec = std::move(data_vec);
+}
 
 /**
  * @brief Sets the raw data vector to a new value.
@@ -22,7 +24,7 @@ int convertUVW::setRawData(std::vector<rawData> data_vec) {
     if (data_vec.size() == 0)
         return -3;
 
-    m_data_vec = data_vec;
+    m_data_vec = std::move(data_vec);
 
     return 0;
 }
@@ -45,7 +47,7 @@ int convertUVW::setUVWData(std::vector<dataUVW> data_vec) {
     if (data_vec.size() == 0)
         return -3;
 
-    m_uvw_vec = data_vec;
+    m_uvw_vec = std::move(data_vec);
 
     return 0;
 }
@@ -160,7 +162,7 @@ std::vector<dataUVW> convertUVW::returnDataUVW() { return m_uvw_vec; }
  * @param file_name the name of the .csv file
  * @return int error codes
  */
-int convertUVW::convertToCSV(std::string file_name) {
+int convertUVW::convertToCSV(const std::string file_name) {
 
     std::ofstream out_file(file_name);
 

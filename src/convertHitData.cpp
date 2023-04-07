@@ -6,7 +6,7 @@
  * @param uvw_data the uvw data vector to be used when finding the hits
  */
 convertHitData::convertHitData(std::vector<dataUVW> uvw_data) {
-    m_uvw_data = uvw_data;
+    m_uvw_data = std::move(uvw_data);
 }
 
 /**
@@ -42,7 +42,7 @@ int convertHitData::setUVWData(std::vector<dataUVW> uvw_data) {
     if (uvw_data.size() == 0)
         return -3;
 
-    m_uvw_data = uvw_data;
+    m_uvw_data = std::move(uvw_data);
 
     return 0;
 }
@@ -82,8 +82,8 @@ std::vector<TH1D *> convertHitData::returnHistData() { return m_raw_hist_data; }
  * @param sensitivity_max
  * @return int error codes
  */
-int convertHitData::getHitInfo(Double_t sensitivity_avg,
-                               Double_t sensitivity_max) {
+int convertHitData::getHitInfo(const Double_t sensitivity_avg,
+                               const Double_t sensitivity_max) {
 
     // This makes it so the canvas doesn't open a window every time and disrupt
     // the user.
@@ -127,34 +127,38 @@ int convertHitData::getHitInfo(Double_t sensitivity_avg,
     }
 
     // the calculate the hit data
-    auto spec_analyzer = new TSpectrum();
+    /* auto spec_analyzer = new TSpectrum();
 
     Double_t *pos_holder_x;
     Double_t *pos_holder_y;
-    int npeaks;
+
+    int npeaks; */
 
     int curr_iter = 0;
 
     for (const auto &hist_iter : m_raw_hist_data) {
 
         // find the peaks in the histogram with TSpectrum
-        spec_analyzer->Search(hist_iter, 5, "nodraw", 0.2);
+        /* spec_analyzer->Search(hist_iter, 5, "nodraw", 0.2);
         npeaks = spec_analyzer->GetNPeaks();
         pos_holder_x = spec_analyzer->GetPositionX();
-        pos_holder_y = spec_analyzer->GetPositionY();
+        pos_holder_y = spec_analyzer->GetPositionY(); */
 
         // find which peaks are good
-        std::vector<Double_t> peaks_x;   // x of valid peaks
-        std::vector<Double_t> peaks_y;   // y of valid peaks
-        int nrealpeaks = 0;              // number of valid peaks set to 0
+        std::vector<double> peaks_x;   // x of valid peaks
+        std::vector<double> peaks_y;   // y of valid peaks
+        int nrealpeaks = 0;            // number of valid peaks set to 0
 
-        for (auto i = 0; i < npeaks; i++) {
+        std::tie(nrealpeaks, peaks_x, peaks_y) =
+            findPeaks(hist_iter, peak_th_vec[curr_iter]);
+
+        /* for (auto i = 0; i < npeaks; i++) {
             if (pos_holder_y[i] > peak_th_vec[curr_iter]) {
                 peaks_x.push_back(pos_holder_x[i]);
                 peaks_y.push_back(pos_holder_y[i]);
                 nrealpeaks++;
             }
-        }
+        } */
 
         // std::cout<<"Peaks found: "<<npeaks<<" of which valid are:
         // "<<peaks_y.size()<<std::endl;
@@ -210,10 +214,10 @@ int convertHitData::getHitInfo(Double_t sensitivity_avg,
         curr_iter++;
     }
 
-    if (spec_analyzer) {
+    /* if (spec_analyzer) {
         delete (spec_analyzer);
         spec_analyzer = nullptr;
-    }
+    } */
 
     if (loc_canv) {
         loc_canv->Close();
@@ -225,4 +229,63 @@ int convertHitData::getHitInfo(Double_t sensitivity_avg,
     gROOT->SetBatch(kFALSE);
 
     return 0;
+}
+
+/**
+ * @brief Alternative to TSpectrum->Search() for finding peaks.
+ *
+ * @param loc_hist The histogram in which we want to find the peaks.
+ * @param peak_th The minimum accepted value of the peak on y.
+ * @return std::tuple<int, std::vector<double>, std::vector<double>> The number
+ * of detected peaks. X value of the peaks. Y value of the peaks.
+ */
+std::tuple<int, std::vector<double>, std::vector<double>>
+convertHitData::findPeaks(const TH1D *loc_hist, const double &peak_th) {
+
+    std::vector<double> peaks_x;   // x of valid peaks
+    std::vector<double> peaks_y;
+
+    // If the peaks are within this value of bins of each other then we consider
+    // them part of the same peak.
+    static constexpr int same_peak_th = 8;
+
+    int n_peaks = 0;
+
+    double last_peak_x = 0;
+    double last_peak_y = 0;
+
+    for (auto i = 1; i < loc_hist->GetSize() - 1; ++i) {
+
+        auto curr_peak_y = loc_hist->GetBinContent(i);
+
+        // We check if the current value is a local peak.
+        if (curr_peak_y > loc_hist->GetBinContent(i - 1) &&
+            curr_peak_y > loc_hist->GetBinContent(i + 1) &&
+            curr_peak_y > peak_th) {
+
+            // If 2 peaks are close together we consider them part of the same
+            // peak and we choose the higher value on y as the true peak.
+            if (i - last_peak_x < same_peak_th) {
+
+                if (curr_peak_y > last_peak_y) {
+
+                    // Better to modify the old then to pop and push new values.
+                    peaks_x[n_peaks] = i;
+                    peaks_y[n_peaks] = curr_peak_y;
+                } else {
+                    continue;
+                }
+            } else {
+
+                peaks_x.push_back(i);
+                peaks_y.push_back(curr_peak_y);
+                n_peaks++;
+            }
+
+            last_peak_x = i;
+            last_peak_y = curr_peak_y;
+        }
+    }
+
+    return {n_peaks, std::move(peaks_x), std::move(peaks_y)};
 }

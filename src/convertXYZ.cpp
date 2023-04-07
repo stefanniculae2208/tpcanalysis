@@ -7,7 +7,7 @@
  * functions
  */
 convertXYZ::convertXYZ(std::vector<hitPoints> hit_data) {
-    m_hit_data = hit_data;
+    m_hit_data = std::move(hit_data);
 }
 
 /**
@@ -26,7 +26,7 @@ int convertXYZ::getNewVector(std::vector<hitPoints> hit_data) {
     if (hit_data.size() == 0)
         return -3;
 
-    m_hit_data = hit_data;
+    m_hit_data = std::move(hit_data);
 
     return 0;
 }

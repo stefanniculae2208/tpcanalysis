@@ -22,8 +22,8 @@ class convertHitData {
     ~convertHitData();
     convertHitData(std::vector<dataUVW> uvw_data);
 
-    int getHitInfo(Double_t sensitivity_avg = (double) 2.2,
-                   Double_t sensitivity_max = (double) 0.75);
+    int getHitInfo(const Double_t sensitivity_avg = (double) 2.2,
+                   const Double_t sensitivity_max = (double) 0.75);
 
     int setUVWData(std::vector<dataUVW> uvw_data);
 
@@ -41,6 +41,9 @@ class convertHitData {
 
     /// @brief Vector containing the data of the hits detected. Is the output.
     std::vector<hitPoints> m_hit_data;
+
+    std::tuple<int, std::vector<double>, std::vector<double>>
+    findPeaks(const TH1D *loc_hist, const double &peak_th);
 };
 
 #endif

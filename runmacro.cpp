@@ -2976,6 +2976,8 @@ void create_labeled_pdf(TString source_file, TString destination_file,
 
     auto event_vec = loc_filter_xy.returnEventVector();
 
+    loc_filter_xy.resetVector();
+
     for (const auto &curr_event : event_vec) {
 
         entry_nr = curr_event.n_entry;
@@ -3507,6 +3509,32 @@ void createLabeledXYZcsv(TString source_file, TString destination_file,
     std::cout << "\n\n\nDONE!!!!!!!\n\n\n" << std::endl;
 }
 
+void mass_convertLabeledPDF(TString lin_arg, int nr_entries = 10000) {
+
+    TString dirandfileName = lin_arg;
+
+    TString fileName = dirandfileName;
+
+    TString dir = dirandfileName;
+    int index = dir.Last('/');
+    dir.Remove(index + 1, dir.Sizeof());
+
+    index = fileName.Last('/');   // remove path
+
+    fileName.Remove(0, index + 1);
+    fileName.Remove(fileName.Sizeof() - 6, fileName.Sizeof());   // remove .root
+
+    TString mkdirCommand = ".! mkdir ";
+    mkdirCommand.Append(dir);
+    mkdirCommand.Append("labeledpdf");
+
+    gROOT->ProcessLine(mkdirCommand);
+
+    TString pdfName = dir + "labeledpdf/" + fileName + ".pdf";
+
+    create_labeled_pdf(dirandfileName, pdfName, nr_entries);
+}
+
 void runmacro(TString lin_arg) {
 
     /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
@@ -3528,17 +3556,18 @@ void runmacro(TString lin_arg) {
         "CoBo_2018-06-15T17-10-22.008_0000.root",
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledpdf/"
         "CoBo_2018-06-15T17-10-22.008_0000.pdf",
-        1000, 1); */
+        100, 1); */
 
     /* create_labeled_pdf(
         "./rootdata/data2.root",
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledpdf/"
         "data2.pdf",
-        10000, 1); */
+        50, 1); */
 
-    /* create_raw_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root",
-                         "/media/gant/Expansion/tpcanalcsv/CoBo_2018-06-20T16-20-10.736_0000.pdf",
-       10000); */
+    /* create_raw_pdf("./rootdata/data2.root",
+                   "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/rawpdf/"
+                   "data2.pdf",
+                   10000); */
 
     // writeXYZcvs(429);
 
@@ -3575,6 +3604,8 @@ void runmacro(TString lin_arg) {
                            "CoBo_2018-06-20T10-51-39.459_0000.root",
                            79, 0, 1); */
 
-    createLabeledXYZcsv("./rootdata/data2.root", "./converteddata/data2_1.csv",
-                        1);
+    /* createLabeledXYZcsv("./rootdata/data2.root",
+       "./converteddata/data2_1.csv", 1); */
+
+    mass_convertLabeledPDF(lin_arg, 10000);
 }

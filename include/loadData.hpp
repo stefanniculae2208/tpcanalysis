@@ -29,13 +29,13 @@ class loadData {
     loadData(){};
     ~loadData();
 
-    loadData(TString filename, TString treename);
+    loadData(const TString filename, const TString treename);
 
     int openFile();
 
     int readData();
 
-    int decodeData(int entryNr);
+    int decodeData(const int entryNr);
 
     std::vector<rawData> returnRawData();
 
