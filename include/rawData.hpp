@@ -16,14 +16,14 @@ class rawData {
 
     /// @brief The channel number. Must use new_geometry_mini_eTPC.dat to make
     /// sense of it.
-    int ch_nr;
+    int ch_nr = 0;
 
     /// @brief The chip number. Must use new_geometry_mini_eTPC.dat to make
     /// sense of it.
-    int chip_nr;
+    int chip_nr = 0;
 
     /// @brief The enry from the TTree from which the signal originates.
-    int entry_nr;
+    int entry_nr = 0;
 
     /// @brief The signal.
     std::vector<double> signal_val;

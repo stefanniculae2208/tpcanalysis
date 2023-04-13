@@ -1,6 +1,7 @@
 #ifndef generalDataStorage_hpp
 #define generalDataStorage_hpp 1
 
+#include <numeric>
 #include <vector>
 
 #include "dataUVW.hpp"
@@ -39,13 +40,13 @@ class generalDataStorage {
     std::vector<TH1D *> raw_hist_container;
 
     /// @brief The label obtained from filterEventsXY
-    int filter_label;
+    int filter_label = 0;
 
     /// @brief The calculated value of th Mean Square Error
-    double mse_value;
+    double mse_value = std::numeric_limits<double>::max();
 
     /// @brief  The number of the entry from the tree.
-    Long64_t n_entry;
+    Long64_t n_entry = 0;
 };
 
 static_assert(std::is_same<decltype(generalDataStorage::root_raw_data),
