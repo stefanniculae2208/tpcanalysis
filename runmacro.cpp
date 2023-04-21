@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <glob.h>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -3535,6 +3536,196 @@ void mass_convertLabeledPDF(TString lin_arg, int nr_entries = 10000) {
     create_labeled_pdf(dirandfileName, pdfName, nr_entries);
 }
 
+std::tuple<std::vector<generalDataStorage>, int>
+returnLabeledData(TString source_file) {
+    int entry_nr = 0;
+    int max_entries;
+
+    auto goodFile = source_file;
+
+    auto goodTree = "tree";
+
+    loadData good_data(goodFile, goodTree);
+
+    auto err = good_data.openFile();
+    err = good_data.readData();
+    max_entries = good_data.returnNEntries();
+
+    convertUVW loc_conv_uvw;
+
+    err = loc_conv_uvw.openSpecFile();
+
+    if (err != 0)
+        return {std::vector<generalDataStorage>(), 0};
+
+    err = loc_conv_uvw.buildNormalizationMap();
+    if (err != 0)
+        return {std::vector<generalDataStorage>(), 0};
+
+    cleanUVW loc_clean_uvw;
+
+    convertHitData loc_convert_hit;
+
+    convertXYZ loc_conv_xyz;
+
+    filterEventsXY loc_filter_xy;
+
+    while (entry_nr < max_entries) {
+
+        generalDataStorage data_container;
+
+        std::cout << "\n\n\nNow at entry: " << entry_nr << " of " << max_entries
+                  << " for " << source_file << "\n";
+
+        err = good_data.decodeData(entry_nr);
+        if (err != 0) {
+            std::cout << "Error decode data code " << err << "\n";
+        }
+
+        data_container.root_raw_data = good_data.returnRawData();
+
+        std::cout << "RAW data size is " << data_container.root_raw_data.size()
+                  << "\n";
+
+        loc_conv_uvw.setRawData(data_container.root_raw_data);
+
+        err = loc_conv_uvw.makeConversion();
+        if (err != 0)
+            std::cout << "Make conversion error code " << err << "\n";
+
+        err = loc_conv_uvw.normalizeChannels();
+        if (err != 0)
+            std::cout << "Normalize channels error code " << err << std::endl;
+
+        data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+        std::cout << "UVW data size is " << data_container.uvw_data.size()
+                  << "\n";
+
+        std::vector<rawData>().swap(data_container.root_raw_data);
+
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(
+            data_container.uvw_data);
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_V>(
+            data_container.uvw_data);
+        reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(
+            data_container.uvw_data);
+
+        loc_clean_uvw.setUVWData(data_container.uvw_data);
+
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+
+        data_container.uvw_data = loc_clean_uvw.returnDataUVW();
+
+        err = loc_convert_hit.setUVWData(data_container.uvw_data);
+        if (err != 0)
+            std::cout << "Error set UVW data code " << err << "\n";
+
+        err = loc_convert_hit.getHitInfo();
+        if (err != 0)
+            std::cout << "Error get hit info code " << err << "\n";
+
+        data_container.hit_data = loc_convert_hit.returnHitData();
+        data_container.raw_hist_container = loc_convert_hit.returnHistData();
+
+        std::cout << "Hit data size " << data_container.hit_data.size() << "\n";
+        std::cout << "Hist data size "
+                  << data_container.raw_hist_container.size() << "\n";
+
+        std::vector<dataUVW>().swap(data_container.uvw_data);
+
+        err = loc_conv_xyz.getNewVector(data_container.hit_data);
+        if (err != 0)
+            std::cout << "Error get new vector code " << err << "\n";
+
+        err = loc_conv_xyz.makeConversionXYZ();
+        if (err != 0)
+            std::cout << "Error make conversion XYZ code " << err << "\n";
+
+        data_container.xyz_data = loc_conv_xyz.returnXYZ();
+
+        std::cout << "XYZ vector size " << data_container.xyz_data.size()
+                  << "\n";
+
+        data_container.n_entry = entry_nr;
+
+        err = loc_filter_xy.filterAndPush(std::move(data_container));
+        if (err != 0)
+            std::cerr << "Error filter and push code " << err << "\n";
+
+        entry_nr++;
+    }
+
+    // loc_filter_xy.assignClass();
+    loc_filter_xy.assignClass_threaded();
+
+    auto event_vec = loc_filter_xy.returnEventVector();
+
+    return {std::move(event_vec), max_entries};
+}
+
+void countUsefulEvents(TString file_path) {
+
+    // 0 is the number of entries, 1 and 2 are the number of respective labels
+    std::map<int, int> label_count{{0, 0}, {1, 0}, {2, 0}};
+
+    std::vector<generalDataStorage> event_vec;
+
+    int nr_entries = 0;
+
+    glob_t glob_result;
+    glob(file_path, GLOB_TILDE, NULL, &glob_result);
+    for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
+
+        std::string path = glob_result.gl_pathv[i];
+        if (path.length() < 5 || path.substr(path.length() - 5) != ".root") {
+            continue;
+        }
+
+        nr_entries = 0;
+
+        std::tie(event_vec, nr_entries) = returnLabeledData(path);
+
+        if (event_vec.size() == 0) {
+
+            std::cerr << "Event vector size is 0 for file " << path
+                      << std::endl;
+            continue;
+        }
+
+        for (const auto &event : event_vec) {
+
+            label_count[event.filter_label]++;
+        }
+
+        label_count[0] += nr_entries;
+
+        std::vector<generalDataStorage>().swap(event_vec);
+    }
+
+    std::ofstream out_file("./converteddata/counts.csv");
+
+    if (!out_file.is_open()) {
+        std::cerr << "Error: Could not open file for output" << std::endl;
+        return;
+    }
+
+    // header
+    out_file << "Number_of_entries,Label_1_count,Label_2_count\n"
+             << label_count[0] << "," << label_count[1] << "," << label_count[2]
+             << "\n";
+
+    out_file.close();
+}
+
 void runmacro(TString lin_arg) {
 
     /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
@@ -3604,8 +3795,10 @@ void runmacro(TString lin_arg) {
                            "CoBo_2018-06-20T10-51-39.459_0000.root",
                            79, 0, 1); */
 
-    createLabeledXYZcsv("./rootdata/data2.root", "./converteddata/data2_1.csv",
-                        1);
+    /* createLabeledXYZcsv("./rootdata/data2.root",
+       "./converteddata/data2_1.csv", 1); */
 
     // mass_convertLabeledPDF(lin_arg, 10000);
+
+    countUsefulEvents("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/*");
 }

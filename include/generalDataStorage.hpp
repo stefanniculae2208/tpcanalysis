@@ -39,7 +39,8 @@ class generalDataStorage {
     /// will be removed.
     std::vector<TH1D *> raw_hist_container;
 
-    /// @brief The label obtained from filterEventsXY
+    /// @brief The label obtained from filterEventsXY. At the moment it can be 1
+    /// or 2.
     int filter_label = 0;
 
     /// @brief The calculated value of th Mean Square Error
