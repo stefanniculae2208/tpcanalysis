@@ -3726,6 +3726,42 @@ void countUsefulEvents(TString file_path) {
     out_file.close();
 }
 
+void countEventsFromFile(TString filename) {
+
+    std::ofstream out_file("./converteddata/counts_each.csv",
+                           std::ios_base::app);
+
+    if (!out_file.is_open()) {
+        std::cerr << "Error: Could not open file for output" << std::endl;
+        return;
+    }
+
+    // 0 is the number of entries, 1 and 2 are the number of respective labels
+    std::map<int, int> label_count{{0, 0}, {1, 0}, {2, 0}};
+
+    std::vector<generalDataStorage> event_vec;
+
+    int nr_entries = 0;
+
+    std::tie(event_vec, nr_entries) = returnLabeledData(filename);
+
+    for (const auto &event : event_vec) {
+
+        label_count[event.filter_label]++;
+
+        if (event.filter_label == 1)
+            std::cout << "Label " << event.filter_label << " current count "
+                      << label_count[event.filter_label] << std::endl;
+    }
+
+    label_count[0] += nr_entries;
+
+    out_file << filename << "," << label_count[0] << "," << label_count[1]
+             << "," << label_count[2] << "\n";
+
+    out_file.close();
+}
+
 void runmacro(TString lin_arg) {
 
     /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
@@ -3800,5 +3836,7 @@ void runmacro(TString lin_arg) {
 
     // mass_convertLabeledPDF(lin_arg, 10000);
 
-    countUsefulEvents("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/*");
+    // countUsefulEvents("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/*");
+
+    countEventsFromFile(lin_arg);
 }

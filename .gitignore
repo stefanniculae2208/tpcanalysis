@@ -18,5 +18,6 @@ testcalc.cpp
 entries.pdf
 #converteddata/*
 mass_convert.sh
+convert_all.sh
 .cache
 __pycache__/
