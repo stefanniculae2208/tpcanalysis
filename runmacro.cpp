@@ -1950,53 +1950,53 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
         std::cout << "UVW data size is " << data_container.uvw_data.size()
                   << std::endl;
 
-        reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(
+        /* reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(
             data_container.uvw_data);
         reorderCh::reorderChfromFile<reorderCh::planeInfo_V>(
             data_container.uvw_data);
         reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(
             data_container.uvw_data);
-
+ */
         // removeBackground::viewChargeHist(data_container.uvw_data, 1);
 
         loc_clean_uvw.setUVWData(data_container.uvw_data);
 
-        auto *charge_canv = new TCanvas("Charge_canvas", "Charge_canvas");
+        /* auto *charge_canv = new TCanvas("Charge_canvas", "Charge_canvas");
         auto charge_pad = new TPad("charge_pad", "Charge pad", 0, 0, 1, 1);
         charge_pad->Divide(3, 1);
         charge_pad->Draw();
 
         TH1D *charge_u;
         TH1D *charge_v;
-        TH1D *charge_w;
+        TH1D *charge_w; */
 
         err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoU>(charge_u);
+        /* err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoU>(charge_u);
         if (err != 0)
-            std::cerr << "Error getChargeHist code " << err << std::endl;
+            std::cerr << "Error getChargeHist code " << err << std::endl; */
         err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoV>(charge_v);
+        /* err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoV>(charge_v);
         if (err != 0)
-            std::cerr << "Error getChargeHist code " << err << std::endl;
+            std::cerr << "Error getChargeHist code " << err << std::endl; */
         err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoW>(charge_w);
+        /* err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoW>(charge_w);
         if (err != 0)
-            std::cerr << "Error getChargeHist code " << err << std::endl;
+            std::cerr << "Error getChargeHist code " << err << std::endl; */
 
-        charge_pad->cd(1);
+        /* charge_pad->cd(1);
         charge_u->Draw();
         charge_pad->cd(2);
         charge_v->Draw();
         charge_pad->cd(3);
         charge_w->Draw();
 
-        charge_canv->Update();
+        charge_canv->Update(); */
 
         data_container.uvw_data = loc_clean_uvw.returnDataUVW();
 
@@ -3764,9 +3764,9 @@ void countEventsFromFile(TString filename) {
 
 void runmacro(TString lin_arg) {
 
-    /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+    view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                       "CoBo_2018-06-20T10-51-39.459_0000.root",
-                      1); */
+                      1);
 
     /* view_raw_data("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                   "CoBo_2018-06-20T10-51-39.459_0000.root",
@@ -3838,5 +3838,5 @@ void runmacro(TString lin_arg) {
 
     // countUsefulEvents("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/*");
 
-    countEventsFromFile(lin_arg);
+    // countEventsFromFile(lin_arg);
 }

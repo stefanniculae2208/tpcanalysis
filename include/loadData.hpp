@@ -2,6 +2,8 @@
 #define loadData_hpp 1
 
 #include <iostream>
+#include <set>
+#include <vector>
 
 #include "rawData.hpp"
 
@@ -35,7 +37,7 @@ class loadData {
 
     int readData();
 
-    int decodeData(const int entryNr);
+    int decodeData(const int entryNr, const bool remove_fpn = false);
 
     std::vector<rawData> returnRawData();
 
@@ -63,6 +65,8 @@ class loadData {
     /// @brief Used for TTree::SetBranchAddress. Stores the actual data after
     /// using m_roottree->GetEntry(entryNr).
     GDataFrame *m_data_branch;
+
+    void removeFPN();
 };
 
 #endif

@@ -93,7 +93,7 @@ int loadData::readData() {
  * @param entryNr the number of the entry from the tree to be decoded
  * @return int error codes
  */
-int loadData::decodeData(const int entryNr) {
+int loadData::decodeData(const int entryNr, const bool remove_fpn) {
 
     if (m_rootfile->IsZombie()) {
 
@@ -144,9 +144,83 @@ int loadData::decodeData(const int entryNr) {
 
     // data->Delete();
 
+    if (remove_fpn) {
+        removeFPN();
+    }
+
     return 0;
 }
 
+void loadData::removeFPN() {
+
+    static const std::set<int> channels_of_interest = {11, 22, 45, 56};
+
+    std::multimap<int, std::reference_wrapper<std::vector<double>>>
+        fpn_signals_by_chip;
+
+    std::multimap<int, std::reference_wrapper<std::vector<double>>>
+        all_signals_by_chip;
+
+    std::unordered_set<int> map_keys;
+
+    for (auto &data : m_root_raw_data) {
+
+        if (channels_of_interest.count(data.ch_nr) > 0) {
+            fpn_signals_by_chip.insert(
+                {data.chip_nr, std::ref(data.signal_val)});
+        }
+
+        all_signals_by_chip.insert({data.chip_nr, std::ref(data.signal_val)});
+
+        map_keys.insert(data.chip_nr);
+    }
+
+    std::vector<std::array<double, 512>> mean_fpn;
+    mean_fpn.resize(map_keys.size(), {0});
+
+    for (const auto &key : map_keys) {
+
+        auto itr1 = fpn_signals_by_chip.lower_bound(key);
+        auto itr2 = fpn_signals_by_chip.upper_bound(key);
+
+        int fpn_size = 0;
+
+        while (itr1 != itr2) {
+
+            const auto &signal_vec = (*itr1).second.get();
+
+            for (std::size_t i = 0; i < mean_fpn[key].size(); i++) {
+                mean_fpn[key][i] += signal_vec[i];
+            }
+
+            fpn_size++;
+
+            itr1++;
+        }
+
+        std::transform(
+            mean_fpn[key].begin(), mean_fpn[key].end(), mean_fpn[key].begin(),
+            [fpn_size](const double &sig_el) { return sig_el / fpn_size; });
+    }
+
+    for (const auto &key : map_keys) {
+
+        auto itr1 = all_signals_by_chip.lower_bound(key);
+        auto itr2 = all_signals_by_chip.upper_bound(key);
+
+        while (itr1 != itr2) {
+
+            auto &signal_vec = (*itr1).second.get();
+
+            for (auto i = 0; i < signal_vec.size(); i++) {
+
+                signal_vec[i] -= mean_fpn[key][i];
+            }
+
+            itr1++;
+        }
+    }
+}
 /**
  * @brief Returns the raw data vector. To be called only after the decodeData
  * function.

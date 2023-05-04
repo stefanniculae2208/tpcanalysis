@@ -95,6 +95,8 @@ int convertUVW::openSpecFile() {
             else if (plane == std::string("W"))
                 gem = GEM::W;
 
+            channel = m_channel_reorder_map[channel];
+
             fPositionMap.insert({{AGET, channel}, {gem, strip}});
         }
     }
@@ -133,8 +135,10 @@ int convertUVW::makeConversion() {
                           << " is not assigned." << std::endl;
             }
 
+            // The Fixed Pattern Noise channels are not in the map.
+
             m_data_vec.erase(m_data_vec.begin() + i);
-            err_code = -4;   // there exists data not assigned
+            // err_code = -4;   // there exists data not assigned
         }
 
         i++;

@@ -102,7 +102,8 @@ template <typename pI> int cleanUVW::substractBl() {
                        });
     }
 
-    for (auto &data_el : m_uvw_vec) {
+    // double smoothing is probably unnecessary but it's an idea.
+    /* for (auto &data_el : m_uvw_vec) {
 
         if (data_el.plane_val != pI::plane_nr)
             continue;
@@ -110,7 +111,7 @@ template <typename pI> int cleanUVW::substractBl() {
         // smoothChannel(data_el.signal_val);
         data_el.signal_val = savitzkyGolayFilter(data_el.signal_val);
     }
-
+ */
     return 0;
 }
 
@@ -175,19 +176,25 @@ void cleanUVW::smoothChannel(std::vector<double> &v) {
  * @brief Calculates the baseline from the m_charge_val vector. Must be used
  * AFTER this vector is calculated. The vector is calculated in
  * calculateChargeHist().
- * The baseline is the smallest non 0 element of the vector.
+ * OLD: The baseline is the smallest non 0 element of the vector.
+ * NEW: The baseline is the mean of the first 10 elements.
  * If you want to use it for baseline extraction from the actual signals
  * remember to divide by the number of channels on that plane.
  *
  */
 void cleanUVW::calculateBaseline() {
-    // Calculate the baseline as the smallest non 0 element.
 
     auto start_iter = std::next(m_charge_val.begin(), 5);
-    m_baseline =
-        *std::min_element(start_iter, m_charge_val.end(), [](int a, int b) {
+    m_baseline = *std::min_element(
+        start_iter, m_charge_val.end(), [](double a, double b) {
             return (a > 0 && b > 0) ? (a < b) : (a > b);
         });
+
+    /* static constexpr int sample_area = 10;
+
+    m_baseline = std::accumulate(m_charge_val.begin(),
+                                 m_charge_val.begin() + sample_area, 0) /
+                 sample_area; */
 }
 
 /**
