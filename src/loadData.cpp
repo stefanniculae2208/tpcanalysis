@@ -91,6 +91,8 @@ int loadData::readData() {
  *
  *
  * @param entryNr the number of the entry from the tree to be decoded
+ * @param remove_fpn If set to true, the Fixed Pattern Noise will be removed
+ * from all of the channels. For now this setting makes things worse.
  * @return int error codes
  */
 int loadData::decodeData(const int entryNr, const bool remove_fpn) {
@@ -151,6 +153,10 @@ int loadData::decodeData(const int entryNr, const bool remove_fpn) {
     return 0;
 }
 
+/**
+ * @brief
+ *
+ */
 void loadData::removeFPN() {
 
     static const std::set<int> channels_of_interest = {11, 22, 45, 56};
@@ -179,6 +185,9 @@ void loadData::removeFPN() {
     mean_fpn.resize(map_keys.size(), {0});
 
     for (const auto &key : map_keys) {
+
+        if (fpn_signals_by_chip.find(key) == fpn_signals_by_chip.end())
+            continue;
 
         auto itr1 = fpn_signals_by_chip.lower_bound(key);
         auto itr2 = fpn_signals_by_chip.upper_bound(key);

@@ -73,13 +73,14 @@ template <typename pI> int cleanUVW::substractBl() {
 
     // Calculate the baseline as the smallest non 0 element in the charge
     // histogram.
-    calculateBaseline();
+    calculateBaseline<pI>();
 
     // Extract the baseline from the charge histogram.
-    std::transform(m_charge_val.begin(), m_charge_val.end(),
-                   m_charge_val.begin(), [this](const double &sig_el) {
-                       return std::max(0.0, (sig_el - this->m_baseline));
-                   });
+    std::transform(
+        m_charge_val[pI::plane_nr].begin(), m_charge_val[pI::plane_nr].end(),
+        m_charge_val[pI::plane_nr].begin(), [this](const double &sig_el) {
+            return std::max(0.0, (sig_el - this->m_baseline));
+        });
 
     // Divide the baseline by the size of the plane. We do this because the
     // charge histogram is the added elements in each bin.
@@ -116,17 +117,7 @@ template <typename pI> int cleanUVW::substractBl() {
 }
 
 /**
- * @brief Obtains the charge histogram computed in the substractBl function. The
- * charge histogram is notSaved between different calls of substractBl so please
- * call this after every substractBl call. For example if you want to calculate
- * and get the charge histogram for all 3 planes here is an example of how to do
- * it.
- *  err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
- *  err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoU>(charge_u);
- *  err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
- *  err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoV>(charge_v);
- *  err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
- *  err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoW>(charge_w);
+ * @brief Obtains the charge histogram computed in the substractBl function.
  *
  * @tparam pI This parameter should be one of the three structs defined in the
  * class. The struct chosen decides for which plane the calculation needs to be
@@ -138,14 +129,15 @@ template <typename pI> int cleanUVW::substractBl() {
  */
 template <typename pI> int cleanUVW::getChargeHist(TH1D *&charge_hist) {
 
-    if (std::all_of(m_charge_val.begin(), m_charge_val.end(),
+    if (std::all_of(m_charge_val[pI::plane_nr].begin(),
+                    m_charge_val[pI::plane_nr].end(),
                     [](double d) { return d == 0.0; }))
         return -3;
 
     charge_hist =
         new TH1D(pI::plane_hist_name.c_str(), "Charge histogram", 512, 1, 512);
 
-    charge_hist->SetContent(m_charge_val.data());
+    charge_hist->SetContent(m_charge_val[pI::plane_nr].data());
 
     return 0;
 }
@@ -182,11 +174,11 @@ void cleanUVW::smoothChannel(std::vector<double> &v) {
  * remember to divide by the number of channels on that plane.
  *
  */
-void cleanUVW::calculateBaseline() {
+template <typename pI> void cleanUVW::calculateBaseline() {
 
-    auto start_iter = std::next(m_charge_val.begin(), 5);
+    auto start_iter = std::next(m_charge_val[pI::plane_nr].begin(), 5);
     m_baseline = *std::min_element(
-        start_iter, m_charge_val.end(), [](double a, double b) {
+        start_iter, m_charge_val[pI::plane_nr].end(), [](double a, double b) {
             return (a > 0 && b > 0) ? (a < b) : (a > b);
         });
 
@@ -213,10 +205,10 @@ template <typename pI> void cleanUVW::calculateChargeHist() {
         m_uvw_vec.begin(), m_uvw_vec.end(), std::back_inserter(filtered_data),
         [](const dataUVW &data) { return data.plane_val == pI::plane_nr; });
 
-    m_charge_val.fill(0);
+    m_charge_val[pI::plane_nr].fill(0);
 
-    for (std::size_t i = 0; i < m_charge_val.size(); i++) {
-        m_charge_val[i] =
+    for (std::size_t i = 0; i < m_charge_val[pI::plane_nr].size(); i++) {
+        m_charge_val[pI::plane_nr][i] =
             std::accumulate(filtered_data.begin(), filtered_data.end(), 0.0,
                             [i](double acc, const dataUVW &el) {
                                 return acc + el.signal_val[i];
@@ -272,4 +264,32 @@ cleanUVW::savitzkyGolayFilter(const std::vector<double> &signal) {
     return std::move(smoothed_signal);
 }
 
+/**
+ * @brief Checks if the event is a straight vertical line. If yes, then the
+ * event needs to be handled separately.
+ *
+ * @return true The event is a straight vertical line.
+ * @return false The event is not a straight vertical line.
+ */
+bool cleanUVW::isVerticalLine() {
+
+    if (std::all_of(m_charge_val[0].begin(), m_charge_val[0].end(),
+                    [](double d) { return d == 0.0; }),
+        std::all_of(m_charge_val[1].begin(), m_charge_val[1].end(),
+                    [](double d) { return d == 0.0; }),
+        std::all_of(m_charge_val[2].begin(), m_charge_val[2].end(),
+                    [](double d) { return d == 0.0; })) {
+        throw std::invalid_argument(
+            "All elements are zero. The charge histograms for all planes need "
+            "to be calculated before this function is called.");
+    }
+
+    return false;
+}
+
+/**
+ * @brief Returns the vector containing the vector in the UVW format.
+ *
+ * @return std::vector<dataUVW> The vector with the data in the UVW format.
+ */
 std::vector<dataUVW> cleanUVW::returnDataUVW() { return m_uvw_vec; }

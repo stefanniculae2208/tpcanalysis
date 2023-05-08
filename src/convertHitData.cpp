@@ -96,17 +96,20 @@ int convertHitData::getHitInfo(const Double_t sensitivity_avg,
 
     // first create the histograms
     int bin = 0;
-    int strip = 1;
+
+    int hist_nr = 1;
 
     std::vector<double> peak_th_vec;
 
     for (const auto &iter : m_uvw_data) {
 
         auto loc_hist =
-            new TH1D(Form("entry%d_hist_at_strip%d_plane%d", iter.entry_nr,
-                          iter.strip_nr, iter.plane_val),
-                     Form("hist%d", strip), 512, 1, 512);
+            new TH1D(Form("hist%d_entry%d_hist_at_strip%d_plane%d", hist_nr,
+                          iter.entry_nr, iter.strip_nr, iter.plane_val),
+                     Form("hist%d", hist_nr), 512, 1, 512);
 
+        // By setting the content of each bin to a value of the signal we can
+        // crate a graph using TH1.
         for (const auto &sig_iter : iter.signal_val) {
             loc_hist->SetBinContent(++bin, sig_iter);
         }
@@ -123,7 +126,7 @@ int convertHitData::getHitInfo(const Double_t sensitivity_avg,
         peak_th_vec.push_back(loc_peak_th);
 
         bin = 0;
-        strip++;
+        hist_nr++;
     }
 
     // the calculate the hit data
@@ -163,9 +166,11 @@ int convertHitData::getHitInfo(const Double_t sensitivity_avg,
         // std::cout<<"Peaks found: "<<npeaks<<" of which valid are:
         // "<<peaks_y.size()<<std::endl;
 
-        // build the function based on the number of valid peaks found
+        // Build the function based on the number of valid peaks found. The base
+        // function is a 0th degree polinomial.
         TString func_holder("pol0(0)");
 
+        // Add a gaussian to the function for each peak found.
         for (auto i = 0; i < nrealpeaks; i++)
             func_holder.Append(Form("+gaus(%d)", (3 * i + 1)));
 

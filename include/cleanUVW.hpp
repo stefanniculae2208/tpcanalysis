@@ -33,6 +33,8 @@ class cleanUVW {
     template <typename pI> int substractBl();
     template <typename pI> int getChargeHist(TH1D *&charge_hist);
 
+    bool isVerticalLine() noexcept(false);
+
     std::vector<dataUVW> returnDataUVW();
 
     /**
@@ -73,8 +75,9 @@ class cleanUVW {
     std::vector<dataUVW> m_uvw_vec;
     /// @brief The baseline extracted fromt he signal.
     double m_baseline = std::numeric_limits<double>::max();
-    /// @brief The vector containing the charge histogram.
-    std::array<double, 512> m_charge_val = {0};
+    /// @brief The vectors containing the charge histogram for each plane. 0 is
+    /// U, 1 is V, 2 is W.
+    std::array<std::array<double, 512>, 3> m_charge_val = {0};
 
     /// @brief The window size of the savitzkyGolayFilter.
     static const int m_window_size = 8;
@@ -84,7 +87,7 @@ class cleanUVW {
     std::vector<double> m_coefficients;
 
     void smoothChannel(std::vector<double> &v);
-    void calculateBaseline();
+    template <typename pI> void calculateBaseline();
     template <typename pI> void calculateChargeHist();
 
     void computeSavitzkyGolayCoefficients();
