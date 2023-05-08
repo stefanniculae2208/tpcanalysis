@@ -3416,12 +3416,12 @@ void createLabeledXYZcsv(TString source_file, TString destination_file,
         std::cout << "UVW data size is " << data_container.uvw_data.size()
                   << "\n";
 
-        reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(
+        /* reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(
             data_container.uvw_data);
         reorderCh::reorderChfromFile<reorderCh::planeInfo_V>(
             data_container.uvw_data);
         reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(
-            data_container.uvw_data);
+            data_container.uvw_data); */
 
         loc_clean_uvw.setUVWData(data_container.uvw_data);
 
@@ -3764,9 +3764,9 @@ void countEventsFromFile(TString filename) {
 
 void runmacro(TString lin_arg) {
 
-    view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+    /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                       "CoBo_2018-06-20T10-51-39.459_0000.root",
-                      1);
+                      1); */
 
     /* view_raw_data("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                   "CoBo_2018-06-20T10-51-39.459_0000.root",
@@ -3833,6 +3833,13 @@ void runmacro(TString lin_arg) {
 
     /* createLabeledXYZcsv("./rootdata/data2.root",
        "./converteddata/data2_1.csv", 1); */
+
+    createLabeledXYZcsv(
+        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+        "CoBo_2018-06-20T10-51-39.459_0000.root",
+        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledcsv/"
+        "CoBo_2018-06-20T10-51-39.459_0000.csv",
+        0);
 
     // mass_convertLabeledPDF(lin_arg, 10000);
 
