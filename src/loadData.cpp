@@ -113,9 +113,6 @@ int loadData::decodeData(const int entryNr, const bool remove_fpn) {
     // clear the rawData vector so we don't collect old data
     std::vector<rawData>().swap(m_root_raw_data);
 
-    /* auto data = new GDataFrame();
-    m_roottree->SetBranchAddress("GDataFrame", &data); */
-
     rawData loc_data;
 
     m_roottree->GetEntry(entryNr);
@@ -126,25 +123,21 @@ int loadData::decodeData(const int entryNr, const bool remove_fpn) {
     while ((channel = (GDataChannel *) channelIT.Next())) {
         TIter sampleIT((TCollection *) &channel->fSamples);
         GDataSample *sample = nullptr;
-        // auto counter = 0;
+
+        loc_data.chip_nr = channel->fAgetIdx;
+        loc_data.ch_nr = channel->fChanIdx;
+        loc_data.entry_nr = entryNr;
+
         while ((sample = (GDataSample *) sampleIT.Next())) {
 
-            loc_data.chip_nr = channel->fAgetIdx;
-            loc_data.ch_nr = channel->fChanIdx;
-            loc_data.entry_nr = entryNr;
             loc_data.signal_val.push_back(sample->fValue);
         }
+
         m_root_raw_data.push_back(loc_data);
-        std::vector<double>().swap(loc_data.signal_val);
+        // No need to reset the memory since the size is the same anyway.
+        loc_data.signal_val.clear();
+        // std::vector<double>().swap(loc_data.signal_val);
     }
-
-    // Slows the program down too much. Need to find another way.
-    /* if(data){
-        delete(data);
-        data = nullptr;
-    } */
-
-    // data->Delete();
 
     if (remove_fpn) {
         removeFPN();

@@ -32,7 +32,7 @@ enum class GEM { U, V, W, size };
 class convertUVW {
 
   public:
-    convertUVW(){};
+    convertUVW() { buildNormalizationMap(); };
     convertUVW(std::vector<rawData> data_vec);
     ~convertUVW(){};
 
@@ -42,15 +42,12 @@ class convertUVW {
 
     int openSpecFile();
 
-    int makeConversion();
+    int makeConversion(const bool opt_norm = true,
+                       const bool opt_verbose = false);
 
     int convertToCSV(const std::string file_name);
 
     std::vector<dataUVW> returnDataUVW();
-
-    int buildNormalizationMap();
-
-    int normalizeChannels();
 
   private:
     /// @brief The map used to make the conversion. Built from
@@ -67,9 +64,6 @@ class convertUVW {
     /// future.
     TH1D *m_charge_hist = nullptr;
 
-    /// @brief Used for debugging
-    bool m_verbose = false;
-
     /// @brief Used for saving the data found in the normalization csv.
     std::map<std::pair<int, int>, double> m_ch_ratio_map;
 
@@ -85,10 +79,14 @@ class convertUVW {
         {21, 23}, {22, 24}, {23, 25}, {24, 26}, {25, 27}, {26, 28}, {27, 29},
         {28, 30}, {29, 31}, {30, 32}, {31, 33}, {32, 34}, {33, 35}, {34, 36},
         {35, 37}, {36, 38}, {37, 39}, {38, 40}, {39, 41}, {40, 42}, {41, 43},
-        {42, 45}, {43, 46}, {44, 47}, {45, 48}, {46, 49}, {47, 50}, {48, 51},
+        {42, 44}, {43, 46}, {44, 47}, {45, 48}, {46, 49}, {47, 50}, {48, 51},
         {49, 52}, {50, 53}, {51, 54}, {52, 55}, {53, 57}, {54, 58}, {55, 59},
         {56, 60}, {57, 61}, {58, 62}, {59, 63}, {60, 64}, {61, 65}, {62, 66},
         {63, 67}};
+
+    void normalizeChannels();
+
+    void buildNormalizationMap();
 };
 
 #endif

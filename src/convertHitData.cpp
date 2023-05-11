@@ -103,9 +103,16 @@ int convertHitData::getHitInfo(const Double_t sensitivity_avg,
 
     for (const auto &iter : m_uvw_data) {
 
+        // Shouldn't be needed.
+        /* if (gDirectory->FindObject(Form("entry%d_hist_at_strip%d_plane%d",
+                                        iter.entry_nr, iter.strip_nr,
+                                        iter.plane_val))) {
+            continue;
+        } */
+
         auto loc_hist =
-            new TH1D(Form("hist%d_entry%d_hist_at_strip%d_plane%d", hist_nr,
-                          iter.entry_nr, iter.strip_nr, iter.plane_val),
+            new TH1D(Form("entry%d_hist_at_strip%d_plane%d", iter.entry_nr,
+                          iter.strip_nr, iter.plane_val),
                      Form("hist%d", hist_nr), 512, 1, 512);
 
         // By setting the content of each bin to a value of the signal we can
@@ -152,8 +159,11 @@ int convertHitData::getHitInfo(const Double_t sensitivity_avg,
         std::vector<double> peaks_y;   // y of valid peaks
         int nrealpeaks = 0;            // number of valid peaks set to 0
 
+        // std::cout << "\nBefore find at " << curr_iter << std::endl;
         std::tie(nrealpeaks, peaks_x, peaks_y) =
             findPeaks(hist_iter, peak_th_vec[curr_iter]);
+
+        // std::cout << "After find at " << curr_iter << std::endl;
 
         /* for (auto i = 0; i < npeaks; i++) {
             if (pos_holder_y[i] > peak_th_vec[curr_iter]) {
@@ -166,8 +176,8 @@ int convertHitData::getHitInfo(const Double_t sensitivity_avg,
         // std::cout<<"Peaks found: "<<npeaks<<" of which valid are:
         // "<<peaks_y.size()<<std::endl;
 
-        // Build the function based on the number of valid peaks found. The base
-        // function is a 0th degree polinomial.
+        // Build the function based on the number of valid peaks found. The
+        // base function is a 0th degree polinomial.
         TString func_holder("pol0(0)");
 
         // Add a gaussian to the function for each peak found.
@@ -256,6 +266,7 @@ convertHitData::findPeaks(const TH1D *loc_hist, const double &peak_th) {
 
     int n_peaks = 0;
 
+    // Default 0 value should't create problems if we remember it exists.
     double last_peak_x = 0;
     double last_peak_y = 0;
 
@@ -270,13 +281,32 @@ convertHitData::findPeaks(const TH1D *loc_hist, const double &peak_th) {
 
             // If 2 peaks are close together we consider them part of the same
             // peak and we choose the higher value on y as the true peak.
-            if (i - last_peak_x < same_peak_th) {
+            // Also make sure we have actual peaks. Otherwise, because
+            // last_peak_x is by default 0, then if a peak is close to 0 it it
+            // will try to modify an peak that doesn't exist and crash.
+            if (n_peaks != 0 && (i - last_peak_x) < same_peak_th) {
 
                 if (curr_peak_y > last_peak_y) {
 
                     // Better to modify the old then to pop and push new values.
-                    peaks_x[n_peaks] = i;
-                    peaks_y[n_peaks] = curr_peak_y;
+                    peaks_x[n_peaks - 1] = i;
+                    peaks_y[n_peaks - 1] = curr_peak_y;
+
+                    // Try catch should't be needed, so I'll just comment it.
+                    /* try {
+
+                        peaks_x.at(n_peaks - 1) = i;
+                        peaks_y.at(n_peaks - 1) = curr_peak_y;
+                    } catch (const std::exception &e) {
+
+                        std::cerr << "Find peaks threw exception " << e.what()
+                                  << " at i " << i << " with n peaks "
+                                  << n_peaks << std::endl;
+
+                        peaks_x.push_back(i);
+                        peaks_y.push_back(curr_peak_y);
+                    } */
+
                 } else {
                     continue;
                 }

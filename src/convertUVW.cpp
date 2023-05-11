@@ -6,7 +6,9 @@
  * @param data_vec the raw data vector to be converted to the UVW format
  */
 convertUVW::convertUVW(std::vector<rawData> data_vec) {
+
     m_data_vec = std::move(data_vec);
+    buildNormalizationMap();
 }
 
 /**
@@ -95,7 +97,14 @@ int convertUVW::openSpecFile() {
             else if (plane == std::string("W"))
                 gem = GEM::W;
 
-            channel = m_channel_reorder_map[channel];
+            auto old_channel = channel;
+
+            try {
+                channel = m_channel_reorder_map[channel];
+            } catch (...) {
+                std::cerr << "Error at " << old_channel << " which links to "
+                          << m_channel_reorder_map[old_channel] << std::endl;
+            }
 
             fPositionMap.insert({{AGET, channel}, {gem, strip}});
         }
@@ -107,10 +116,15 @@ int convertUVW::openSpecFile() {
 /**
  * @brief Makes the conversion to the UVW format.
  *
+ * @param opt_verbose Toggle the verbose option which shows the channels that
+ * are not in the map. It should normally not be needes since the only channels
+ * not in the map should be the FPN channels. However, you can toggle it if you
+ * want to see that no other channels are left out.
+ * @param opt_norm Choose to normalize the channels or not.
  * @return error codes
  */
-int convertUVW::makeConversion() {
-    auto i = 0;
+int convertUVW::makeConversion(const bool opt_norm, const bool opt_verbose) {
+
     auto err_code = 0;
 
     dataUVW loc_data_uvw;
@@ -128,20 +142,21 @@ int convertUVW::makeConversion() {
             loc_data_uvw.signal_val = data_inst.signal_val;
             loc_data_uvw.entry_nr = data_inst.entry_nr;
             m_uvw_vec.push_back(loc_data_uvw);
+
         } catch (...) {
-            if (m_verbose) {
+
+            // These channels are probably just the FPN channels, but it's good
+            // to check.
+            if (opt_verbose) {
                 std::cout << "AGET: " << data_inst.chip_nr
                           << "\tChannel: " << data_inst.ch_nr
                           << " is not assigned." << std::endl;
             }
-
-            // The Fixed Pattern Noise channels are not in the map.
-
-            m_data_vec.erase(m_data_vec.begin() + i);
-            // err_code = -4;   // there exists data not assigned
         }
+    }
 
-        i++;
+    if (opt_norm) {
+        normalizeChannels();
     }
 
     return err_code;
@@ -206,9 +221,8 @@ int convertUVW::convertToCSV(const std::string file_name) {
  * @brief Uses the ch_norm_ratios to build a std::map used when normalizing the
  * channels.
  *
- * @return int
  */
-int convertUVW::buildNormalizationMap() {
+void convertUVW::buildNormalizationMap() {
 
     const std::string filename = "./utils/ch_norm_ratios.csv";
 
@@ -216,7 +230,7 @@ int convertUVW::buildNormalizationMap() {
 
     if (!file.is_open()) {
         std::cerr << "Error: Failed to open file " << filename << std::endl;
-        return -1;
+        return;
     }
 
     // Read and discard the first line
@@ -243,30 +257,26 @@ int convertUVW::buildNormalizationMap() {
     }
 
     file.close();
-
-    return 0;
 }
 
 /**
  * @brief Uses the ch_norm_ratios.csv file to normalize the Channels. Each
  * signal on each channel is divided by a channel specific ratio. This is done
  * in order to make sure the values on each channel are proportional with each
- * other. Should be done before substracting the baseline.
- *
- * @return int
+ * other.
  */
-int convertUVW::normalizeChannels() {
+void convertUVW::normalizeChannels() {
 
     if (m_ch_ratio_map.size() == 0) {
 
         std::cerr << "Error map is empty." << std::endl;
-        return -3;
+        return;
     }
 
     if (m_uvw_vec.size() == 0) {
 
         std::cerr << "Error UVW vector is empty." << std::endl;
-        return -3;
+        return;
     }
 
     for (auto &uvw_entry : m_uvw_vec) {
@@ -284,7 +294,7 @@ int convertUVW::normalizeChannels() {
                 std::cerr
                     << "Error: Out of bounds at normalizeChannels() -> U, "
                     << uvw_entry.strip_nr << std::endl;
-                return -4;
+                return;
             }
 
         } else if (uvw_entry.plane_val == 1) {
@@ -300,7 +310,7 @@ int convertUVW::normalizeChannels() {
                 std::cerr
                     << "Error: Out of bounds at normalizeChannels() -> U, "
                     << uvw_entry.strip_nr << std::endl;
-                return -4;
+                return;
             }
 
         } else if (uvw_entry.plane_val == 2) {
@@ -316,10 +326,8 @@ int convertUVW::normalizeChannels() {
                 std::cerr
                     << "Error: Out of bounds at normalizeChannels() -> U, "
                     << uvw_entry.strip_nr << std::endl;
-                return -4;
+                return;
             }
         }
     }
-
-    return 0;
 }

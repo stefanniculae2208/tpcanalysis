@@ -332,10 +332,6 @@ template <typename pI> void calculateReorder(TString fileName) {
     if (err != 0)
         return;
 
-    err = loc_conv_uvw.buildNormalizationMap();
-    if (err != 0)
-        return;
-
     cleanUVW loc_clean_uvw;
 
     std::map<int, std::array<int, pI::cfg_size>> strip_order_map;
@@ -365,14 +361,6 @@ template <typename pI> void calculateReorder(TString fileName) {
         loc_conv_uvw.setRawData(data_container.root_raw_data);
 
         err = loc_conv_uvw.makeConversion();
-
-        err = loc_conv_uvw.normalizeChannels();
-        if (err != 0)
-            std::cout << "Normalize channels error code " << err << std::endl;
-
-        /* err = loc_conv_uvw.substractBl();
-        if (err != 0)
-            std::cout << "Substractbl error code " << err << std::endl; */
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
@@ -496,121 +484,6 @@ template <typename pI> void calculateReorder(TString fileName) {
 
 }   // namespace reorderCh
 
-namespace removeBackground {
-
-struct planeInfoU {
-    static const int plane_nr = 0;
-    static const int plane_size = 72;
-    inline static const std::string plane_hist_name = "Charge_hist_plane_u";
-};
-
-struct planeInfoV {
-    static const int plane_nr = 1;
-    static const int plane_size = 92;
-    inline static const std::string plane_hist_name = "Charge_hist_plane_v";
-};
-
-struct planeInfoW {
-    static const int plane_nr = 2;
-    static const int plane_size = 92;
-    inline static const std::string plane_hist_name = "Charge_hist_plane_w";
-};
-
-double calculateBaseline(const std::array<double, 512> &charge_val) {
-
-    double baseline = std::numeric_limits<double>::max();
-
-    // Calculate the baseline as the smallest non 0 element.
-
-    auto start_iter = std::next(charge_val.begin(), 5);
-    baseline =
-        *std::min_element(start_iter, charge_val.end(), [](int a, int b) {
-            return (a > 0 && b > 0) ? (a < b) : (a > b);
-        });
-
-    return baseline;
-}
-
-template <typename pI>
-void calculateChargeHist(std::vector<dataUVW> &uvw_vec, TH1D *&charge_hist,
-                         const int extr_opt = 0) {
-
-    std::array<double, 512> charge_val;
-
-    std::vector<dataUVW> filtered_data;
-    std::copy_if(
-        uvw_vec.begin(), uvw_vec.end(), std::back_inserter(filtered_data),
-        [](const dataUVW &data) { return data.plane_val == pI::plane_nr; });
-
-    charge_val.fill(0);
-
-    for (std::size_t i = 0; i < charge_val.size(); i++) {
-        charge_val.at(i) =
-            std::accumulate(filtered_data.begin(), filtered_data.end(), 0.0,
-                            [i](double acc, const dataUVW &el) {
-                                return acc + el.signal_val.at(i);
-                            });
-    }
-
-    if (extr_opt) {
-
-        auto baseline = calculateBaseline(charge_val);
-
-        std::transform(charge_val.begin(), charge_val.end(), charge_val.begin(),
-                       [baseline](const double &sig_el) {
-                           return std::max(0.0, (sig_el - baseline));
-                       });
-
-        baseline /= pI::plane_size;
-
-        for (auto &data_el : uvw_vec) {
-
-            data_el.baseline_val += baseline;
-
-            // Extract the baseline from the signal. Make any elements lower
-            // than 0 equal to 10 so we don't have negative signal values.
-            // I didn't make them 0 because I have a problem with empty vectors.
-            std::transform(data_el.signal_val.begin(), data_el.signal_val.end(),
-                           data_el.signal_val.begin(),
-                           [baseline](const double &sig_el) {
-                               return std::max(10.0, (sig_el - baseline));
-                           });
-        }
-    }
-
-    charge_hist =
-        new TH1D(pI::plane_hist_name.c_str(), "Charge histogram", 512, 1, 512);
-
-    charge_hist->SetContent(charge_val.data());
-}
-
-void viewChargeHist(std::vector<dataUVW> &uvw_vec, const int extr_opt = 0) {
-
-    auto *charge_canv = new TCanvas("Charge_canvas", "Charge_canvas");
-    auto loc_pad = new TPad("charge_pad", "Charge pad", 0, 0, 1, 1);
-    loc_pad->Divide(3, 1);
-    loc_pad->Draw();
-
-    TH1D *charge_u;
-    TH1D *charge_v;
-    TH1D *charge_w;
-
-    calculateChargeHist<planeInfoU>(uvw_vec, charge_u, extr_opt);
-    calculateChargeHist<planeInfoV>(uvw_vec, charge_v, extr_opt);
-    calculateChargeHist<planeInfoW>(uvw_vec, charge_w, extr_opt);
-
-    loc_pad->cd(1);
-    charge_u->Draw();
-    loc_pad->cd(2);
-    charge_v->Draw();
-    loc_pad->cd(3);
-    charge_w->Draw();
-
-    charge_canv->Update();
-}
-
-}   // namespace removeBackground
-
 /**
  * @brief Allows the viewing of the raw data from the given file.
  *
@@ -637,10 +510,6 @@ void view_raw_data(TString fileName, int norm_opt = 1) {
 
     err = loc_conv_uvw.openSpecFile();
 
-    if (err != 0)
-        return;
-
-    err = loc_conv_uvw.buildNormalizationMap();
     if (err != 0)
         return;
 
@@ -724,15 +593,6 @@ void view_raw_data(TString fileName, int norm_opt = 1) {
         if (err != 0)
             std::cout << "Make conversion error code " << err << std::endl;
 
-        // use norm_opt to set normalization on or off
-        if (norm_opt) {
-
-            err = loc_conv_uvw.normalizeChannels();
-            if (err != 0)
-                std::cout << "Normalize channels error code " << err
-                          << std::endl;
-        }
-
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
         std::cout << "UVW data size is " << data_container.uvw_data.size()
@@ -811,7 +671,7 @@ void view_raw_data(TString fileName, int norm_opt = 1) {
  * normalized, else 0.
  */
 void create_entries_pdf(TString source_file, TString destination_file,
-                        int read_entries, int norm_opt = 1) {
+                        int read_entries) {
 
     int entry_nr = 0;
     int max_entries;
@@ -830,10 +690,6 @@ void create_entries_pdf(TString source_file, TString destination_file,
 
     err = loc_conv_uvw.openSpecFile();
 
-    if (err != 0)
-        return;
-
-    err = loc_conv_uvw.buildNormalizationMap();
     if (err != 0)
         return;
 
@@ -889,15 +745,6 @@ void create_entries_pdf(TString source_file, TString destination_file,
         err = loc_conv_uvw.makeConversion();
         if (err != 0)
             std::cout << "Make conversion error code " << err << "\n";
-
-        // use norm_opt to set normalization on or off
-        if (norm_opt) {
-
-            err = loc_conv_uvw.normalizeChannels();
-            if (err != 0)
-                std::cout << "Normalize channels error code " << err
-                          << std::endl;
-        }
 
         /* err = loc_conv_uvw.substractBl();
 
@@ -1812,7 +1659,7 @@ void drawXYimage(TString filename = "./rootdata/data2.root",
  * @param norm_opt The normalization option. 1 if you want the channels to be
  * normalized, else 0.
  */
-void view_data_entries(TString fileName, int norm_opt = 1) {
+void view_data_entries(TString fileName, const bool charge_opt = false) {
 
     int entry_nr = -1;
     int max_entries;
@@ -1831,10 +1678,6 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
 
     err = loc_conv_uvw.openSpecFile();
 
-    if (err != 0)
-        return;
-
-    err = loc_conv_uvw.buildNormalizationMap();
     if (err != 0)
         return;
 
@@ -1931,20 +1774,6 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
         if (err != 0)
             std::cout << "Make conversion error code " << err << std::endl;
 
-        // use norm_opt to set normalization on or off
-        if (norm_opt) {
-
-            err = loc_conv_uvw.normalizeChannels();
-            if (err != 0)
-                std::cout << "Normalize channels error code " << err
-                          << std::endl;
-        }
-
-        /* err = loc_conv_uvw.substractBl();
-
-        if (err != 0)
-            std::cout << "Substractbl error code " << err << std::endl; */
-
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
         std::cout << "UVW data size is " << data_container.uvw_data.size()
@@ -1957,46 +1786,62 @@ void view_data_entries(TString fileName, int norm_opt = 1) {
         reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(
             data_container.uvw_data);
  */
-        // removeBackground::viewChargeHist(data_container.uvw_data, 1);
 
         loc_clean_uvw.setUVWData(data_container.uvw_data);
 
-        auto *charge_canv = new TCanvas("Charge_canvas", "Charge_canvas");
-        auto charge_pad = new TPad("charge_pad", "Charge pad", 0, 0, 1, 1);
-        charge_pad->Divide(3, 1);
-        charge_pad->Draw();
+        if (charge_opt) {
 
-        TH1D *charge_u;
-        TH1D *charge_v;
-        TH1D *charge_w;
+            auto *charge_canv = new TCanvas("Charge_canvas", "Charge_canvas");
+            auto charge_pad = new TPad("charge_pad", "Charge pad", 0, 0, 1, 1);
+            charge_pad->Divide(3, 1);
+            charge_pad->Draw();
 
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
-        if (err != 0)
-            std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoU>(charge_u);
-        if (err != 0)
-            std::cerr << "Error getChargeHist code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
-        if (err != 0)
-            std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoV>(charge_v);
-        if (err != 0)
-            std::cerr << "Error getChargeHist code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
-        if (err != 0)
-            std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoW>(charge_w);
-        if (err != 0)
-            std::cerr << "Error getChargeHist code " << err << std::endl;
+            TH1D *charge_u;
+            TH1D *charge_v;
+            TH1D *charge_w;
 
-        charge_pad->cd(1);
-        charge_u->Draw();
-        charge_pad->cd(2);
-        charge_v->Draw();
-        charge_pad->cd(3);
-        charge_w->Draw();
+            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+            if (err != 0)
+                std::cerr << "Error substractBl code " << err << std::endl;
+            err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoU>(charge_u);
+            if (err != 0)
+                std::cerr << "Error getChargeHist code " << err << std::endl;
+            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+            if (err != 0)
+                std::cerr << "Error substractBl code " << err << std::endl;
+            err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoV>(charge_v);
+            if (err != 0)
+                std::cerr << "Error getChargeHist code " << err << std::endl;
+            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+            if (err != 0)
+                std::cerr << "Error substractBl code " << err << std::endl;
+            err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoW>(charge_w);
+            if (err != 0)
+                std::cerr << "Error getChargeHist code " << err << std::endl;
 
-        charge_canv->Update();
+            charge_pad->cd(1);
+            charge_u->Draw();
+            charge_pad->cd(2);
+            charge_v->Draw();
+            charge_pad->cd(3);
+            charge_w->Draw();
+
+            charge_canv->Update();
+
+        } else {
+
+            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+            if (err != 0)
+                std::cerr << "Error substractBl code " << err << std::endl;
+
+            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+            if (err != 0)
+                std::cerr << "Error substractBl code " << err << std::endl;
+
+            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+            if (err != 0)
+                std::cerr << "Error substractBl code " << err << std::endl;
+        }
 
         data_container.uvw_data = loc_clean_uvw.returnDataUVW();
 
@@ -2575,8 +2420,7 @@ void mass_convertRawPDF(TString lin_arg, int nr_entries = 10000) {
  * @param norm_opt The normalization option. 1 if you want the channels to be
  * normalized, else 0.s
  */
-void printReorderedChannels(TString fileName, int entry_nr, int plane,
-                            int norm_opt = 1) {
+void printReorderedChannels(TString fileName, int entry_nr, int plane) {
 
     auto goodFile = fileName;
 
@@ -2594,10 +2438,6 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
 
     err = loc_conv_uvw.openSpecFile();
 
-    if (err != 0)
-        return;
-
-    err = loc_conv_uvw.buildNormalizationMap();
     if (err != 0)
         return;
 
@@ -2620,19 +2460,6 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane,
     generalDataStorage data_container_raw;
 
     data_container_raw.uvw_data = loc_conv_uvw.returnDataUVW();
-
-    // use norm_opt to set normalization on or off
-    if (norm_opt) {
-
-        err = loc_conv_uvw.normalizeChannels();
-        if (err != 0)
-            std::cout << "Normalize channels error code " << err << std::endl;
-    }
-
-    /* err = loc_conv_uvw.substractBl();
-
-    if (err != 0)
-        std::cout << "Substractbl error code " << err << std::endl; */
 
     data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
@@ -2836,10 +2663,6 @@ void create_labeled_pdf(TString source_file, TString destination_file,
     if (err != 0)
         return;
 
-    err = loc_conv_uvw.buildNormalizationMap();
-    if (err != 0)
-        return;
-
     cleanUVW loc_clean_uvw;
 
     convertHitData loc_convert_hit;
@@ -2894,20 +2717,6 @@ void create_labeled_pdf(TString source_file, TString destination_file,
         err = loc_conv_uvw.makeConversion();
         if (err != 0)
             std::cout << "Make conversion error code " << err << "\n";
-
-        // use norm_opt to set normalization on or off
-        if (norm_opt) {
-
-            err = loc_conv_uvw.normalizeChannels();
-            if (err != 0)
-                std::cout << "Normalize channels error code " << err
-                          << std::endl;
-        }
-
-        /* err = loc_conv_uvw.substractBl();
-
-        if (err != 0)
-            std::cout << "Substractbl error code " << err << "\n"; */
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
@@ -3372,10 +3181,6 @@ void createLabeledXYZcsv(TString source_file, TString destination_file,
     if (err != 0)
         return;
 
-    err = loc_conv_uvw.buildNormalizationMap();
-    if (err != 0)
-        return;
-
     cleanUVW loc_clean_uvw;
 
     convertHitData loc_convert_hit;
@@ -3407,10 +3212,6 @@ void createLabeledXYZcsv(TString source_file, TString destination_file,
         if (err != 0)
             std::cout << "Make conversion error code " << err << "\n";
 
-        err = loc_conv_uvw.normalizeChannels();
-        if (err != 0)
-            std::cout << "Normalize channels error code " << err << std::endl;
-
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
         std::cout << "UVW data size is " << data_container.uvw_data.size()
@@ -3436,6 +3237,9 @@ void createLabeledXYZcsv(TString source_file, TString destination_file,
             std::cerr << "Error substractBl code " << err << std::endl;
 
         data_container.uvw_data = loc_clean_uvw.returnDataUVW();
+
+        std::cout << "Cleaned data size: " << data_container.uvw_data.size()
+                  << "\n";
 
         err = loc_convert_hit.setUVWData(data_container.uvw_data);
         if (err != 0)
@@ -3474,10 +3278,14 @@ void createLabeledXYZcsv(TString source_file, TString destination_file,
         entry_nr++;
     }
 
+    std::cout << "\n\nBeginning to assign class." << std::endl;
+
     // loc_filter_xy.assignClass();
     loc_filter_xy.assignClass_threaded();
 
     auto event_vec = loc_filter_xy.returnEventVector();
+
+    std::cout << "Event vector size is " << event_vec.size() << std::endl;
 
     std::ofstream out_file(destination_file);
 
@@ -3487,19 +3295,20 @@ void createLabeledXYZcsv(TString source_file, TString destination_file,
     }
 
     // header
-    out_file << "x,y,z,entry_nr\n";
+    out_file << "x,y,z,entry_nr,label\n";
 
     for (const auto &event : event_vec) {
 
         // For label 0 we take all events. Else we only print the events with
         // the label passed to the function.
-        if (event.filter_label != label)
+        if (event.filter_label != label && label != 0)
             continue;
 
         for (const auto &data_entry : event.xyz_data) {
 
             out_file << data_entry.data_x << "," << data_entry.data_y << ","
-                     << data_entry.data_z << "," << event.n_entry;
+                     << data_entry.data_z << "," << event.n_entry << ","
+                     << event.filter_label;
 
             out_file << "\n";
         }
@@ -3558,10 +3367,6 @@ returnLabeledData(TString source_file) {
     if (err != 0)
         return {std::vector<generalDataStorage>(), 0};
 
-    err = loc_conv_uvw.buildNormalizationMap();
-    if (err != 0)
-        return {std::vector<generalDataStorage>(), 0};
-
     cleanUVW loc_clean_uvw;
 
     convertHitData loc_convert_hit;
@@ -3592,10 +3397,6 @@ returnLabeledData(TString source_file) {
         err = loc_conv_uvw.makeConversion();
         if (err != 0)
             std::cout << "Make conversion error code " << err << "\n";
-
-        err = loc_conv_uvw.normalizeChannels();
-        if (err != 0)
-            std::cout << "Normalize channels error code " << err << std::endl;
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
@@ -3765,8 +3566,7 @@ void countEventsFromFile(TString filename) {
 void runmacro(TString lin_arg) {
 
     /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                      "CoBo_2018-06-20T10-51-39.459_0000.root",
-                      1); */
+                      "CoBo_2018-06-20T10-51-39.459_0000.root"); */
 
     /* view_raw_data("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                   "CoBo_2018-06-20T10-51-39.459_0000.root",
@@ -3840,6 +3640,12 @@ void runmacro(TString lin_arg) {
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledcsv/"
         "CoBo_2018-06-20T10-51-39.459_0000.csv",
         0);
+
+    /* createLabeledXYZcsv(
+        "./rootdata/data2.root",
+        "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledcsv/"
+        "data2.csv",
+        0); */
 
     // mass_convertLabeledPDF(lin_arg, 10000);
 
