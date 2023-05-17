@@ -19,9 +19,12 @@ convertUVW::convertUVW(std::vector<rawData> data_vec) {
  */
 int convertUVW::setRawData(std::vector<rawData> data_vec) {
 
-    std::vector<rawData>().swap(m_data_vec);
-
-    std::vector<dataUVW>().swap(m_uvw_vec);
+    // The size of these vectors should always be the same (256 and 272 if I'm
+    // not wrong) so no need to reset the memory.
+    // std::vector<rawData>().swap(m_data_vec);
+    // std::vector<dataUVW>().swap(m_uvw_vec);
+    m_data_vec.clear();
+    m_uvw_vec.clear();
 
     if (data_vec.size() == 0)
         return -3;
@@ -42,9 +45,12 @@ int convertUVW::setRawData(std::vector<rawData> data_vec) {
  */
 int convertUVW::setUVWData(std::vector<dataUVW> data_vec) {
 
-    std::vector<rawData>().swap(m_data_vec);
-
-    std::vector<dataUVW>().swap(m_uvw_vec);
+    // The size of these vectors should always be the same (256 and 272 if I'm
+    // not wrong) so no need to reset the memory.
+    // std::vector<rawData>().swap(m_data_vec);
+    // std::vector<dataUVW>().swap(m_uvw_vec);
+    m_data_vec.clear();
+    m_uvw_vec.clear();
 
     if (data_vec.size() == 0)
         return -3;

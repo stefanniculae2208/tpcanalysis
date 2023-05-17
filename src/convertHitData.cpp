@@ -34,9 +34,13 @@ convertHitData::~convertHitData() {
  */
 int convertHitData::setUVWData(std::vector<dataUVW> uvw_data) {
 
-    std::vector<dataUVW>().swap(m_uvw_data);
+    // The size of uvw should always be the same so we can just clear.
+    // std::vector<dataUVW>().swap(m_uvw_data);
+    m_uvw_data.clear();
 
     std::vector<hitPoints>().swap(m_hit_data);
+
+    // ROOT should clear the memory automatically for TH1D but I'm not sure.
     std::vector<TH1D *>().swap(m_raw_hist_data);
 
     if (uvw_data.size() == 0)

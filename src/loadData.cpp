@@ -110,8 +110,11 @@ int loadData::decodeData(const int entryNr, const bool remove_fpn) {
         return -2;
     }
 
-    // clear the rawData vector so we don't collect old data
-    std::vector<rawData>().swap(m_root_raw_data);
+    // Clear the rawData vector so we don't collect old data. I think it's
+    // better to use clear since the size should always be the same anyway so we
+    // don't lose anything. The memory freeing and realocation is slow.
+    // std::vector<rawData>().swap(m_root_raw_data);
+    m_root_raw_data.clear();
 
     rawData loc_data;
 

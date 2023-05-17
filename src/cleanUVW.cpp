@@ -14,7 +14,9 @@ cleanUVW::cleanUVW(std::vector<dataUVW> uvw_vec)
     // Only needs to be done once.
     computeSavitzkyGolayCoefficients();
 
-    std::vector<dataUVW>().swap(m_uvw_vec);
+    // The size of uvw should always be the same so we can just clear.
+    // std::vector<dataUVW>().swap(m_uvw_vec);
+    m_uvw_vec.clear();
 
     m_uvw_vec = std::move(uvw_vec);
 }
@@ -27,7 +29,9 @@ cleanUVW::cleanUVW(std::vector<dataUVW> uvw_vec)
  */
 int cleanUVW::setUVWData(std::vector<dataUVW> uvw_vec) {
 
-    std::vector<dataUVW>().swap(m_uvw_vec);
+    // The size of uvw should always be the same so we can just clear.
+    // std::vector<dataUVW>().swap(m_uvw_vec);
+    m_uvw_vec.clear();
 
     if (uvw_vec.size() == 0)
         return -3;
