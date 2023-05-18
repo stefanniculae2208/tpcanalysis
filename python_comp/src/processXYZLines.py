@@ -3,7 +3,7 @@ import numpy as np
 from skimage.measure import LineModelND, ransac
 
 
-class processLine:
+class processXYZLines:
 
     def __init__(self, entry):
         self._m_entry = entry

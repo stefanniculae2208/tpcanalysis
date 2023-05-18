@@ -1854,12 +1854,12 @@ void view_data_entries(TString fileName, const bool charge_opt = false) {
             std::cout << "Error get hit info code " << err << std::endl;
 
         data_container.hit_data = loc_convert_hit.returnHitData();
-        data_container.raw_hist_container = loc_convert_hit.returnHistData();
+        // data_container.raw_hist_container = loc_convert_hit.returnHistData();
 
         std::cout << "Hit data size " << data_container.hit_data.size()
                   << std::endl;
-        std::cout << "Hist data size "
-                  << data_container.raw_hist_container.size() << std::endl;
+        /* std::cout << "Hist data size "
+                  << data_container.raw_hist_container.size() << std::endl; */
 
         err = loc_conv_xyz.getNewVector(data_container.hit_data);
         if (err != 0)
@@ -2641,7 +2641,7 @@ void printReorderedChannels(TString fileName, int entry_nr, int plane) {
 }
 
 void create_labeled_pdf(TString source_file, TString destination_file,
-                        int read_entries, int norm_opt = 1) {
+                        int read_entries) {
 
     int entry_nr = 0;
     int max_entries;
@@ -2723,12 +2723,12 @@ void create_labeled_pdf(TString source_file, TString destination_file,
         std::cout << "UVW data size is " << data_container.uvw_data.size()
                   << "\n";
 
-        reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(
+        /* reorderCh::reorderChfromFile<reorderCh::planeInfo_U>(
             data_container.uvw_data);
         reorderCh::reorderChfromFile<reorderCh::planeInfo_V>(
             data_container.uvw_data);
         reorderCh::reorderChfromFile<reorderCh::planeInfo_W>(
-            data_container.uvw_data);
+            data_container.uvw_data); */
 
         loc_clean_uvw.setUVWData(data_container.uvw_data);
 
@@ -3250,11 +3250,11 @@ void createLabeledXYZcsv(TString source_file, TString destination_file,
             std::cout << "Error get hit info code " << err << "\n";
 
         data_container.hit_data = loc_convert_hit.returnHitData();
-        data_container.raw_hist_container = loc_convert_hit.returnHistData();
+        // data_container.raw_hist_container = loc_convert_hit.returnHistData();
 
         std::cout << "Hit data size " << data_container.hit_data.size() << "\n";
-        std::cout << "Hist data size "
-                  << data_container.raw_hist_container.size() << "\n";
+        /* std::cout << "Hist data size "
+                  << data_container.raw_hist_container.size() << "\n"; */
 
         err = loc_conv_xyz.getNewVector(data_container.hit_data);
         if (err != 0)
@@ -3563,10 +3563,124 @@ void countEventsFromFile(TString filename) {
     out_file.close();
 }
 
+void createUVWcsv(TString source_file, TString destination_file) {
+
+    int entry_nr = 0;
+    int max_entries;
+
+    auto goodFile = source_file;
+
+    auto goodTree = "tree";
+
+    loadData good_data(goodFile, goodTree);
+
+    auto err = good_data.openFile();
+    err = good_data.readData();
+    max_entries = good_data.returnNEntries();
+
+    convertUVW loc_conv_uvw;
+
+    err = loc_conv_uvw.openSpecFile();
+
+    if (err != 0)
+        return;
+
+    cleanUVW loc_clean_uvw;
+
+    convertHitData loc_convert_hit;
+
+    std::ofstream out_file(destination_file);
+
+    if (!out_file.is_open()) {
+        std::cerr << "Error: Could not open file for output" << std::endl;
+        return;
+    }
+
+    // header
+    out_file << "entry_nr,plane,strip,time_bin\n";
+
+    while (entry_nr < max_entries) {
+
+        generalDataStorage data_container;
+
+        std::cout << "\n\n\nNow at entry: " << entry_nr << " of " << max_entries
+                  << " for " << destination_file << "\n";
+
+        err = good_data.decodeData(entry_nr);
+        if (err != 0) {
+            std::cout << "Error decode data code " << err << "\n";
+        }
+
+        data_container.root_raw_data = good_data.returnRawData();
+
+        std::cout << "RAW data size is " << data_container.root_raw_data.size()
+                  << "\n";
+
+        loc_conv_uvw.setRawData(data_container.root_raw_data);
+
+        err = loc_conv_uvw.makeConversion();
+        if (err != 0)
+            std::cout << "Make conversion error code " << err << "\n";
+
+        data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+        std::cout << "UVW data size is " << data_container.uvw_data.size()
+                  << "\n";
+
+        loc_clean_uvw.setUVWData(data_container.uvw_data);
+
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+
+        data_container.uvw_data = loc_clean_uvw.returnDataUVW();
+
+        std::cout << "Cleaned data size: " << data_container.uvw_data.size()
+                  << "\n";
+
+        err = loc_convert_hit.setUVWData(data_container.uvw_data);
+        if (err != 0)
+            std::cout << "Error set UVW data code " << err << "\n";
+
+        err = loc_convert_hit.getHitInfo();
+        if (err != 0)
+            std::cout << "Error get hit info code " << err << "\n";
+
+        data_container.hit_data = loc_convert_hit.returnHitData();
+        data_container.raw_hist_container = loc_convert_hit.returnHistData();
+
+        std::cout << "Hit data size " << data_container.hit_data.size() << "\n";
+
+        std::sort(data_container.hit_data.begin(),
+                  data_container.hit_data.end(),
+                  [](const hitPoints &a, const hitPoints &b) {
+                      return a.plane < b.plane;
+                  });
+
+        for (const auto &hit : data_container.hit_data) {
+
+            out_file << entry_nr << "," << hit.plane << "," << hit.strip << ","
+                     << hit.peak_x << "\n";
+        }
+
+        entry_nr++;
+    }
+
+    out_file.close();
+
+    std::cout << "\n\n\nDONE!!!!!!!\n\n\n" << std::endl;
+}
+
 void runmacro(TString lin_arg) {
 
-    view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                      "CoBo_2018-06-20T10-51-39.459_0000.root");
+    /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                      "CoBo_2018-06-20T10-51-39.459_0000.root"); */
 
     /* view_raw_data("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                   "CoBo_2018-06-20T10-51-39.459_0000.root",
@@ -3580,10 +3694,10 @@ void runmacro(TString lin_arg) {
 
     /* create_labeled_pdf(
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-        "CoBo_2018-06-15T17-10-22.008_0000.root",
+        "CoBo_2018-06-20T10-51-39.459_0000.root",
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledpdf/"
-        "CoBo_2018-06-15T17-10-22.008_0000.pdf",
-        100, 1); */
+        "CoBo_2018-06-20T10-51-39.459_0000.pdf",
+        10000); */
 
     /* create_labeled_pdf(
         "./rootdata/data2.root",
@@ -3631,14 +3745,11 @@ void runmacro(TString lin_arg) {
                            "CoBo_2018-06-20T10-51-39.459_0000.root",
                            79, 0, 1); */
 
-    /* createLabeledXYZcsv("./rootdata/data2.root",
-       "./converteddata/data2_1.csv", 1); */
-
     /* createLabeledXYZcsv(
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-        "CoBo_2018-06-20T10-51-39.459_0000.root",
+        "CoBo_2018-06-16T10-18-38.616_0000.root",
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledcsv/"
-        "CoBo_2018-06-20T10-51-39.459_0000.csv",
+        "CoBo_2018-06-16T10-18-38.616_0000.csv",
         0); */
 
     /* createLabeledXYZcsv(
@@ -3646,6 +3757,16 @@ void runmacro(TString lin_arg) {
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledcsv/"
         "data2.csv",
         0); */
+
+    /* createUVWcsv("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                 "CoBo_2018-06-16T10-18-38.616_0000.root",
+                 "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/uvwcsv/"
+                 "CoBo_2018-06-16T10-18-38.616_0000.csv"); */
+
+    createUVWcsv("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                 "CoBo_2018-06-20T10-51-39.459_0000.root",
+                 "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/uvwcsv/"
+                 "CoBo_2018-06-20T10-51-39.459_0000.csv");
 
     // mass_convertLabeledPDF(lin_arg, 10000);
 
