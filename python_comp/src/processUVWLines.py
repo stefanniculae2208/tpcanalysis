@@ -63,12 +63,17 @@ class processUVWLines:
         # Start with plane U
         features = self._m_hits_u
 
+        model_robust_u = []
+
         for i in range(n):
 
             if (len(features) > min_samples):
 
-                model_robust_u, inliers = ransac(features, LineModelND, min_samples=min_samples,
-                                                 residual_threshold=residual_threshold, max_trials=max_trials, random_state=0)
+                model, inliers = ransac(features, LineModelND, min_samples=min_samples,
+                                        residual_threshold=residual_threshold, max_trials=max_trials, random_state=0)
+
+                model_robust_u.append(model)
+
                 outliers = inliers == False
 
                 if (enable_scatter == True):
@@ -79,7 +84,7 @@ class processUVWLines:
 
                 line_points = np.linspace(features[inliers].min(
                     axis=0), features[inliers].max(axis=0), num=len(inliers))
-                xy_line = model_robust_u.predict(line_points[:, 0])
+                xy_line = model_robust_u[i].predict(line_points[:, 0])
                 axes[0].plot(xy_line[:, 0], xy_line[:, 1],
                              label=f'Fitted line {i+1}')
 
@@ -93,12 +98,17 @@ class processUVWLines:
         # Then plane V
         features = self._m_hits_v
 
+        model_robust_v = []
+
         for i in range(n):
 
             if (len(features) > min_samples):
 
-                model_robust_v, inliers = ransac(features, LineModelND, min_samples=min_samples,
-                                                 residual_threshold=residual_threshold, max_trials=max_trials, random_state=0)
+                model, inliers = ransac(features, LineModelND, min_samples=min_samples,
+                                        residual_threshold=residual_threshold, max_trials=max_trials, random_state=0)
+
+                model_robust_v.append(model)
+
                 outliers = inliers == False
 
                 if (enable_scatter == True):
@@ -109,7 +119,7 @@ class processUVWLines:
 
                 line_points = np.linspace(features[inliers].min(
                     axis=0), features[inliers].max(axis=0), num=len(inliers))
-                xy_line = model_robust_v.predict(line_points[:, 0])
+                xy_line = model_robust_v[i].predict(line_points[:, 0])
                 axes[1].plot(xy_line[:, 0], xy_line[:, 1],
                              label=f'Fitted line {i+1}')
 
@@ -123,12 +133,17 @@ class processUVWLines:
         # Finally plane W
         features = self._m_hits_w
 
+        model_robust_w = []
+
         for i in range(n):
 
             if (len(features) > min_samples):
 
-                model_robust_w, inliers = ransac(features, LineModelND, min_samples=min_samples,
-                                                 residual_threshold=residual_threshold, max_trials=max_trials, random_state=0)
+                model, inliers = ransac(features, LineModelND, min_samples=min_samples,
+                                        residual_threshold=residual_threshold, max_trials=max_trials, random_state=0)
+
+                model_robust_w.append(model)
+
                 outliers = inliers == False
 
                 if (enable_scatter == True):
@@ -139,7 +154,7 @@ class processUVWLines:
 
                 line_points = np.linspace(features[inliers].min(
                     axis=0), features[inliers].max(axis=0), num=len(inliers))
-                xy_line = model_robust_w.predict(line_points[:, 0])
+                xy_line = model_robust_w[i].predict(line_points[:, 0])
                 axes[2].plot(xy_line[:, 0], xy_line[:, 1],
                              label=f'Fitted line {i+1}')
 
