@@ -222,6 +222,9 @@ int convertHitData::getHitInfo(const Double_t sensitivity_avg,
             // curr_point.base_line =
             // hist_iter->GetFunction("gaus_and_pol0")->GetParameter(0);
 
+            /* curr_point.peak_x = peaks_x[i];
+            curr_point.peak_y = peaks_y[i]; */
+
             m_hit_data.push_back(curr_point);
         }
 

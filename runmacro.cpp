@@ -1758,7 +1758,7 @@ void view_data_entries(TString fileName, const bool charge_opt = false) {
             entry_nr = 0;
         }
 
-        err = good_data.decodeData(entry_nr);
+        err = good_data.decodeData(entry_nr, false);
         if (err != 0) {
             std::cout << "Error decode data code " << err << std::endl;
         }
@@ -3679,12 +3679,12 @@ void createUVWcsv(TString source_file, TString destination_file) {
 
 void runmacro(TString lin_arg) {
 
-    /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                      "CoBo_2018-06-20T10-51-39.459_0000.root"); */
+    view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                      "CoBo_2018-06-20T10-51-39.459_0000.root");
 
-    view_raw_data("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+    /* view_raw_data("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                   "CoBo_2018-06-16T10-18-38.616_0000.root",
-                  1);
+                  1); */
 
     /* create_entries_pdf("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                        "CoBo_2018-06-20T10-51-39.459_0000.root",
