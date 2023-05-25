@@ -1853,6 +1853,11 @@ void view_data_entries(TString fileName, const bool charge_opt = false) {
         if (err != 0)
             std::cout << "Error get hit info code " << err << std::endl;
 
+        if (loc_convert_hit.containsVerticalLine() == true) {
+
+            std::cout << "\n\nContains vertical line!\n\n";
+        }
+
         data_container.hit_data = loc_convert_hit.returnHitData();
         // data_container.raw_hist_container = loc_convert_hit.returnHistData();
 

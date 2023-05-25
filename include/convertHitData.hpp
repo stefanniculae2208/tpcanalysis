@@ -2,6 +2,7 @@
 #define convertHitData_hpp 1
 
 #include <numeric>
+#include <unordered_map>
 
 #include "dataUVW.hpp"
 #include "hitPoints.hpp"
@@ -30,6 +31,8 @@ class convertHitData {
     std::vector<hitPoints> returnHitData();
 
     std::vector<TH1D *> returnHistData();
+
+    bool containsVerticalLine();
 
   private:
     /// @brief Vector containing the data in the UVW format. Taken as input.

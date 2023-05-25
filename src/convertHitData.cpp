@@ -331,3 +331,38 @@ convertHitData::findPeaks(const TH1D *loc_hist, const double &peak_th) {
 
     return {n_peaks, std::move(peaks_x), std::move(peaks_y)};
 }
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+bool convertHitData::containsVerticalLine() {
+
+    if (m_hit_data.size() == 0) {
+
+        throw std::invalid_argument("The number of points is 0.");
+    }
+
+    static constexpr int min_num_points = 10;
+
+    static constexpr int error_margin = 3;
+
+    std::unordered_map<int, int> countMap;
+
+    for (const auto &point : m_hit_data) {
+
+        for (auto i = (point.peak_x - error_margin);
+             i < (point.peak_x + error_margin + 1); ++i) {
+
+            countMap[i]++;
+            if (countMap[i] > min_num_points) {
+
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
