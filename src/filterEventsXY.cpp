@@ -3,6 +3,7 @@
  * @brief Filters the event by checking it's size and removes events with too
  * few data points. Afterwards, it pushes the event into the event vector.
  * Each event represents an entry from the tree.
+ * Also filters vertical lines, since they have to be treated separately.
  *
  * @param event_entry The event to be added.
  * @return int Error codes.
@@ -14,7 +15,8 @@ int filterEventsXY::filterAndPush(generalDataStorage &event_entry) {
     if (vec_size == 0)
         return -3;
 
-    if (vec_size > (min_event_size - 1))
+    if (vec_size > (min_event_size - 1) &&
+        event_entry.contains_vertical_line != 1)
         m_event_vec.push_back(event_entry);
 
     return 0;
@@ -27,7 +29,8 @@ int filterEventsXY::filterAndPush(generalDataStorage &&event_entry) noexcept {
     if (vec_size == 0)
         return -3;
 
-    if (vec_size > (min_event_size - 1))
+    if (vec_size > (min_event_size - 1) &&
+        event_entry.contains_vertical_line != 1)
         m_event_vec.push_back(std::move(event_entry));
 
     return 0;

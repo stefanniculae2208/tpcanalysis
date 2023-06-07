@@ -33,8 +33,6 @@ class cleanUVW {
     template <typename pI> int substractBl();
     template <typename pI> int getChargeHist(TH1D *&charge_hist);
 
-    bool isVerticalLine() noexcept(false);
-
     std::vector<dataUVW> returnDataUVW();
 
     /**

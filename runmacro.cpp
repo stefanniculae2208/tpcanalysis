@@ -1849,13 +1849,19 @@ void view_data_entries(TString fileName, const bool charge_opt = false) {
         if (err != 0)
             std::cout << "Error set UVW data code " << err << std::endl;
 
-        err = loc_convert_hit.getHitInfo();
+        err = loc_convert_hit.getHitInfo(2.2, 0.55);
         if (err != 0)
             std::cout << "Error get hit info code " << err << std::endl;
 
-        if (loc_convert_hit.containsVerticalLine() == true) {
+        try {
+            if (loc_convert_hit.containsVerticalLine() == true) {
 
-            std::cout << "\n\nContains vertical line!\n\n";
+                std::cout << "\n\nContains vertical line!\n\n";
+            }
+        } catch (std::exception &e) {
+
+            std::cerr << "Exception detected at containsVerticalLine: \n\t"
+                      << e.what() << std::endl;
         }
 
         data_container.hit_data = loc_convert_hit.returnHitData();
@@ -2227,9 +2233,15 @@ void view_data_entries(TString fileName, const bool charge_opt = false) {
  *
  * @param filename The name of the .root file.
  * @param entry_nr The entry number to be converted.
+ *
+ * @return
  */
-void drawUVWimage(TString filename = "./rootdata/data2.root",
-                  int entry_nr = 429) {
+int drawUVWimage(TString filename = "./rootdata/data2.root",
+                 TString outfolder =
+                     "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/rawimages/",
+                 int entry_nr = 0, bool opt_clean = false) {
+
+    gROOT->SetBatch(kTRUE);
 
     generalDataStorage data_container;
 
@@ -2241,6 +2253,14 @@ void drawUVWimage(TString filename = "./rootdata/data2.root",
 
     auto err = good_data.openFile();
     err = good_data.readData();
+
+    auto n_entries = good_data.returnNEntries();
+
+    if (entry_nr >= n_entries) {
+
+        return -1;
+    }
+
     err = good_data.decodeData(entry_nr);
     data_container.root_raw_data = good_data.returnRawData();
 
@@ -2249,23 +2269,31 @@ void drawUVWimage(TString filename = "./rootdata/data2.root",
     err = loc_conv_uvw.openSpecFile();
 
     if (err != 0)
-        return;
+        return -2;
 
-    err = loc_conv_uvw.makeConversion();
+    err = loc_conv_uvw.makeConversion(opt_clean);
     if (err != 0)
         std::cout << "Make conversion error code " << err << std::endl;
 
-    /* err = loc_conv_uvw.substractBl();
-
-    if (err != 0)
-        std::cout << "Substractbl error code " << err << std::endl;
-
-    err = loc_conv_uvw.drawChargeHist();
-
-    if (err != 0)
-        std::cout << "Draw Charge Hist error code " << err << std::endl; */
-
     data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+
+    if (opt_clean) {
+        cleanUVW loc_clean_uvw(data_container.uvw_data);
+
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+
+        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        if (err != 0)
+            std::cerr << "Error substractBl code " << err << std::endl;
+
+        data_container.uvw_data = loc_clean_uvw.returnDataUVW();
+    }
 
     auto loc_canv = new TCanvas("uvw format", "UVW hists", 800, 600);
     loc_canv->SetFrameLineColor(0);
@@ -2278,11 +2306,11 @@ void drawUVWimage(TString filename = "./rootdata/data2.root",
     gStyle->SetOptStat(0);
 
     auto u_hists =
-        new TH2D(Form("u_hists_%d", entry_nr), "", 512, 1, 513, 100, 1, 101);
+        new TH2D(Form("u_hists_%d", entry_nr), "", 512, 1, 513, 72, 1, 72);
     auto v_hists =
-        new TH2D(Form("v_hists_%d", entry_nr), "", 512, 1, 513, 100, 1, 101);
+        new TH2D(Form("v_hists_%d", entry_nr), "", 512, 1, 513, 92, 1, 92);
     auto w_hists =
-        new TH2D(Form("w_hists_%d", entry_nr), "", 512, 1, 513, 100, 1, 101);
+        new TH2D(Form("w_hists_%d", entry_nr), "", 512, 1, 513, 92, 1, 92);
 
     u_hists->SetTickLength(0);
     TAxis *u_axis = u_hists->GetYaxis();
@@ -2336,17 +2364,21 @@ void drawUVWimage(TString filename = "./rootdata/data2.root",
 
     u_hists->Draw("COLA");
     loc_canv->Update();
-    loc_canv->Print("./converteddata/test_hist_u.png");
+    loc_canv->Print(outfolder + Form("%d", entry_nr) + "_u" + ".png");
 
     v_hists->Draw("COLA");
     loc_canv->Update();
-    loc_canv->Print("./converteddata/test_hist_v.png");
+    loc_canv->Print(outfolder + Form("%d", entry_nr) + "_v" + ".png");
 
     w_hists->Draw("COLA");
     loc_canv->Update();
-    loc_canv->Print("./converteddata/test_hist_w.png");
+    loc_canv->Print(outfolder + Form("%d", entry_nr) + "_w" + ".png");
 
     loc_canv->Close();
+
+    gROOT->SetBatch(kFALSE);
+
+    return 0;
 }
 
 /**
@@ -2757,6 +2789,17 @@ void create_labeled_pdf(TString source_file, TString destination_file,
         if (err != 0)
             std::cout << "Error get hit info code " << err << "\n";
 
+        try {
+
+            data_container.contains_vertical_line =
+                loc_convert_hit.containsVerticalLine();
+
+        } catch (std::exception &e) {
+
+            std::cerr << "Exception detected at containsVerticalLine: \n\t"
+                      << e.what() << std::endl;
+        }
+
         data_container.hit_data = loc_convert_hit.returnHitData();
         data_container.raw_hist_container = loc_convert_hit.returnHistData();
 
@@ -3078,11 +3121,11 @@ void create_labeled_pdf(TString source_file, TString destination_file,
             p_graph->GetHistogram()->SetMaximum(150);
             p_graph->GetHistogram()->SetMinimum(-10);
             p_graph->SetMarkerStyle(kFullCircle);
-            p_graph->SetTitle(
-                Form("XY coordinates projection with size %d and MSE %f; "
-                     "LABEL: %d; X axis; Y axis",
-                     curr_event.xyz_data.size(), curr_event.mse_value,
-                     curr_event.filter_label));
+            p_graph->SetTitle(Form(
+                "XY coordinates projection with size %d and MSE %f; "
+                "LABEL: %d; Straight line = %d; ",
+                curr_event.xyz_data.size(), curr_event.mse_value,
+                curr_event.filter_label, curr_event.contains_vertical_line));
             p_graph->SetMarkerColor(kBlack);
 
             /* if (chg.size() != 0) {
@@ -3164,7 +3207,7 @@ void create_labeled_pdf(TString source_file, TString destination_file,
 }
 
 void createLabeledXYZcsv(TString source_file, TString destination_file,
-                         int label = 1) {
+                         int label = 0) {
 
     int entry_nr = 0;
     int max_entries;
@@ -3250,9 +3293,20 @@ void createLabeledXYZcsv(TString source_file, TString destination_file,
         if (err != 0)
             std::cout << "Error set UVW data code " << err << "\n";
 
-        err = loc_convert_hit.getHitInfo();
+        err = loc_convert_hit.getHitInfo(2.2, 0.55);
         if (err != 0)
             std::cout << "Error get hit info code " << err << "\n";
+
+        try {
+            if (loc_convert_hit.containsVerticalLine() == true) {
+
+                std::cout << "\n\nContains vertical line!\n\n";
+            }
+        } catch (std::exception &e) {
+
+            std::cerr << "Exception detected at containsVerticalLine: \n\t"
+                      << e.what() << std::endl;
+        }
 
         data_container.hit_data = loc_convert_hit.returnHitData();
         // data_container.raw_hist_container = loc_convert_hit.returnHistData();
@@ -3682,10 +3736,85 @@ void createUVWcsv(TString source_file, TString destination_file) {
     std::cout << "\n\n\nDONE!!!!!!!\n\n\n" << std::endl;
 }
 
+void mass_create_raw_images(TString lin_arg, int nr_entries = 10000) {
+    TString dirandfileName = lin_arg;
+
+    TString fileName = dirandfileName;
+
+    TString dir = dirandfileName;
+    int index = dir.Last('/');
+    dir.Remove(index + 1, dir.Sizeof());
+
+    index = fileName.Last('/');   // remove path
+
+    fileName.Remove(0, index + 1);
+    fileName.Remove(fileName.Sizeof() - 6, fileName.Sizeof());   // remove .root
+
+    TString mkdirCommand = ".! mkdir ";
+    mkdirCommand.Append(dir);
+    mkdirCommand.Append("rawimages");
+
+    gROOT->ProcessLine(mkdirCommand);
+
+    mkdirCommand.Append("/");
+    mkdirCommand.Append(fileName);
+
+    gROOT->ProcessLine(mkdirCommand);
+
+    TString imagePath = dir + "rawimages/" + fileName + "/";
+
+    for (auto i = 0; i < nr_entries; i++) {
+
+        if (drawUVWimage(dirandfileName, imagePath, i) != 0) {
+
+            break;
+        }
+    }
+}
+
+void mass_create_clean_images(TString lin_arg, int nr_entries = 10000) {
+    TString dirandfileName = lin_arg;
+
+    TString fileName = dirandfileName;
+
+    TString dir = dirandfileName;
+    int index = dir.Last('/');
+    dir.Remove(index + 1, dir.Sizeof());
+
+    index = fileName.Last('/');   // remove path
+
+    fileName.Remove(0, index + 1);
+    fileName.Remove(fileName.Sizeof() - 6, fileName.Sizeof());   // remove .root
+
+    TString mkdirCommand = ".! mkdir ";
+    mkdirCommand.Append(dir);
+    mkdirCommand.Append("cleanimages");
+
+    gROOT->ProcessLine(mkdirCommand);
+
+    mkdirCommand.Append("/");
+    mkdirCommand.Append(fileName);
+
+    gROOT->ProcessLine(mkdirCommand);
+
+    TString imagePath = dir + "cleanimages/" + fileName + "/";
+
+    for (auto i = 0; i < nr_entries; i++) {
+
+        if (drawUVWimage(dirandfileName, imagePath, i, true) != 0) {
+
+            break;
+        }
+    }
+}
+
 void runmacro(TString lin_arg) {
 
-    view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                      "CoBo_2018-06-20T10-51-39.459_0000.root");
+    /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                      "CoBo_2018-06-20T10-51-39.459_0000.root"); */
+
+    /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                      "CoBo_2018-06-16T10-18-38.616_0000.root"); */
 
     /* view_raw_data("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                   "CoBo_2018-06-16T10-18-38.616_0000.root",
@@ -3721,7 +3850,11 @@ void runmacro(TString lin_arg) {
 
     // writeFullXYZCSV();
 
-    // drawUVWimage(429);
+    /* drawUVWimage("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                 "CoBo_2018-06-20T10-51-39.459_0000.root",
+                 "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/rawimages/"
+                 "CoBo_2018-06-20T10-51-39.459_0000/",
+                 25); */
 
     // mass_convertPDF(lin_arg);
 
@@ -3752,9 +3885,9 @@ void runmacro(TString lin_arg) {
 
     /* createLabeledXYZcsv(
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-        "CoBo_2018-06-16T10-18-38.616_0000.root",
+        "CoBo_2018-06-20T10-51-39.459_0000.root",
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledcsv/"
-        "CoBo_2018-06-16T10-18-38.616_0000.csv",
+        "CoBo_2018-06-20T10-51-39.459_0000.csv",
         0); */
 
     /* createLabeledXYZcsv(
@@ -3778,4 +3911,10 @@ void runmacro(TString lin_arg) {
     // countUsefulEvents("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/*");
 
     // countEventsFromFile(lin_arg);
+
+    /* mass_create_raw_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                           "CoBo_2018-06-20T10-51-39.459_0000.root"); */
+
+    mass_create_clean_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                             "CoBo_2018-06-20T10-51-39.459_0000.root");
 }

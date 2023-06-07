@@ -43,6 +43,10 @@ class generalDataStorage {
     /// or 2.
     int filter_label = 0;
 
+    /// @brief Obtained from convertHitData::containsVerticalLine(). Should be 1
+    /// or 0.
+    int contains_vertical_line = -1;
+
     /// @brief The calculated value of th Mean Square Error
     double mse_value = std::numeric_limits<double>::max();
 

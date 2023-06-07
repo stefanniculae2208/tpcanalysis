@@ -353,7 +353,7 @@ bool convertHitData::containsVerticalLine() {
 
     for (const auto &point : m_hit_data) {
 
-        for (auto i = (point.peak_x - error_margin);
+        /* for (auto i = (point.peak_x - error_margin);
              i < (point.peak_x + error_margin + 1); ++i) {
 
             countMap[i]++;
@@ -361,8 +361,27 @@ bool convertHitData::containsVerticalLine() {
 
                 return true;
             }
+        } */
+
+        countMap[point.peak_x]++;
+        if (countMap[point.peak_x] > min_num_points) {
+
+            return true;
         }
     }
+
+    int maxCount = 0;
+    int maxX = 0;
+
+    for (const auto &pair : countMap) {
+        if (pair.second > maxCount) {
+            maxCount = pair.second;
+            maxX = pair.first;
+        }
+    }
+
+    std::cout << "Maximum element: " << maxX << " with count " << maxCount
+              << std::endl;
 
     return false;
 }

@@ -66,8 +66,8 @@ template <typename pI> int cleanUVW::substractBl() {
         // smoothChannel(data_el.signal_val);
         data_el.signal_val = savitzkyGolayFilter(data_el.signal_val);
 
-        // Set the final 12 elements to 0 because of artifacts. To be removed
-        // when working with good data.
+        // Set the final 12 elements to 0 because of artifacts. The first few
+        // elements should also be considered for removal.
         std::fill(data_el.signal_val.begin() + 500,
                   data_el.signal_val.begin() + 512, 0);
     }
@@ -266,29 +266,6 @@ cleanUVW::savitzkyGolayFilter(const std::vector<double> &signal) {
         smoothed_signal[i] = sum;
     }
     return std::move(smoothed_signal);
-}
-
-/**
- * @brief Checks if the event is a straight vertical line. If yes, then the
- * event needs to be handled separately.
- *
- * @return true The event is a straight vertical line.
- * @return false The event is not a straight vertical line.
- */
-bool cleanUVW::isVerticalLine() {
-
-    if (std::all_of(m_charge_val[0].begin(), m_charge_val[0].end(),
-                    [](double d) { return d == 0.0; }),
-        std::all_of(m_charge_val[1].begin(), m_charge_val[1].end(),
-                    [](double d) { return d == 0.0; }),
-        std::all_of(m_charge_val[2].begin(), m_charge_val[2].end(),
-                    [](double d) { return d == 0.0; })) {
-        throw std::invalid_argument(
-            "All elements are zero. The charge histograms for all planes need "
-            "to be calculated before this function is called.");
-    }
-
-    return false;
 }
 
 /**

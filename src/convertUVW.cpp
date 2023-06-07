@@ -122,11 +122,11 @@ int convertUVW::openSpecFile() {
 /**
  * @brief Makes the conversion to the UVW format.
  *
+ * @param opt_norm Choose to normalize the channels or not.
  * @param opt_verbose Toggle the verbose option which shows the channels that
  * are not in the map. It should normally not be needes since the only channels
  * not in the map should be the FPN channels. However, you can toggle it if you
  * want to see that no other channels are left out.
- * @param opt_norm Choose to normalize the channels or not.
  * @return error codes
  */
 int convertUVW::makeConversion(const bool opt_norm, const bool opt_verbose) {

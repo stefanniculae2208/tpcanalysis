@@ -32,7 +32,7 @@ class convertHitData {
 
     std::vector<TH1D *> returnHistData();
 
-    bool containsVerticalLine();
+    bool containsVerticalLine() noexcept(false);
 
   private:
     /// @brief Vector containing the data in the UVW format. Taken as input.
