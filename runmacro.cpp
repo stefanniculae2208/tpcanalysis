@@ -1849,7 +1849,7 @@ void view_data_entries(TString fileName, const bool charge_opt = false) {
         if (err != 0)
             std::cout << "Error set UVW data code " << err << std::endl;
 
-        err = loc_convert_hit.getHitInfo(2.2, 0.55);
+        err = loc_convert_hit.getHitInfo(2.5, 0.3);
         if (err != 0)
             std::cout << "Error get hit info code " << err << std::endl;
 
@@ -3293,7 +3293,7 @@ void createLabeledXYZcsv(TString source_file, TString destination_file,
         if (err != 0)
             std::cout << "Error set UVW data code " << err << "\n";
 
-        err = loc_convert_hit.getHitInfo(2.2, 0.55);
+        err = loc_convert_hit.getHitInfo();
         if (err != 0)
             std::cout << "Error get hit info code " << err << "\n";
 
@@ -3816,6 +3816,9 @@ void runmacro(TString lin_arg) {
     /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                       "CoBo_2018-06-16T10-18-38.616_0000.root"); */
 
+    view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                      "CoBo_2018-06-20T10-51-39.459_0002.root");
+
     /* view_raw_data("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                   "CoBo_2018-06-16T10-18-38.616_0000.root",
                   1); */
@@ -3885,9 +3888,9 @@ void runmacro(TString lin_arg) {
 
     /* createLabeledXYZcsv(
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-        "CoBo_2018-06-20T10-51-39.459_0000.root",
+        "CoBo_2018-06-20T10-51-39.459_0005.root",
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/labeledcsv/"
-        "CoBo_2018-06-20T10-51-39.459_0000.csv",
+        "CoBo_2018-06-20T10-51-39.459_0005.csv",
         0); */
 
     /* createLabeledXYZcsv(
@@ -3902,10 +3905,10 @@ void runmacro(TString lin_arg) {
                  "CoBo_2018-06-16T10-18-38.616_0000.csv"); */
 
     /* createUVWcsv("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                 "CoBo_2018-06-20T10-51-39.459_0000.root",
+                 "CoBo_2018-06-20T10-51-39.459_0005.root",
                  "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/uvwcsv/"
-                 "CoBo_2018-06-20T10-51-39.459_0000.csv"); */
-
+                 "CoBo_2018-06-20T10-51-39.459_0005.csv");
+ */
     // mass_convertLabeledPDF(lin_arg, 10000);
 
     // countUsefulEvents("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/*");
@@ -3915,6 +3918,6 @@ void runmacro(TString lin_arg) {
     /* mass_create_raw_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                            "CoBo_2018-06-20T10-51-39.459_0000.root"); */
 
-    mass_create_clean_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                             "CoBo_2018-06-20T10-51-39.459_0000.root");
+    /* mass_create_clean_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                             "CoBo_2018-06-20T10-51-39.459_0000.root"); */
 }

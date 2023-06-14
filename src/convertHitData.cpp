@@ -105,6 +105,16 @@ int convertHitData::getHitInfo(const Double_t sensitivity_avg,
 
     std::vector<double> peak_th_vec;
 
+    //#####################
+
+    /* std::sort(m_uvw_data.begin(), m_uvw_data.end(),
+              [](const dataUVW &a, const dataUVW &b) {
+                  return (a.strip_nr + 1000 * a.plane_val) <
+                         (b.strip_nr + 1000 * b.plane_val);
+              }); */
+
+    //######################
+
     for (const auto &iter : m_uvw_data) {
 
         // Shouldn't be needed.
@@ -240,6 +250,21 @@ int convertHitData::getHitInfo(const Double_t sensitivity_avg,
         delete (spec_analyzer);
         spec_analyzer = nullptr;
     } */
+
+    //#######################
+
+    /* loc_canv->Print("./converteddata/currpdf.pdf[");
+
+    for (const auto &hist_iter : m_raw_hist_data) {
+
+        hist_iter->Draw("COLZ");
+        loc_canv->Update();
+        loc_canv->Print("./converteddata/currpdf.pdf");
+    }
+
+    loc_canv->Print("./converteddata/currpdf.pdf]"); */
+
+    //########################
 
     if (loc_canv) {
         loc_canv->Close();

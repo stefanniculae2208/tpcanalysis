@@ -23,8 +23,8 @@ class convertHitData {
     ~convertHitData();
     convertHitData(std::vector<dataUVW> uvw_data);
 
-    int getHitInfo(const Double_t sensitivity_avg = (double) 2.2,
-                   const Double_t sensitivity_max = (double) 0.75);
+    int getHitInfo(const Double_t sensitivity_avg = (double) 2.5,
+                   const Double_t sensitivity_max = (double) 0.3);
 
     int setUVWData(std::vector<dataUVW> uvw_data);
 

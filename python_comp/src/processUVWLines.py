@@ -210,7 +210,14 @@ class processUVWLines:
                 axes[plane].plot(
                     x, y, c='r', label=f"Line {iter+1}: y = {loc_hough_model.m}x + {loc_hough_model.b}")
             else:
-                y = 0
+                # in case of vertical line
+                if (len(points_to_remove) == 0):
+                    break
+                else:
+                    y = np.min(
+                        features[points_to_remove][:, 1])
+                axes[plane].axvline(
+                    x=x[0], y=y, color='r', linestyle='--', label=f"Line {iter+1}: vertical")
 
             if (enable_scatter):
                 axes[plane].scatter(features[points_to_remove, 0],
