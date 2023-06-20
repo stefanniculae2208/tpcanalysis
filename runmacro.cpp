@@ -3816,8 +3816,8 @@ void runmacro(TString lin_arg) {
     /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                       "CoBo_2018-06-16T10-18-38.616_0000.root"); */
 
-    view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                      "CoBo_2018-06-20T10-51-39.459_0002.root");
+    /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                      "CoBo_2018-06-20T10-51-39.459_0002.root"); */
 
     /* view_raw_data("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                   "CoBo_2018-06-16T10-18-38.616_0000.root",
@@ -3918,6 +3918,6 @@ void runmacro(TString lin_arg) {
     /* mass_create_raw_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                            "CoBo_2018-06-20T10-51-39.459_0000.root"); */
 
-    /* mass_create_clean_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                             "CoBo_2018-06-20T10-51-39.459_0000.root"); */
+    mass_create_clean_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                             "CoBo_2018-06-20T10-51-39.459_0002.root");
 }
