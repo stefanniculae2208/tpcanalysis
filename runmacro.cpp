@@ -3919,5 +3919,5 @@ void runmacro(TString lin_arg) {
                            "CoBo_2018-06-20T10-51-39.459_0000.root"); */
 
     mass_create_clean_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                             "CoBo_2018-06-20T10-51-39.459_0002.root");
+                             "CoBo_2018-06-20T10-51-39.459_0005.root");
 }
