@@ -3772,7 +3772,8 @@ void mass_create_raw_images(TString lin_arg, int nr_entries = 10000) {
     }
 }
 
-void mass_create_clean_images(TString lin_arg, int nr_entries = 10000) {
+void mass_create_clean_images(TString lin_arg, bool zip_opt = false,
+                              int nr_entries = 10000) {
     TString dirandfileName = lin_arg;
 
     TString fileName = dirandfileName;
@@ -3793,7 +3794,8 @@ void mass_create_clean_images(TString lin_arg, int nr_entries = 10000) {
     gROOT->ProcessLine(mkdirCommand);
 
     mkdirCommand.Append("/");
-    mkdirCommand.Append(fileName);
+    mkdirCommand.Append(
+        fileName);   // Create folder with the name of the root file.
 
     gROOT->ProcessLine(mkdirCommand);
 
@@ -3805,6 +3807,12 @@ void mass_create_clean_images(TString lin_arg, int nr_entries = 10000) {
 
             break;
         }
+    }
+
+    if (zip_opt) {
+
+        TString zipCommand = ".! zip -r -m " + dir + "cleanimages/" + fileName +
+                             ".zip " + imagePath;
     }
 }
 
@@ -3918,6 +3926,8 @@ void runmacro(TString lin_arg) {
     /* mass_create_raw_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                            "CoBo_2018-06-20T10-51-39.459_0000.root"); */
 
-    mass_create_clean_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                             "CoBo_2018-06-20T10-51-39.459_0004.root");
+    /* mass_create_clean_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                             "CoBo_2018-06-20T10-51-39.459_0004.root"); */
+
+    mass_create_clean_images(lin_arg, true);
 }
