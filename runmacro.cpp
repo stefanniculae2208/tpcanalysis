@@ -3813,6 +3813,8 @@ void mass_create_clean_images(TString lin_arg, bool zip_opt = false,
 
         TString zipCommand = ".! zip -r -m " + dir + "cleanimages/" + fileName +
                              ".zip " + imagePath;
+
+        gROOT->ProcessLine(zipCommand);
     }
 }
 

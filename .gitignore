@@ -19,5 +19,6 @@ entries.pdf
 #converteddata/*
 mass_convert.sh
 convert_all.sh
+convertfrom.sh
 .cache
 __pycache__/
