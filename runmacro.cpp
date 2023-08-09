@@ -3818,6 +3818,7 @@ void mass_create_clean_images(TString lin_arg, bool zip_opt = false,
     }
 }
 
+// root -q "runmacro.cpp(\"a\")"
 void runmacro(TString lin_arg) {
 
     /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
