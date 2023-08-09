@@ -254,6 +254,7 @@ void cleanUVW::computeSavitzkyGolayCoefficients() {
  */
 std::vector<double>
 cleanUVW::savitzkyGolayFilter(const std::vector<double> &signal) {
+
     std::vector<double> smoothed_signal(signal.size());
 
     // Apply the filter to each data point in the signal
@@ -265,7 +266,10 @@ cleanUVW::savitzkyGolayFilter(const std::vector<double> &signal) {
         }
         smoothed_signal[i] = sum;
     }
-    return std::move(smoothed_signal);
+
+    // return std::move(smoothed_signal);
+    // Move may hinder copy elision so it's probably not needed.
+    return smoothed_signal;
 }
 
 /**
