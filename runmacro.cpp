@@ -3805,7 +3805,7 @@ void mass_create_clean_images(TString lin_arg, bool zip_opt = false,
 
         if (drawUVWimage(dirandfileName, imagePath, i, true) != 0) {
 
-            break;
+            break; 
         }
     }
 
