@@ -19,6 +19,7 @@
 
 #ifndef TAN_PIOVER6
 #define TAN_PIOVER6 (0.577)
+#define TAN_MINUSPIOVER6 (-0.577)
 #endif
 
 #include "TGraph.h"

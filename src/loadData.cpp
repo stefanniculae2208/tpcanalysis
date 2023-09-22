@@ -220,6 +220,11 @@ void loadData::removeFPN() {
             for (auto i = 0; i < signal_vec.size(); i++) {
 
                 signal_vec[i] -= mean_fpn[key][i];
+
+                if (signal_vec[i] < 10) {
+
+                    signal_vec[i] = 10;
+                }
             }
 
             itr1++;

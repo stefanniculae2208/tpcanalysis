@@ -253,7 +253,7 @@ int convertHitData::getHitInfo(const Double_t sensitivity_avg,
 
     //#######################
 
-    loc_canv->Print("./converteddata/currpdf.pdf[");
+    /* loc_canv->Print("./converteddata/currpdf.pdf[");
 
     for (const auto &hist_iter : m_raw_hist_data) {
 
@@ -262,7 +262,7 @@ int convertHitData::getHitInfo(const Double_t sensitivity_avg,
         loc_canv->Print("./converteddata/currpdf.pdf");
     }
 
-    loc_canv->Print("./converteddata/currpdf.pdf]");
+    loc_canv->Print("./converteddata/currpdf.pdf]"); */
 
     //########################
 

@@ -36,7 +36,7 @@
  * @brief Creates the .csv file used to normalize the channels.
  *
  */
-void createNormCSV() {
+void createNormCSV(const bool opt_fpn = false) {
 
     TString filename = "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                        "CoBo_2018-06-20T10-35-30.853_0005.root";
@@ -71,7 +71,7 @@ void createNormCSV() {
 
     for (auto i = 0; i < 20; i++) {
 
-        auto err = good_data.decodeData(entry_nrs.at(i));
+        auto err = good_data.decodeData(entry_nrs.at(i), opt_fpn);
         if (err != 0) {
             std::cout << "Error decode data code " << err << std::endl;
         }
@@ -83,7 +83,7 @@ void createNormCSV() {
 
         loc_conv_uvw.setRawData(data_container.root_raw_data);
 
-        err = loc_conv_uvw.makeConversion();
+        err = loc_conv_uvw.makeConversion(false);
         if (err != 0)
             std::cout << "Make conversion error code " << err << std::endl;
 
@@ -146,13 +146,13 @@ void createNormCSV() {
 
     for (auto i = 0; i < 20; i++) {
 
-        auto err = good_data.decodeData(entry_nrs.at(i));
+        auto err = good_data.decodeData(entry_nrs.at(i), opt_fpn);
 
         data_container.root_raw_data = good_data.returnRawData();
 
         loc_conv_uvw.setRawData(data_container.root_raw_data);
 
-        err = loc_conv_uvw.makeConversion();
+        err = loc_conv_uvw.makeConversion(false);
 
         data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
@@ -371,13 +371,13 @@ template <typename pI> void calculateReorder(TString fileName) {
         if (err != 0)
             std::cerr << "Error clean::setUVWData code " << err << std::endl;
 
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoV>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoW>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
 
@@ -765,13 +765,13 @@ void create_entries_pdf(TString source_file, TString destination_file,
 
         loc_clean_uvw.setUVWData(data_container.uvw_data);
 
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoV>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoW>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
 
@@ -1490,13 +1490,13 @@ void writeFullXYZCSV(TString filename = "./rootdata/data2.root") {
 
         loc_clean_uvw.setUVWData(data_container.uvw_data);
 
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoV>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoW>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
 
@@ -1758,7 +1758,7 @@ void view_data_entries(TString fileName, const bool charge_opt = false) {
             entry_nr = 0;
         }
 
-        err = good_data.decodeData(entry_nr, false);
+        err = good_data.decodeData(entry_nr);
         if (err != 0) {
             std::cout << "Error decode data code " << err << std::endl;
         }
@@ -1800,22 +1800,25 @@ void view_data_entries(TString fileName, const bool charge_opt = false) {
             TH1D *charge_v;
             TH1D *charge_w;
 
-            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+            err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
             if (err != 0)
                 std::cerr << "Error substractBl code " << err << std::endl;
-            err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoU>(charge_u);
+            err =
+                loc_clean_uvw.getChargeHist<cleanUVW::miniPlaneInfoU>(charge_u);
             if (err != 0)
                 std::cerr << "Error getChargeHist code " << err << std::endl;
-            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+            err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoV>();
             if (err != 0)
                 std::cerr << "Error substractBl code " << err << std::endl;
-            err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoV>(charge_v);
+            err =
+                loc_clean_uvw.getChargeHist<cleanUVW::miniPlaneInfoV>(charge_v);
             if (err != 0)
                 std::cerr << "Error getChargeHist code " << err << std::endl;
-            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+            err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoW>();
             if (err != 0)
                 std::cerr << "Error substractBl code " << err << std::endl;
-            err = loc_clean_uvw.getChargeHist<cleanUVW::planeInfoW>(charge_w);
+            err =
+                loc_clean_uvw.getChargeHist<cleanUVW::miniPlaneInfoW>(charge_w);
             if (err != 0)
                 std::cerr << "Error getChargeHist code " << err << std::endl;
 
@@ -1830,15 +1833,15 @@ void view_data_entries(TString fileName, const bool charge_opt = false) {
 
         } else {
 
-            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+            err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
             if (err != 0)
                 std::cerr << "Error substractBl code " << err << std::endl;
 
-            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+            err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoV>();
             if (err != 0)
                 std::cerr << "Error substractBl code " << err << std::endl;
 
-            err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+            err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoW>();
             if (err != 0)
                 std::cerr << "Error substractBl code " << err << std::endl;
         }
@@ -2261,7 +2264,10 @@ int drawUVWimage(TString filename = "./rootdata/data2.root",
         return -1;
     }
 
-    err = good_data.decodeData(entry_nr);
+    //###########################
+    // DONT FORGET TO REMOVE THE TRUE
+    err = good_data.decodeData(entry_nr, true);
+    //##########################
     data_container.root_raw_data = good_data.returnRawData();
 
     convertUVW loc_conv_uvw(data_container.root_raw_data);
@@ -2280,15 +2286,15 @@ int drawUVWimage(TString filename = "./rootdata/data2.root",
     if (opt_clean) {
         cleanUVW loc_clean_uvw(data_container.uvw_data);
 
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
 
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoV>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
 
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoW>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
 
@@ -2769,13 +2775,13 @@ void create_labeled_pdf(TString source_file, TString destination_file,
 
         loc_clean_uvw.setUVWData(data_container.uvw_data);
 
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoV>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoW>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
 
@@ -3274,13 +3280,13 @@ void createLabeledXYZcsv(TString source_file, TString destination_file,
 
         loc_clean_uvw.setUVWData(data_container.uvw_data);
 
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoV>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoW>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
 
@@ -3473,13 +3479,13 @@ returnLabeledData(TString source_file) {
 
         loc_clean_uvw.setUVWData(data_container.uvw_data);
 
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoV>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoW>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
 
@@ -3688,13 +3694,13 @@ void createUVWcsv(TString source_file, TString destination_file) {
 
         loc_clean_uvw.setUVWData(data_container.uvw_data);
 
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoU>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoV>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoV>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
-        err = loc_clean_uvw.substractBl<cleanUVW::planeInfoW>();
+        err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoW>();
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
 
@@ -3805,16 +3811,20 @@ void mass_create_clean_images(TString lin_arg, bool zip_opt = false,
 
         if (drawUVWimage(dirandfileName, imagePath, i, true) != 0) {
 
-            break; 
+            break;
         }
     }
 
     if (zip_opt) {
 
-        TString zipCommand = ".! zip -r -m " + dir + "cleanimages/" + fileName +
-                             ".zip " + imagePath;
+        TString zipCommand = ".! zip -j -r -m " + dir + "cleanimages/" +
+                             fileName + ".zip " + imagePath;
 
         gROOT->ProcessLine(zipCommand);
+
+        TString rmCommand = ".! rm -r " + imagePath;
+
+        gROOT->ProcessLine(rmCommand);
     }
 }
 
@@ -3828,7 +3838,7 @@ void runmacro(TString lin_arg) {
                       "CoBo_2018-06-16T10-18-38.616_0000.root"); */
 
     /* view_data_entries("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                      "CoBo_2018-06-20T10-51-39.459_0004.root"); */
+                      "CoBo_2018-06-20T10-51-39.459_0002.root"); */
 
     /* view_raw_data("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                   "CoBo_2018-06-16T10-18-38.616_0000.root",
@@ -3874,7 +3884,7 @@ void runmacro(TString lin_arg) {
 
     // mass_convertRawPDF(lin_arg, 10000);
 
-    // createNormCSV();
+    // createNormCSV(false);
 
     // printPeaksByChannel("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/CoBo_2018-06-20T10-35-30.853_0005.root",
     // 424, 0, 1);
@@ -3930,7 +3940,8 @@ void runmacro(TString lin_arg) {
                            "CoBo_2018-06-20T10-51-39.459_0000.root"); */
 
     /* mass_create_clean_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                             "CoBo_2018-06-20T10-51-39.459_0004.root"); */
+                             "CoBo_2018-06-20T10-51-39.459_0004.root",
+                             true); */
 
     mass_create_clean_images(lin_arg, true);
 }

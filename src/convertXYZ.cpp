@@ -319,7 +319,7 @@ std::pair<double, double> convertXYZ::calculateXYfromUV(const int strip_u,
     xy_from_uv.first = 106.5 - ((strip_u - 1) * 1.5);
 
     //-0.577 is tan(-M_PI/6) which is -tan(M_PI/6)
-    xy_from_uv.second = -TAN_PIOVER6 * xy_from_uv.first + y_part_from_v;
+    xy_from_uv.second = TAN_MINUSPIOVER6 * xy_from_uv.first + y_part_from_v;
 
     return xy_from_uv;
 }
@@ -338,12 +338,12 @@ std::pair<double, double> convertXYZ::calculateXYfromVW(const int strip_v,
     std::pair<double, double> xy_from_vw;
 
     // 0.866 is cos(M_PI/6)
-    double part_from_v = 4.33 + (strip_v - 1) * (1.5 / 0.866);
-    double part_from_w = 100.459 - (strip_w - 1) * (1.5 / 0.866);
+    double part_from_v = 4.33 + (strip_v - 1) * (1.5 / COS_PIOVER6);
+    double part_from_w = 100.459 - (strip_w - 1) * (1.5 / COS_PIOVER6);
 
     // 0.577 is tan(M_PI/6) and -0.577 is tan(-M_PI/6)
     xy_from_vw.first =
-        (part_from_w - part_from_v) / (-TAN_PIOVER6 - TAN_PIOVER6);
+        (part_from_w - part_from_v) / (TAN_MINUSPIOVER6 - TAN_PIOVER6);
     xy_from_vw.second = (-TAN_PIOVER6) * xy_from_vw.first + part_from_v;
 
     return xy_from_vw;

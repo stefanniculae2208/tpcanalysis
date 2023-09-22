@@ -65,9 +65,23 @@ int convertUVW::setUVWData(std::vector<dataUVW> data_vec) {
  *
  * @return error codes
  */
-int convertUVW::openSpecFile() {
+int convertUVW::openSpecFile(int opt_tpc_ver) {
 
-    std::string specfilename = "./utils/new_geometry_mini_eTPC.dat";
+    std::string specfilename;
+
+    std::map<int, int> channel_reorder_map;
+
+    if (opt_tpc_ver == 0) {
+
+        miniTPCinfo curr_ver;
+        specfilename = curr_ver.specfilename;
+        channel_reorder_map = curr_ver.channel_reorder_map;
+    } else if (opt_tpc_ver == 1) {
+
+        largeTPCinfo curr_ver;
+        specfilename = curr_ver.specfilename;
+        channel_reorder_map = curr_ver.channel_reorder_map;
+    }
 
     std::ifstream spec_file(specfilename.c_str());
 
@@ -105,11 +119,18 @@ int convertUVW::openSpecFile() {
 
             auto old_channel = channel;
 
-            try {
+            /* try {
                 channel = m_channel_reorder_map[channel];
             } catch (...) {
                 std::cerr << "Error at " << old_channel << " which links to "
                           << m_channel_reorder_map[old_channel] << std::endl;
+            } */
+
+            try {
+                channel = channel_reorder_map[channel];
+            } catch (...) {
+                std::cerr << "Error at " << old_channel << " which links to "
+                          << channel_reorder_map[old_channel] << std::endl;
             }
 
             fPositionMap.insert({{AGET, channel}, {gem, strip}});
@@ -230,7 +251,9 @@ int convertUVW::convertToCSV(const std::string file_name) {
  */
 void convertUVW::buildNormalizationMap() {
 
-    const std::string filename = "./utils/ch_norm_ratios.csv";
+    // const std::string filename = "./utils/ch_norm_ratios.csv";
+
+    const std::string filename = miniTPCinfo::norm_file_name;
 
     std::ifstream file(filename);
 

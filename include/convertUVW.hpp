@@ -40,7 +40,7 @@ class convertUVW {
 
     int setUVWData(std::vector<dataUVW> data_vec);
 
-    int openSpecFile();
+    int openSpecFile(int opt_tpc_ver = 0);
 
     int makeConversion(const bool opt_norm = true,
                        const bool opt_verbose = false);
@@ -48,6 +48,51 @@ class convertUVW {
     int convertToCSV(const std::string file_name);
 
     std::vector<dataUVW> returnDataUVW();
+
+    struct miniTPCinfo {
+
+        inline static const std::string specfilename =
+            "./utils/new_geometry_mini_eTPC.dat";
+
+        inline static const std::string norm_file_name =
+            "./utils/ch_norm_ratios.csv";
+
+        inline static std::map<int, int> channel_reorder_map = {
+            {0, 0},   {1, 1},   {2, 2},   {3, 3},   {4, 4},   {5, 5},
+            {6, 6},   {7, 7},   {8, 8},   {9, 9},   {10, 10}, {11, 12},
+            {12, 13}, {13, 14}, {14, 15}, {15, 16}, {16, 17}, {17, 18},
+            {18, 19}, {19, 20}, {20, 21}, {21, 23}, {22, 24}, {23, 25},
+            {24, 26}, {25, 27}, {26, 28}, {27, 29}, {28, 30}, {29, 31},
+            {30, 32}, {31, 33}, {32, 34}, {33, 35}, {34, 36}, {35, 37},
+            {36, 38}, {37, 39}, {38, 40}, {39, 41}, {40, 42}, {41, 43},
+            {42, 44}, {43, 46}, {44, 47}, {45, 48}, {46, 49}, {47, 50},
+            {48, 51}, {49, 52}, {50, 53}, {51, 54}, {52, 55}, {53, 57},
+            {54, 58}, {55, 59}, {56, 60}, {57, 61}, {58, 62}, {59, 63},
+            {60, 64}, {61, 65}, {62, 66}, {63, 67}};
+    };
+
+    // TODO
+    struct largeTPCinfo {
+
+        inline static const std::string specfilename =
+            "./utils/new_geometry_mini_eTPC.dat";
+
+        inline static const std::string norm_file_name =
+            "./utils/ch_norm_ratios.csv";
+
+        inline static std::map<int, int> channel_reorder_map = {
+            {0, 0},   {1, 1},   {2, 2},   {3, 3},   {4, 4},   {5, 5},
+            {6, 6},   {7, 7},   {8, 8},   {9, 9},   {10, 10}, {11, 12},
+            {12, 13}, {13, 14}, {14, 15}, {15, 16}, {16, 17}, {17, 18},
+            {18, 19}, {19, 20}, {20, 21}, {21, 23}, {22, 24}, {23, 25},
+            {24, 26}, {25, 27}, {26, 28}, {27, 29}, {28, 30}, {29, 31},
+            {30, 32}, {31, 33}, {32, 34}, {33, 35}, {34, 36}, {35, 37},
+            {36, 38}, {37, 39}, {38, 40}, {39, 41}, {40, 42}, {41, 43},
+            {42, 44}, {43, 46}, {44, 47}, {45, 48}, {46, 49}, {47, 50},
+            {48, 51}, {49, 52}, {50, 53}, {51, 54}, {52, 55}, {53, 57},
+            {54, 58}, {55, 59}, {56, 60}, {57, 61}, {58, 62}, {59, 63},
+            {60, 64}, {61, 65}, {62, 66}, {63, 67}};
+    };
 
   private:
     /// @brief The map used to make the conversion. Built from

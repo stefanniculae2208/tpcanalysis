@@ -40,7 +40,7 @@ class cleanUVW {
      * The U, V and W structs are used as types for the functions of the class.
      *
      */
-    struct planeInfoU {
+    struct miniPlaneInfoU {
         static const int plane_nr = 0;
         static const int plane_size = 72;
         inline static const std::string plane_hist_name = "Charge_hist_plane_u";
@@ -51,7 +51,7 @@ class cleanUVW {
      * The U, V and W structs are used as types for the functions of the class.
      *
      */
-    struct planeInfoV {
+    struct miniPlaneInfoV {
         static const int plane_nr = 1;
         static const int plane_size = 92;
         inline static const std::string plane_hist_name = "Charge_hist_plane_v";
@@ -62,7 +62,7 @@ class cleanUVW {
      * The U, V and W structs are used as types for the functions of the class.
      *
      */
-    struct planeInfoW {
+    struct miniPlaneInfoW {
         static const int plane_nr = 2;
         static const int plane_size = 92;
         inline static const std::string plane_hist_name = "Charge_hist_plane_w";
