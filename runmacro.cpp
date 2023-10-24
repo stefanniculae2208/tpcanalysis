@@ -3936,12 +3936,12 @@ void runmacro(TString lin_arg) {
 
     // countEventsFromFile(lin_arg);
 
-    /* mass_create_raw_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                           "CoBo_2018-06-20T10-51-39.459_0000.root"); */
+    mass_create_raw_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                           "CoBo_2018-06-20T10-51-39.459_0000.root");
 
     /* mass_create_clean_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                              "CoBo_2018-06-20T10-51-39.459_0004.root",
                              true); */
 
-    mass_create_clean_images(lin_arg, true);
+    // mass_create_clean_images(lin_arg, true);
 }
