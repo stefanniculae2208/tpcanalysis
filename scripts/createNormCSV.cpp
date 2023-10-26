@@ -34,6 +34,7 @@
 
 /**
  * @brief Creates the .csv file used to normalize the channels.
+ * The file and channels used have been pre selected.
  *
  */
 void createNormCSV(bool lin_arg = false) {
@@ -67,6 +68,7 @@ void createNormCSV(bool lin_arg = false) {
 
     std::array<double, 3> total_mean = {};
 
+    // Entries have been manually selected and should be mostly noise.
     std::array<int, 20> entry_nrs = {7,  15,  22,  36,  37,  40, 49,
                                      52, 53,  55,  56,  61,  65, 68,
                                      78, 102, 103, 143, 152, 161};

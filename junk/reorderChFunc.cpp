@@ -33,7 +33,9 @@
 #include "dict/src/GFrameHeader.cpp"
 
 /**
+ * DEPRECATED:
  * @brief Tools used to reorder the channels to the correct order.
+ * No longer useful.
  *
  */
 namespace reorderCh {
