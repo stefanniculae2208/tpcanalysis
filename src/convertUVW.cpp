@@ -8,7 +8,6 @@
 convertUVW::convertUVW(std::vector<rawData> data_vec) {
 
     m_data_vec = std::move(data_vec);
-    buildNormalizationMap();
 }
 
 /**
@@ -66,6 +65,8 @@ int convertUVW::setUVWData(std::vector<dataUVW> data_vec) {
  * @return error codes
  */
 int convertUVW::openSpecFile(int opt_tpc_ver) {
+
+    buildNormalizationMap(opt_tpc_ver);
 
     std::string specfilename;
 
@@ -249,11 +250,14 @@ int convertUVW::convertToCSV(const std::string file_name) {
  * channels.
  *
  */
-void convertUVW::buildNormalizationMap() {
+void convertUVW::buildNormalizationMap(int opt_tpc_ver) {
 
     // const std::string filename = "./utils/ch_norm_ratios.csv";
 
-    const std::string filename = miniTPCinfo::norm_file_name;
+    const std::string filename =
+        (opt_tpc_ver == 0) ? miniTPCinfo::norm_file_name
+                           : (opt_tpc_ver == 1) ? largeTPCinfo::norm_file_name
+                                                : "ERROR: INVALID TPC VERSION";
 
     std::ifstream file(filename);
 

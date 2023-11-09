@@ -49,7 +49,7 @@ void viewUVWdata_mini(TString fileName) {
 
     convertUVW loc_conv_uvw;
 
-    err = loc_conv_uvw.openSpecFile();
+    err = loc_conv_uvw.openSpecFile(0);
 
     if (err != 0)
         return;
@@ -59,16 +59,18 @@ void viewUVWdata_mini(TString fileName) {
     auto loc_canv =
         new TCanvas("View entries canvas", "View entries", 1500, 1000);
     auto loc_pad = new TPad("pad name", "pad title", 0, 0, 1, 1);
-    loc_pad->Divide(3, 2);
+    loc_pad->Divide(4, 2);
     loc_pad->Draw();
 
     TH2D *u_hists = nullptr;
     TH2D *v_hists = nullptr;
     TH2D *w_hists = nullptr;
+    TH1D *c_hist = nullptr;
 
     TH2D *u_hists_clean = nullptr;
     TH2D *v_hists_clean = nullptr;
     TH2D *w_hists_clean = nullptr;
+    TH1D *c_hist_clean = nullptr;
 
     uint32_t loop_nr = 0;
 
@@ -174,6 +176,9 @@ void viewUVWdata_mini(TString fileName) {
         if (w_hists != nullptr)
             w_hists->Reset();
 
+        if (c_hist != nullptr)
+            c_hist->Reset();
+
         if (u_hists_clean != nullptr)
             u_hists_clean->Reset();
 
@@ -182,6 +187,9 @@ void viewUVWdata_mini(TString fileName) {
 
         if (w_hists_clean != nullptr)
             w_hists_clean->Reset();
+
+        if (c_hist_clean != nullptr)
+            c_hist_clean->Reset();
 
         // Crete new hists
 
@@ -195,6 +203,10 @@ void viewUVWdata_mini(TString fileName) {
                            Form("Histogram for W entry %d", entry_nr), 512, 1,
                            513, 100, 1, 101);
 
+        c_hist = new TH1D(Form("c_hist_%d", entry_nr),
+                          Form("Histogram for charge entry %d", entry_nr), 512,
+                          1, 513);
+
         u_hists_clean =
             new TH2D(Form("u_hists_clean_%d", entry_nr),
                      Form("Clean histogram for U entry %d", entry_nr), 512, 1,
@@ -207,6 +219,10 @@ void viewUVWdata_mini(TString fileName) {
             new TH2D(Form("w_hists_clean_%d", entry_nr),
                      Form("Clean histogram for W entry %d", entry_nr), 512, 1,
                      513, 100, 1, 101);
+
+        c_hist_clean = new TH1D(
+            Form("c_hist_clean_%d", entry_nr),
+            Form("Clean istogram for charge entry %d", entry_nr), 512, 1, 513);
 
         // Set the color scale
 
@@ -230,11 +246,22 @@ void viewUVWdata_mini(TString fileName) {
         w_hists_clean->SetMinimum(-100);
         w_hists_clean->SetMaximum(1000);
 
-        // Fill the hists
+        // Fill the raw hists
 
         int bin = 0;
 
+        std::array<double, 512> ch_array = {0};
+
         for (const auto &iter : data_container.uvw_data) {
+
+            // All signals should have size 512;
+            if (iter.signal_val.size() == 512) {
+
+                for (auto i = 0; i < 512; ++i) {
+
+                    ch_array[i] += iter.signal_val[i];
+                }
+            }
 
             bin = 0;
 
@@ -263,9 +290,22 @@ void viewUVWdata_mini(TString fileName) {
             }
         }
 
+        // Clean hists
+
         bin = 0;
 
+        std::array<double, 512> ch_array_clean = {0};
+
         for (const auto &iter : data_container_clean.uvw_data) {
+
+            // All signals should have size 512;
+            if (iter.signal_val.size() == 512) {
+
+                for (auto i = 0; i < 512; ++i) {
+
+                    ch_array_clean[i] += iter.signal_val[i];
+                }
+            }
 
             bin = 0;
 
@@ -297,6 +337,22 @@ void viewUVWdata_mini(TString fileName) {
             }
         }
 
+        // Fill the charge hists.
+
+        bin = 0;
+
+        for (const auto &ch_el_iter : ch_array) {
+
+            c_hist->SetBinContent(++bin, ch_el_iter);
+        }
+
+        bin = 0;
+
+        for (const auto &ch_el_iter : ch_array_clean) {
+
+            c_hist_clean->SetBinContent(++bin, ch_el_iter);
+        }
+
         // Draw the hists.
 
         loc_pad->cd(1);
@@ -305,18 +361,38 @@ void viewUVWdata_mini(TString fileName) {
         v_hists->Draw("CONT4Z");
         loc_pad->cd(3);
         w_hists->Draw("CONT4Z");   // CONT4Z or COLZ
-
         loc_pad->cd(4);
-        u_hists_clean->Draw("CONT4Z");
+        c_hist->Draw();
+
         loc_pad->cd(5);
-        v_hists_clean->Draw("CONT4Z");
+        u_hists_clean->Draw("CONT4Z");
         loc_pad->cd(6);
+        v_hists_clean->Draw("CONT4Z");
+        loc_pad->cd(7);
         w_hists_clean->Draw("CONT4Z");
+        loc_pad->cd(8);
+        c_hist_clean->Draw();
 
         loc_canv->Update();
     }
 
     loc_canv->WaitPrimitive();
+}
+
+void viewUVWdata_large(TString fileName) {
+
+    int entry_nr = -1;
+    int max_entries;
+
+    auto goodFile = fileName;
+
+    auto goodTree = "tree";
+
+    loadData good_data(goodFile, goodTree);
+
+    auto err = good_data.openFile();
+    err = good_data.readData();
+    max_entries = good_data.returnNEntries();
 }
 
 void runmacro2(TString lin_arg) {

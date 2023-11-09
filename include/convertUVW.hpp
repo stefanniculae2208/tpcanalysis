@@ -32,7 +32,7 @@ enum class GEM { U, V, W, size };
 class convertUVW {
 
   public:
-    convertUVW() { buildNormalizationMap(); };
+    convertUVW(){};
     convertUVW(std::vector<rawData> data_vec);
     ~convertUVW(){};
 
@@ -57,6 +57,11 @@ class convertUVW {
         inline static const std::string norm_file_name =
             "./utils/ch_norm_ratios.csv";
 
+        /// @brief The channels in the new_geometry files are from 0 to 63,
+        /// while the channels in the files are from 0 to 67. This is because
+        /// the new_geometry file doesn't include channels 11, 22, 45, 56 which
+        /// are used for Fixed pattern noise. For this reason we need to change
+        /// the channels from new_geometry to fit the channels from the files.
         inline static std::map<int, int> channel_reorder_map = {
             {0, 0},   {1, 1},   {2, 2},   {3, 3},   {4, 4},   {5, 5},
             {6, 6},   {7, 7},   {8, 8},   {9, 9},   {10, 10}, {11, 12},
@@ -75,7 +80,7 @@ class convertUVW {
     struct largeTPCinfo {
 
         inline static const std::string specfilename =
-            "./utils/new_geometry_mini_eTPC.dat";
+            "./utils/geometry_ELITPC_80mbar_50MHz.dat";
 
         inline static const std::string norm_file_name =
             "./utils/ch_norm_ratios.csv";
@@ -117,7 +122,7 @@ class convertUVW {
     /// new_geometry file doesn't include channels 11, 22, 45, 56 which are used
     /// for Fixed pattern noise. For this reason we need to change the channels
     /// from new_geometry to fit the channels from the files.
-    inline static std::map<int, int> m_channel_reorder_map = {
+    /* inline static std::map<int, int> m_channel_reorder_map = {
         {0, 0},   {1, 1},   {2, 2},   {3, 3},   {4, 4},   {5, 5},   {6, 6},
         {7, 7},   {8, 8},   {9, 9},   {10, 10}, {11, 12}, {12, 13}, {13, 14},
         {14, 15}, {15, 16}, {16, 17}, {17, 18}, {18, 19}, {19, 20}, {20, 21},
@@ -127,11 +132,11 @@ class convertUVW {
         {42, 44}, {43, 46}, {44, 47}, {45, 48}, {46, 49}, {47, 50}, {48, 51},
         {49, 52}, {50, 53}, {51, 54}, {52, 55}, {53, 57}, {54, 58}, {55, 59},
         {56, 60}, {57, 61}, {58, 62}, {59, 63}, {60, 64}, {61, 65}, {62, 66},
-        {63, 67}};
+        {63, 67}}; */
 
     void normalizeChannels();
 
-    void buildNormalizationMap();
+    void buildNormalizationMap(int opt_tpc_ver = 0);
 };
 
 #endif
