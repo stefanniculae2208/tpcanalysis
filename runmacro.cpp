@@ -1832,7 +1832,7 @@ int drawUVWimage(TString filename = "./rootdata/data2.root",
     data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
     if (opt_clean) {
-        cleanUVW loc_clean_uvw(data_container.uvw_data);
+        /* cleanUVW loc_clean_uvw(data_container.uvw_data);
 
         err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
         if (err != 0)
@@ -1846,7 +1846,7 @@ int drawUVWimage(TString filename = "./rootdata/data2.root",
         if (err != 0)
             std::cerr << "Error substractBl code " << err << std::endl;
 
-        data_container.uvw_data = loc_clean_uvw.returnDataUVW();
+        data_container.uvw_data = loc_clean_uvw.returnDataUVW(); */
     }
 
     auto loc_canv = new TCanvas("uvw format", "UVW hists", 800, 600);
@@ -3237,12 +3237,12 @@ void runmacro(TString lin_arg) {
 
     // countEventsFromFile(lin_arg);
 
-    mass_create_raw_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                           "CoBo_2018-06-20T10-51-39.459_0000.root");
+    /* mass_create_raw_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
+                           "CoBo_2018-06-20T10-51-39.459_0000.root"); */
 
     /* mass_create_clean_images("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-                             "CoBo_2018-06-20T10-51-39.459_0004.root",
+                             "CoBo_2018-06-20T13-12-47.629_0002.root",
                              true); */
 
-    // mass_create_clean_images(lin_arg, true);
+    mass_create_clean_images(lin_arg, true);
 }

@@ -62,6 +62,9 @@ int convertUVW::setUVWData(std::vector<dataUVW> data_vec) {
 /**
  * @brief Opens the specification file and makes the map.
  *
+ * @param opt_tpc_ver Seleects the tpc version. 0 is the mini TPC and 1 is the
+ * large TPC.
+ *
  * @return error codes
  */
 int convertUVW::openSpecFile(int opt_tpc_ver) {
