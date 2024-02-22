@@ -8,10 +8,7 @@
 #include "TString.h"
 #include "include/ErrorCodesMap.hpp"
 #include "src/cleanUVW.cpp"
-#include "src/convertHitData.cpp"
-#include "src/convertUVW.cpp"
-#include "src/convertXYZ.cpp"
-#include "src/filterEventsXY.cpp"
+#include "src/convertUVW_mini.cpp"
 #include "src/loadData.cpp"
 
 #include "include/generalDataStorage.hpp"
@@ -47,9 +44,9 @@ void viewUVWdata_mini(TString fileName) {
     err = good_data.readData();
     max_entries = good_data.returnNEntries();
 
-    convertUVW loc_conv_uvw;
+    convertUVW_mini loc_conv_uvw;
 
-    err = loc_conv_uvw.openSpecFile(0);
+    err = loc_conv_uvw.openSpecFile();
 
     if (err != 0)
         return;
@@ -226,9 +223,9 @@ void viewUVWdata_mini(TString fileName) {
 
         // Set the color scale
 
-        gStyle->SetPalette(kGreyScale);
+        // gStyle->SetPalette(kGreyScale);
 
-        u_hists->SetMinimum(-100);
+        /* u_hists->SetMinimum(-100);
         u_hists->SetMaximum(1000);
 
         v_hists->SetMinimum(-100);
@@ -237,7 +234,7 @@ void viewUVWdata_mini(TString fileName) {
         w_hists->SetMinimum(-100);
         w_hists->SetMaximum(1000);
 
-        /* u_hists_clean->SetMinimum(-100);
+        u_hists_clean->SetMinimum(-100);
         u_hists_clean->SetMaximum(1000);
 
         v_hists_clean->SetMinimum(-100);
@@ -356,20 +353,20 @@ void viewUVWdata_mini(TString fileName) {
         // Draw the hists.
 
         loc_pad->cd(1);
-        u_hists->Draw("CONT4Z");
+        u_hists->Draw("COLZ");
         loc_pad->cd(2);
-        v_hists->Draw("CONT4Z");
+        v_hists->Draw("COLZ");
         loc_pad->cd(3);
-        w_hists->Draw("CONT4Z");   // CONT4Z or COLZ
+        w_hists->Draw("COLZ");   // CONT4Z or COLZ
         loc_pad->cd(4);
         c_hist->Draw();
 
         loc_pad->cd(5);
-        u_hists_clean->Draw("CONT4Z");
+        u_hists_clean->Draw("COLZ");
         loc_pad->cd(6);
-        v_hists_clean->Draw("CONT4Z");
+        v_hists_clean->Draw("COLZ");
         loc_pad->cd(7);
-        w_hists_clean->Draw("CONT4Z");
+        w_hists_clean->Draw("COLZ");
         loc_pad->cd(8);
         c_hist_clean->Draw();
 
@@ -377,109 +374,6 @@ void viewUVWdata_mini(TString fileName) {
     }
 
     loc_canv->WaitPrimitive();
-}
-
-void viewUVWdata_large(TString fileName) {
-
-    int entry_nr = -1;
-    int max_entries;
-
-    auto goodFile = fileName;
-
-    auto goodTree = "tree";
-
-    loadData good_data(goodFile, goodTree);
-
-    auto err = good_data.openFile();
-    err = good_data.readData();
-    max_entries = good_data.returnNEntries();
-
-    convertUVW loc_conv_uvw;
-
-    err = loc_conv_uvw.openSpecFile(1);
-
-    if (err != 0)
-        return;
-
-    // cleanUVW loc_clean_uvw;
-
-    uint32_t loop_nr = 0;
-
-    while (1) {
-
-        generalDataStorage data_container;
-
-        generalDataStorage data_container_clean;
-
-        std::cout
-            << "Press 'e' to exit, 'd' for next and 'a' for previous and i "
-               "to input the entry number. Loop "
-            << loop_nr << std::endl;
-
-        loop_nr++;
-
-        char key_val = getchar();
-
-        // Clear the input buffer
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-        if (key_val == 'e') {
-
-            break;
-
-        } else if (key_val == 'd') {
-
-            if (entry_nr < max_entries) {
-                entry_nr++;
-            }
-
-            std::cout << "Entry number is " << entry_nr << "\n\n" << std::endl;
-
-        } else if (key_val == 'a') {
-
-            if (entry_nr > 0) {
-                entry_nr--;
-            }
-
-            std::cout << "Entry number is " << entry_nr << "\n\n" << std::endl;
-
-        } else if (key_val == 'i') {
-
-            std::cout << "Please enter the entry number.\n";
-
-            std::cin >> entry_nr;
-
-            if (entry_nr < 0 || entry_nr > (max_entries - 1))
-                entry_nr = 0;
-
-            std::cout << "Entry number is " << entry_nr << "\n\n" << std::endl;
-        }
-
-        if (entry_nr < 0) {
-            entry_nr = 0;
-        }
-
-        err = good_data.decodeData(entry_nr, false);
-        if (err != 0) {
-            std::cout << "Error decode data code " << err << std::endl;
-        }
-
-        data_container.root_raw_data = good_data.returnRawData();
-
-        std::cout << "RAW data size is " << data_container.root_raw_data.size()
-                  << std::endl;
-
-        loc_conv_uvw.setRawData(data_container.root_raw_data);
-
-        err = loc_conv_uvw.makeConversion(true, false);
-        if (err != 0)
-            std::cout << "Make conversion error code " << err << std::endl;
-
-        data_container.uvw_data = loc_conv_uvw.returnDataUVW();
-
-        std::cout << "UVW data size is " << data_container.uvw_data.size()
-                  << std::endl;
-    }
 }
 
 int drawUVWimage_mini(
@@ -509,12 +403,12 @@ int drawUVWimage_mini(
     }
 
     //###########################
-    // DONT FORGET TO REMOVE THE TRUE
+    // DONT FORGET TO REMOVE THE TRUE FOR NO FPN
     err = good_data.decodeData(entry_nr, true);
     //##########################
     data_container.root_raw_data = good_data.returnRawData();
 
-    convertUVW loc_conv_uvw(data_container.root_raw_data);
+    convertUVW_mini loc_conv_uvw(data_container.root_raw_data);
 
     err = loc_conv_uvw.openSpecFile();
 
@@ -692,12 +586,13 @@ void mass_create_clean_images_mini(TString lin_arg, bool zip_opt = false,
     }
 }
 
-void runmacro2(TString lin_arg) {
+// root -q "runmacro_mini.cpp(\"a\")"
+void runmacro_mini(TString lin_arg) {
 
     /* viewUVWdata_mini("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                      "CoBo_2018-06-20T10-51-39.459_0000.root"); */
 
-    mass_create_clean_images_mini(
+    /* mass_create_clean_images_mini(
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
         "CoBo_2018-06-20T10-51-39.459_0000.root");
 
@@ -715,5 +610,5 @@ void runmacro2(TString lin_arg) {
 
     mass_create_clean_images_mini(
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
-        "CoBo_2018-06-20T10-51-39.459_0005.root");
+        "CoBo_2018-06-20T10-51-39.459_0005.root"); */
 }

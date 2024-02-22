@@ -129,6 +129,7 @@ int loadData::decodeData(const int entryNr, const bool remove_fpn) {
 
         loc_data.chip_nr = channel->fAgetIdx;
         loc_data.ch_nr = channel->fChanIdx;
+        loc_data.asad_id = m_data_branch->fHeader.fAsadIdx;
         loc_data.entry_nr = entryNr;
 
         while ((sample = (GDataSample *) sampleIT.Next())) {
@@ -155,6 +156,7 @@ int loadData::decodeData(const int entryNr, const bool remove_fpn) {
  */
 void loadData::removeFPN() {
 
+    // The FPN channels used for noise removal.
     static const std::set<int> channels_of_interest = {11, 22, 45, 56};
 
     std::multimap<int, std::reference_wrapper<std::vector<double>>>

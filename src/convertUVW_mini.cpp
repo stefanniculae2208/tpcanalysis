@@ -1,11 +1,11 @@
-#include "../include/convertUVW.hpp"
+#include "../include/convertUVW_mini.hpp"
 
 /**
  * @brief Construct a new convert U V W::convert U V W object
  *
  * @param data_vec the raw data vector to be converted to the UVW format
  */
-convertUVW::convertUVW(std::vector<rawData> data_vec) {
+convertUVW_mini::convertUVW_mini(std::vector<rawData> data_vec) {
 
     m_data_vec = std::move(data_vec);
 }
@@ -16,7 +16,7 @@ convertUVW::convertUVW(std::vector<rawData> data_vec) {
  * @param data_vec The raw data vector to be set.
  * @return error codes
  */
-int convertUVW::setRawData(std::vector<rawData> data_vec) {
+int convertUVW_mini::setRawData(std::vector<rawData> data_vec) {
 
     // The size of these vectors should always be the same (256 and 272 if I'm
     // not wrong) so no need to reset the memory.
@@ -42,7 +42,7 @@ int convertUVW::setRawData(std::vector<rawData> data_vec) {
  * @param data_vec The UVW data vector to be set.
  * @return int error codes
  */
-int convertUVW::setUVWData(std::vector<dataUVW> data_vec) {
+int convertUVW_mini::setUVWData(std::vector<dataUVW> data_vec) {
 
     // The size of these vectors should always be the same (256 and 272 if I'm
     // not wrong) so no need to reset the memory.
@@ -62,32 +62,16 @@ int convertUVW::setUVWData(std::vector<dataUVW> data_vec) {
 /**
  * @brief Opens the specification file and makes the map.
  *
- * @param opt_tpc_ver Seleects the tpc version. 0 is the mini TPC and 1 is the
+ * @param opt_tpc_ver Selects the tpc version. 0 is the mini TPC and 1 is the
  * large TPC.
  *
  * @return error codes
  */
-int convertUVW::openSpecFile(int opt_tpc_ver) {
+int convertUVW_mini::openSpecFile() {
 
-    buildNormalizationMap(opt_tpc_ver);
+    buildNormalizationMap();
 
-    std::string specfilename;
-
-    std::map<int, int> channel_reorder_map;
-
-    if (opt_tpc_ver == 0) {
-
-        miniTPCinfo curr_ver;
-        specfilename = curr_ver.specfilename;
-        channel_reorder_map = curr_ver.channel_reorder_map;
-    } else if (opt_tpc_ver == 1) {
-
-        largeTPCinfo curr_ver;
-        specfilename = curr_ver.specfilename;
-        channel_reorder_map = curr_ver.channel_reorder_map;
-    }
-
-    std::ifstream spec_file(specfilename.c_str());
+    std::ifstream spec_file(m_specfilename.c_str());
 
     if (!spec_file.is_open()) {
         std::cerr << "Error opening file." << std::endl;
@@ -106,9 +90,9 @@ int convertUVW::openSpecFile(int opt_tpc_ver) {
             std::stringstream line(buf);
             std::string filler;
             std::string plane;
-            int strip;
-            int AGET;   // chip nr
-            int channel;
+            int strip = INT32_MAX;
+            int AGET = INT32_MAX;   // chip nr
+            int channel = INT32_MAX;
 
             line >> plane >> filler >> strip >> filler >> filler >> AGET >>
                 channel >> filler >> filler >> filler;
@@ -123,18 +107,11 @@ int convertUVW::openSpecFile(int opt_tpc_ver) {
 
             auto old_channel = channel;
 
-            /* try {
+            try {
                 channel = m_channel_reorder_map[channel];
             } catch (...) {
                 std::cerr << "Error at " << old_channel << " which links to "
                           << m_channel_reorder_map[old_channel] << std::endl;
-            } */
-
-            try {
-                channel = channel_reorder_map[channel];
-            } catch (...) {
-                std::cerr << "Error at " << old_channel << " which links to "
-                          << channel_reorder_map[old_channel] << std::endl;
             }
 
             fPositionMap.insert({{AGET, channel}, {gem, strip}});
@@ -154,7 +131,8 @@ int convertUVW::openSpecFile(int opt_tpc_ver) {
  * want to see that no other channels are left out.
  * @return error codes
  */
-int convertUVW::makeConversion(const bool opt_norm, const bool opt_verbose) {
+int convertUVW_mini::makeConversion(const bool opt_norm,
+                                    const bool opt_verbose) {
 
     auto err_code = 0;
 
@@ -169,6 +147,7 @@ int convertUVW::makeConversion(const bool opt_norm, const bool opt_verbose) {
             auto uvwPosition =
                 fPositionMap.at({data_inst.chip_nr, data_inst.ch_nr});
             loc_data_uvw.plane_val = int(uvwPosition.first);
+            loc_data_uvw.strip_section = 0;
             loc_data_uvw.strip_nr = int(uvwPosition.second);
             loc_data_uvw.signal_val = data_inst.signal_val;
             loc_data_uvw.entry_nr = data_inst.entry_nr;
@@ -199,7 +178,7 @@ int convertUVW::makeConversion(const bool opt_norm, const bool opt_verbose) {
  * @return std::vector<dataUVW> the vector to be returned containing the data
  * converted to UVW
  */
-std::vector<dataUVW> convertUVW::returnDataUVW() { return m_uvw_vec; }
+std::vector<dataUVW> convertUVW_mini::returnDataUVW() { return m_uvw_vec; }
 
 /**
  * @brief Writes the data from m_uvw_vec to a .csv file.
@@ -212,7 +191,7 @@ std::vector<dataUVW> convertUVW::returnDataUVW() { return m_uvw_vec; }
  * @param file_name the name of the .csv file
  * @return int error codes
  */
-int convertUVW::convertToCSV(const std::string file_name) {
+int convertUVW_mini::convertToCSV(const std::string file_name) {
 
     std::ofstream out_file(file_name);
 
@@ -253,14 +232,11 @@ int convertUVW::convertToCSV(const std::string file_name) {
  * channels.
  *
  */
-void convertUVW::buildNormalizationMap(int opt_tpc_ver) {
+void convertUVW_mini::buildNormalizationMap() {
 
     // const std::string filename = "./utils/ch_norm_ratios.csv";
 
-    const std::string filename =
-        (opt_tpc_ver == 0) ? miniTPCinfo::norm_file_name
-                           : (opt_tpc_ver == 1) ? largeTPCinfo::norm_file_name
-                                                : "ERROR: INVALID TPC VERSION";
+    const std::string filename = m_norm_file_name;
 
     std::ifstream file(filename);
 
@@ -301,7 +277,7 @@ void convertUVW::buildNormalizationMap(int opt_tpc_ver) {
  * in order to make sure the values on each channel are proportional with each
  * other.
  */
-void convertUVW::normalizeChannels() {
+void convertUVW_mini::normalizeChannels() {
 
     if (m_ch_ratio_map.size() == 0) {
 

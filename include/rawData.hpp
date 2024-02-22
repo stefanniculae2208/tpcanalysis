@@ -25,6 +25,12 @@ class rawData {
     /// @brief The enry from the TTree from which the signal originates.
     int entry_nr = 0;
 
+    /// @brief The id of the AsAd board. Always the same for miniTPC.
+    int asad_id = 0;
+
+    /// @brief The event from which the entry comes.
+    int event_id = 0;
+
     /// @brief The signal.
     std::vector<double> signal_val;
 };

@@ -8,10 +8,10 @@
 #include "TString.h"
 #include "include/ErrorCodesMap.hpp"
 #include "src/cleanUVW.cpp"
-#include "src/convertHitData.cpp"
-#include "src/convertUVW.cpp"
-#include "src/convertXYZ.cpp"
-#include "src/filterEventsXY.cpp"
+//#include "src/convertHitData.cpp"
+#include "src/convertUVW_mini.cpp"
+/* #include "src/convertXYZ.cpp"
+#include "src/filterEventsXY.cpp" */
 #include "src/loadData.cpp"
 
 #include "include/generalDataStorage.hpp"
@@ -195,7 +195,7 @@ void createNormCSV_mini(bool lin_arg = false) {
         }
     }
 
-    std::ofstream out_file("./utils/ch_norm_ratios.csv");
+    std::ofstream out_file("./utils/ch_norm_ratios_mini.csv");
 
     out_file << "plane,strip,ratio\n";
 
