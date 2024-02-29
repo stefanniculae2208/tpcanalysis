@@ -19,6 +19,7 @@ include(${ROOT_USE_FILE})
 
 include_directories(${PROJECT_SOURCE_DIR}
                     ${PROJECT_SOURCE_DIR}/include
+                    ${PROJECT_SOURCE_DIR}/dict
                     ${PROJECT_SOURCE_DIR}/dict/include/
                     ${ROOT_INCLUDE_DIR})
 

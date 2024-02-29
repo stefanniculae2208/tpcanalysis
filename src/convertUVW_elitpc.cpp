@@ -94,7 +94,7 @@ int convertUVW_elitpc::openSpecFile() {
             std::string plane;
             int strip = INT32_MAX;
             int AGET = INT32_MAX;   // chip nr
-            int ASAD = INT32_MAX;
+            int ASAD = INT32_MAX;   // asad board id
             int channel = INT32_MAX;
             int strip_section = INT32_MAX;
 
@@ -121,12 +121,19 @@ int convertUVW_elitpc::openSpecFile() {
 
             auto old_channel = channel;
 
+            // 0 0 - 58 60 62
+            // 3 0 - 58 60 62
+
             try {
-                channel = m_channel_reorder_map[channel];
+                // channel = m_channel_reorder_map[channel];
+                channel = m_channel_reorder_map.at(channel);
             } catch (...) {
-                std::cerr << "Error at " << old_channel << " which links to "
-                          << m_channel_reorder_map[old_channel] << std::endl;
+                std::cerr << "Error at old channel " << old_channel
+                          << std::endl;
             }
+
+            // 0 0 - 62 64 66
+            // 3 0 - 62 64 66
 
             fPositionMap.insert(
                 {{ASAD, AGET, channel}, {int(gem), strip, strip_section}});
@@ -166,11 +173,15 @@ int convertUVW_elitpc::makeConversion(const bool opt_norm,
             loc_data_uvw.strip_section = std::get<2>(uvwPosition);
             loc_data_uvw.signal_val = data_inst.signal_val;
             loc_data_uvw.entry_nr = data_inst.entry_nr;
+            loc_data_uvw.event_id = data_inst.event_id;
             m_uvw_vec.push_back(loc_data_uvw);
 
         } /*  catch (const std::exception &e) {
              std::cout << "Error at convertUVW_elitpc makeConversion: "
                        << e.what() << "\n";
+             std::cout << "For ASAD " << data_inst.asad_id << " AGET "
+                       << data_inst.chip_nr << " channel " << data_inst.ch_nr
+                       << "\n\n";
          }  */
         catch (...) {
 
@@ -199,53 +210,6 @@ int convertUVW_elitpc::makeConversion(const bool opt_norm,
  * converted to UVW
  */
 std::vector<dataUVW> convertUVW_elitpc::returnDataUVW() { return m_uvw_vec; }
-
-/**
- * @brief Writes the data from m_uvw_vec to a .csv file.
- *  The format of the .csv file is the following:
- *  First column is the plane value.
- *  Second colums is the strip number.
- *  Third column in the entry number. (Sould be the same for every element)
- *  The remaining columns contain the values of the signal.
- *
- * @param file_name the name of the .csv file
- * @return int error codes
- */
-int convertUVW_elitpc::convertToCSV(const std::string file_name) {
-
-    std::ofstream out_file(file_name);
-
-    if (!out_file.is_open()) {
-        std::cerr << "Error: Could not open file for output" << std::endl;
-        return -1;
-    }
-
-    // header
-    out_file << "plane_val,strip_nr,entry_nr,signal_val\n";
-
-    for (const auto &data_entry : m_uvw_vec) {
-
-        out_file << data_entry.plane_val << "," << data_entry.strip_nr << ","
-                 << data_entry.entry_nr << ",";
-
-        for (auto i = 0; static_cast<std::vector<double>::size_type>(i) <
-                         data_entry.signal_val.size();
-             i++) {
-
-            out_file << data_entry.signal_val[i];
-            if (static_cast<std::vector<double>::size_type>(i) <
-                data_entry.signal_val.size() - 1) {
-                out_file << ",";
-            }
-        }
-
-        out_file << "\n";
-    }
-
-    out_file.close();
-
-    return 0;
-}
 
 /**
  * @brief Uses the ch_norm_ratios to build a std::map used when normalizing the
@@ -313,7 +277,8 @@ void convertUVW_elitpc::normalizeChannels() {
 
     for (auto &uvw_entry : m_uvw_vec) {
 
-        if (uvw_entry.plane_val == 0) {
+        if (uvw_entry.plane_val == 0 &&
+            (uvw_entry.strip_section == 0 || uvw_entry.strip_section == 1)) {
 
             try {
                 auto loc_ratio = m_ch_ratio_map.at({0, uvw_entry.strip_nr});
@@ -329,7 +294,8 @@ void convertUVW_elitpc::normalizeChannels() {
                 return;
             }
 
-        } else if (uvw_entry.plane_val == 1) {
+        } else if (uvw_entry.plane_val == 1 && (uvw_entry.strip_section == 0 ||
+                                                uvw_entry.strip_section == 1)) {
 
             try {
                 auto loc_ratio = m_ch_ratio_map.at({1, uvw_entry.strip_nr});
@@ -345,7 +311,8 @@ void convertUVW_elitpc::normalizeChannels() {
                 return;
             }
 
-        } else if (uvw_entry.plane_val == 2) {
+        } else if (uvw_entry.plane_val == 2 && (uvw_entry.strip_section == 0 ||
+                                                uvw_entry.strip_section == 1)) {
 
             try {
                 auto loc_ratio = m_ch_ratio_map.at({2, uvw_entry.strip_nr});

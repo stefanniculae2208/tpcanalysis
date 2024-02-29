@@ -19,10 +19,6 @@
  */
 class generalDataStorage {
   public:
-    generalDataStorage(){};
-
-    ~generalDataStorage(){};
-
     /// @brief Stores the raw data from the root file.
     std::vector<rawData> root_raw_data;
 
@@ -53,33 +49,11 @@ class generalDataStorage {
         /// @brief The calculated value of th Mean Square Error
         double mse_value = std::numeric_limits<double>::max(); */
 
-    /// @brief  The number of the entry from the tree.
-    Long64_t n_entry = 0;
-};
+    /// @brief  The number of the entry from the tree. Used for mini-eTPC.
+    // uint32_t entry_nr = 0;
 
-static_assert(std::is_same<decltype(generalDataStorage::root_raw_data),
-                           std::vector<rawData>>::value,
-              "root_raw_data should be a vector of rawData");
-static_assert(std::is_same<decltype(generalDataStorage::uvw_data),
-                           std::vector<dataUVW>>::value,
-              "uvw_data should be a vector of dataUVW");
-/* static_assert(std::is_same<decltype(generalDataStorage::xyz_data),
-                           std::vector<dataXYZ>>::value,
-              "xyz_data should be a vector of dataXYZ");
-static_assert(std::is_same<decltype(generalDataStorage::hit_data),
-                           std::vector<hitPoints>>::value,
-              "hit_data should be a vector of hitPoints");
-static_assert(std::is_same<decltype(generalDataStorage::raw_hist_container),
-                           std::vector<TH1D *>>::value,
-              "raw_hist_container should be a vector of pointers to TH1D");
-static_assert(
-    std::is_same<decltype(generalDataStorage::filter_label), int>::value,
-    "filter_label should be an int");
-static_assert(
-    std::is_same<decltype(generalDataStorage::mse_value), double>::value,
-    "mse_value should be a double"); */
-static_assert(
-    std::is_same<decltype(generalDataStorage::n_entry), Long64_t>::value,
-    "n_entry should be a Long64_t");
+    /// @brief The id of the event to which this entry belongs to.
+    uint32_t event_id = 0;
+};
 
 #endif

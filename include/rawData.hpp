@@ -11,9 +11,6 @@
  */
 class rawData {
   public:
-    rawData(){};
-    ~rawData(){};
-
     /// @brief The channel number. Must use new_geometry_mini_eTPC.dat to make
     /// sense of it.
     int ch_nr = 0;

@@ -130,6 +130,7 @@ int loadData::decodeData(const int entryNr, const bool remove_fpn) {
         loc_data.chip_nr = channel->fAgetIdx;
         loc_data.ch_nr = channel->fChanIdx;
         loc_data.asad_id = m_data_branch->fHeader.fAsadIdx;
+        loc_data.event_id = m_data_branch->fHeader.fEventIdx;
         loc_data.entry_nr = entryNr;
 
         while ((sample = (GDataSample *) sampleIT.Next())) {

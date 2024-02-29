@@ -10,9 +10,6 @@
  */
 class dataFPN {
   public:
-    dataFPN(){};
-    ~dataFPN(){};
-
     /// @brief The number of the entry the signal belongs to.
     int entry_nr = INT32_MAX;
 

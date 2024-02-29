@@ -39,8 +39,6 @@ class convertUVW_elitpc {
     int makeConversion(const bool opt_norm = true,
                        const bool opt_verbose = false);
 
-    int convertToCSV(const std::string file_name);
-
     std::vector<dataUVW> returnDataUVW();
 
   private:

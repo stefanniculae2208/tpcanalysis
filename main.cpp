@@ -1,72 +1,37 @@
-#include<iostream>
-#include<vector>
-#include<string>
-#include<unistd.h>
-#include<csignal>
+#include <csignal>
+#include <iostream>
+#include <string>
+#include <unistd.h>
+#include <vector>
 
-
-
-
-
-#include "TFile.h"
-#include "TTree.h"
 #include "TApplication.h"
+#include "TFile.h"
 #include "TROOT.h"
 #include "TSystem.h"
+#include "TTree.h"
 
-
-
-
-#include "../include/dataXYZ.hpp"
 #include "../include/loadData.hpp"
 
-
-
 // From GET
-#include "dict/include/GDataSample.h"
 #include "dict/include/GDataChannel.h"
-#include "dict/include/GFrameHeader.h"
 #include "dict/include/GDataFrame.h"
+#include "dict/include/GDataSample.h"
+#include "dict/include/GFrameHeader.h"
 
-
-
-
-
-
-
-
-
-
-
-void alarm_handl(int sig_num)
-{
-    std::cout<<"Program is taking too long\n############\nClosing.\n############"<<std::endl;
+void alarm_handl(int sig_num) {
+    std::cout
+        << "Program is taking too long\n############\nClosing.\n############"
+        << std::endl;
     _exit(EXIT_FAILURE);
 }
 
+int main(int argc, char **argv) {
 
-
-
-
-int main(int argc, char **argv)
-{
-
-
-
-    //Load file
+    // Load file
     TApplication rApp("Root app", &argc, argv);
 
     /* auto getLib = "dict/build/libMyLib.so";
     gSystem->Load(getLib); */
 
-    //loadData("a", "b");
-
-
-
-
-
-
-
-  
-
+    // loadData("a", "b");
 }

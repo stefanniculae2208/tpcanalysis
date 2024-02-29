@@ -151,6 +151,7 @@ int convertUVW_mini::makeConversion(const bool opt_norm,
             loc_data_uvw.strip_nr = int(uvwPosition.second);
             loc_data_uvw.signal_val = data_inst.signal_val;
             loc_data_uvw.entry_nr = data_inst.entry_nr;
+            loc_data_uvw.event_id = data_inst.event_id;
             m_uvw_vec.push_back(loc_data_uvw);
 
         } catch (...) {

@@ -8,10 +8,7 @@
 #include "TString.h"
 #include "include/ErrorCodesMap.hpp"
 #include "src/cleanUVW.cpp"
-//#include "src/convertHitData.cpp"
 #include "src/convertUVW_mini.cpp"
-/* #include "src/convertXYZ.cpp"
-#include "src/filterEventsXY.cpp" */
 #include "src/loadData.cpp"
 
 #include "include/generalDataStorage.hpp"
@@ -37,7 +34,7 @@
  * The file and channels used have been pre selected.
  *
  */
-void createNormCSV_mini(bool lin_arg = false) {
+void createNormCSV_mini(bool lin_arg = true) {
 
     const bool opt_fpn = lin_arg;
 
@@ -54,7 +51,7 @@ void createNormCSV_mini(bool lin_arg = false) {
 
     auto max_entries = good_data.returnNEntries();
 
-    convertUVW loc_conv_uvw;
+    convertUVW_mini loc_conv_uvw;
 
     err = loc_conv_uvw.openSpecFile();
 
@@ -75,7 +72,7 @@ void createNormCSV_mini(bool lin_arg = false) {
 
     for (auto i = 0; i < 20; i++) {
 
-        auto err = good_data.decodeData(entry_nrs.at(i), opt_fpn);
+        auto err = good_data.decodeData(entry_nrs[i], opt_fpn);
         if (err != 0) {
             std::cout << "Error decode data code " << err << std::endl;
         }
