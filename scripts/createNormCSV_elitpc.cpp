@@ -183,6 +183,63 @@ groupEntriesByEvent(std::vector<generalDataStorage> &&entries_vec) {
     return result;
 }
 
+std::vector<dataUVW> mergeSplitStrips(std::vector<dataUVW> &&data_vec) {
+
+    std::multimap<std::pair<int, int>, size_t> stripSignalMap;
+
+    for (size_t i = 0; i < data_vec.size(); ++i) {
+        const auto &data = data_vec[i];
+        stripSignalMap.insert({{data.plane_val, data.strip_nr}, i});
+    }
+
+    std::vector<dataUVW> averaged_data;
+
+    dataUVW averaged_entry;
+
+    for (auto it = stripSignalMap.begin(); it != stripSignalMap.end();) {
+
+        // Range of entries with the same strip_nr
+        auto range = stripSignalMap.equal_range(it->first);
+
+        size_t signal_size = data_vec[it->second].signal_val.size();
+
+        std::vector<double> averaged_signal_val(
+            data_vec.front().signal_val.size(), 0.0);
+
+        int count = 0;
+
+        for (auto iter = range.first; iter != range.second; ++iter) {
+
+            size_t index = iter->second;
+            const auto &signal_val = data_vec[index].signal_val;
+
+            for (size_t i = 0; i < signal_size; ++i) {
+                averaged_signal_val[i] += signal_val[i];
+            }
+            count++;
+        }
+
+        /* for (auto &val : averaged_signal_val) {
+
+            val /= count;
+        } */
+
+        averaged_entry.signal_val = std::move(averaged_signal_val);
+        averaged_entry.baseline_val = data_vec[it->second].baseline_val;
+        averaged_entry.plane_val = data_vec[it->second].plane_val;
+        averaged_entry.strip_nr = data_vec[it->second].strip_nr;
+        averaged_entry.entry_nr = data_vec[it->second].entry_nr;
+        averaged_entry.event_id = data_vec[it->second].event_id;
+        averaged_entry.strip_section = 0;
+
+        averaged_data.push_back(std::move(averaged_entry));
+
+        it = range.second;
+    }
+
+    return averaged_data;
+}
+
 };   // namespace funcUtil
 
 /**
@@ -216,14 +273,17 @@ void createNormCSV_elitpc(bool lin_arg = true) {
 
     generalDataStorage data_container;
 
+    const int sample_size = 20;
+
     // we always use 20 entries
-    std::array<std::array<double, 20>, 3> entry_mean = {{}};
+    std::array<std::array<double, sample_size>, 3> entry_mean = {{}};
 
     std::array<double, 3> total_mean = {};
 
     // Entries have been manually selected and should be mostly noise.
-    std::array<int, 20> entry_nrs = {3,  4,  7,  9,  10, 14, 16, 17, 20, 21,
-                                     22, 23, 24, 25, 26, 27, 28, 31, 32, 33};
+    std::array<int, sample_size> entry_nrs = {3,  4,  7,  9,  10, 14, 16,
+                                              17, 20, 21, 22, 23, 24, 25,
+                                              26, 27, 28, 31, 32, 33};
 
     std::vector<generalDataStorage> data_vec;
 
@@ -241,9 +301,12 @@ void createNormCSV_elitpc(bool lin_arg = true) {
 
     int nr_events = data_vec.size();
 
-    for (auto i = 0; i < 20; i++) {
+    for (auto i = 0; i < sample_size; i++) {
 
         data_container = data_vec[entry_nrs[i]];
+
+        data_container.uvw_data =
+            funcUtil::mergeSplitStrips(std::move(data_container.uvw_data));
 
         int count_u = 0;
         int count_v = 0;
@@ -251,8 +314,8 @@ void createNormCSV_elitpc(bool lin_arg = true) {
 
         for (const auto &uvw_entry : data_container.uvw_data) {
 
-            if (uvw_entry.plane_val == 0 && (uvw_entry.strip_section == 0 ||
-                                             uvw_entry.strip_section == 1)) {
+            if (uvw_entry.plane_val == 0 && (uvw_entry.strip_section == 0/*  ||
+                                             uvw_entry.strip_section == 1 */)) {
 
                 entry_mean[0][i] +=
                     std::accumulate(uvw_entry.signal_val.begin(),
@@ -261,9 +324,10 @@ void createNormCSV_elitpc(bool lin_arg = true) {
 
                 count_u++;
 
-            } else if (uvw_entry.plane_val == 1 &&
-                       (uvw_entry.strip_section == 0 ||
-                        uvw_entry.strip_section == 1)) {
+            } else if (uvw_entry.plane_val == 1 && (uvw_entry.strip_section ==
+                                                    0 /*  ||
+                          uvw_entry.strip_section == 1
+                        */)) {
 
                 entry_mean[1][i] +=
                     std::accumulate(uvw_entry.signal_val.begin(),
@@ -272,9 +336,10 @@ void createNormCSV_elitpc(bool lin_arg = true) {
 
                 count_v++;
 
-            } else if (uvw_entry.plane_val == 2 &&
-                       (uvw_entry.strip_section == 0 ||
-                        uvw_entry.strip_section == 1)) {
+            } else if (uvw_entry.plane_val == 2 && (uvw_entry.strip_section ==
+                                                    0 /*  ||
+                          uvw_entry.strip_section == 1
+                        */)) {
 
                 entry_mean[2][i] +=
                     std::accumulate(uvw_entry.signal_val.begin(),
@@ -300,30 +365,25 @@ void createNormCSV_elitpc(bool lin_arg = true) {
         std::accumulate(entry_mean[2].begin(), entry_mean[2].end(), 0.0) /
         entry_mean[2].size();
 
-    std::array<std::array<std::array<double, 20>, 227>, 3> entry_ch_ratio = {
-        {{}}};
+    std::array<std::array<std::array<double, sample_size>, 227>, 3>
+        entry_ch_ratio = {{{}}};
 
     std::array<std::array<double, 227>, 3> total_ch_ratio = {{}};
 
-    for (auto i = 0; i < 20; i++) {
+    for (auto i = 0; i < sample_size; i++) {
 
-        auto err = good_data.decodeData(entry_nrs.at(i), opt_fpn);
+        data_container = data_vec[entry_nrs[i]];
 
-        data_container.root_raw_data = good_data.returnRawData();
-
-        loc_conv_uvw.setRawData(data_container.root_raw_data);
-
-        err = loc_conv_uvw.makeConversion(false);
-
-        data_container.uvw_data = loc_conv_uvw.returnDataUVW();
+        data_container.uvw_data =
+            funcUtil::mergeSplitStrips(std::move(data_container.uvw_data));
 
         // For now only take the first strip section until I know what to do
         // with the other.
 
         for (const auto &uvw_entry : data_container.uvw_data) {
 
-            if (uvw_entry.plane_val == 0 && (uvw_entry.strip_section == 0 ||
-                                             uvw_entry.strip_section == 1)) {
+            if (uvw_entry.plane_val == 0 && (uvw_entry.strip_section == 0/*  ||
+                                             uvw_entry.strip_section == 1 */)) {
 
                 double loc_mean =
                     std::accumulate(uvw_entry.signal_val.begin(),
@@ -333,9 +393,10 @@ void createNormCSV_elitpc(bool lin_arg = true) {
                 entry_ch_ratio[0][uvw_entry.strip_nr][i] =
                     loc_mean / total_mean[0];
 
-            } else if (uvw_entry.plane_val == 1 &&
-                       (uvw_entry.strip_section == 0 ||
-                        uvw_entry.strip_section == 1)) {
+            } else if (uvw_entry.plane_val == 1 && (uvw_entry.strip_section ==
+                                                    0 /*  ||
+                          uvw_entry.strip_section == 1
+                        */)) {
 
                 double loc_mean =
                     std::accumulate(uvw_entry.signal_val.begin(),
@@ -345,9 +406,10 @@ void createNormCSV_elitpc(bool lin_arg = true) {
                 entry_ch_ratio[1][uvw_entry.strip_nr][i] =
                     loc_mean / total_mean[1];
 
-            } else if (uvw_entry.plane_val == 2 &&
-                       (uvw_entry.strip_section == 0 ||
-                        uvw_entry.strip_section == 1)) {
+            } else if (uvw_entry.plane_val == 2 && (uvw_entry.strip_section ==
+                                                    0 /*  ||
+                          uvw_entry.strip_section == 1
+                        */)) {
 
                 double loc_mean =
                     std::accumulate(uvw_entry.signal_val.begin(),

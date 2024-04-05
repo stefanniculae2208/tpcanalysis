@@ -277,8 +277,8 @@ void convertUVW_elitpc::normalizeChannels() {
 
     for (auto &uvw_entry : m_uvw_vec) {
 
-        if (uvw_entry.plane_val == 0 &&
-            (uvw_entry.strip_section == 0 || uvw_entry.strip_section == 1)) {
+        if (uvw_entry.plane_val == 0/*  &&
+            (uvw_entry.strip_section == 0 || uvw_entry.strip_section == 1) */) {
 
             try {
                 auto loc_ratio = m_ch_ratio_map.at({0, uvw_entry.strip_nr});
@@ -294,8 +294,8 @@ void convertUVW_elitpc::normalizeChannels() {
                 return;
             }
 
-        } else if (uvw_entry.plane_val == 1 && (uvw_entry.strip_section == 0 ||
-                                                uvw_entry.strip_section == 1)) {
+        } else if (uvw_entry.plane_val == 1/*  && (uvw_entry.strip_section == 0 ||
+                                                uvw_entry.strip_section == 1) */) {
 
             try {
                 auto loc_ratio = m_ch_ratio_map.at({1, uvw_entry.strip_nr});
@@ -311,8 +311,8 @@ void convertUVW_elitpc::normalizeChannels() {
                 return;
             }
 
-        } else if (uvw_entry.plane_val == 2 && (uvw_entry.strip_section == 0 ||
-                                                uvw_entry.strip_section == 1)) {
+        } else if (uvw_entry.plane_val == 2/*  && (uvw_entry.strip_section == 0 ||
+                                                uvw_entry.strip_section == 1) */) {
 
             try {
                 auto loc_ratio = m_ch_ratio_map.at({2, uvw_entry.strip_nr});

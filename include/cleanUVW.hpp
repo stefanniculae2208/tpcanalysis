@@ -30,7 +30,7 @@ class cleanUVW {
 
     int setUVWData(std::vector<dataUVW> uvw_vec);
 
-    template <typename pI> int substractBl();
+    template <typename pI> int substractBl(bool smooth_opt = false);
     template <typename pI> int getChargeHist(TH1D *&charge_hist);
 
     std::vector<dataUVW> returnDataUVW();

@@ -95,7 +95,7 @@ void viewUVWdata_mini(TString fileName) {
 
         } else if (key_val == 'd') {
 
-            if (entry_nr < max_entries) {
+            if (entry_nr < (max_entries - 1)) {
                 entry_nr++;
             }
 

@@ -52,7 +52,7 @@ int cleanUVW::setUVWData(std::vector<dataUVW> uvw_vec) {
  * function 3 times with a different parameter each time.
  * @return int Error codes
  */
-template <typename pI> int cleanUVW::substractBl() {
+template <typename pI> int cleanUVW::substractBl(bool smooth_opt) {
 
     if (m_uvw_vec.size() == 0)
         return -3;
@@ -64,10 +64,17 @@ template <typename pI> int cleanUVW::substractBl() {
             continue;
 
         // smoothChannel(data_el.signal_val);
-        data_el.signal_val = savitzkyGolayFilter(data_el.signal_val);
+
+        if (smooth_opt) {
+
+            data_el.signal_val = savitzkyGolayFilter(data_el.signal_val);
+        }
 
         // Set the final 12 elements to 0 because of artifacts. The first few
         // elements should also be considered for removal.
+        std::fill(data_el.signal_val.begin(), data_el.signal_val.begin() + 10,
+                  0);
+
         std::fill(data_el.signal_val.begin() + 500,
                   data_el.signal_val.begin() + 512, 0);
     }

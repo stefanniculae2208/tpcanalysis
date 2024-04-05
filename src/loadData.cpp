@@ -120,7 +120,6 @@ int loadData::decodeData(const int entryNr, const bool remove_fpn) {
 
     m_roottree->GetEntry(entryNr);
 
-    // TIter channelIT((TCollection *)data->GetChannels());
     TIter channelIT((TCollection *) m_data_branch->GetChannels());
     GDataChannel *channel = nullptr;
     while ((channel = (GDataChannel *) channelIT.Next())) {
