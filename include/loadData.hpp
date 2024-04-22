@@ -39,9 +39,9 @@ class loadData {
 
     int decodeData(const int entryNr, const bool remove_fpn = false);
 
-    std::vector<rawData> returnRawData();
+    std::vector<rawData> returnRawData() const;
 
-    Long64_t returnNEntries();
+    Long64_t returnNEntries() const;
 
   private:
     /// @brief The name of the file to be opened.

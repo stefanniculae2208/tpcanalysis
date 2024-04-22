@@ -5,10 +5,10 @@
  *
  * @param data_vec the raw data vector to be converted to the UVW format
  */
-convertUVW_mini::convertUVW_mini(std::vector<rawData> data_vec) {
+/* convertUVW_mini::convertUVW_mini(std::vector<rawData> data_vec) {
 
     m_data_vec = std::move(data_vec);
-}
+} */
 
 /**
  * @brief Sets the raw data vector to a new value.
@@ -179,7 +179,9 @@ int convertUVW_mini::makeConversion(const bool opt_norm,
  * @return std::vector<dataUVW> the vector to be returned containing the data
  * converted to UVW
  */
-std::vector<dataUVW> convertUVW_mini::returnDataUVW() { return m_uvw_vec; }
+std::vector<dataUVW> convertUVW_mini::returnDataUVW() const {
+    return m_uvw_vec;
+}
 
 /**
  * @brief Writes the data from m_uvw_vec to a .csv file.

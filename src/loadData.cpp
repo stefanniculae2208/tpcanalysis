@@ -239,7 +239,7 @@ void loadData::removeFPN() {
  *
  * @return std::vector<rawData> the vector
  */
-std::vector<rawData> loadData::returnRawData() { return m_root_raw_data; }
+std::vector<rawData> loadData::returnRawData() const { return m_root_raw_data; }
 
 /**
  * @brief Returns the number of entries. To be called only after the ReadData()
@@ -247,4 +247,4 @@ std::vector<rawData> loadData::returnRawData() { return m_root_raw_data; }
  *
  * @return Long64_t the number of entries taken from the file
  */
-Long64_t loadData::returnNEntries() { return m_roottree->GetEntries(); }
+Long64_t loadData::returnNEntries() const { return m_roottree->GetEntries(); }

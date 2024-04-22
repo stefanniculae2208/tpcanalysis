@@ -17,18 +17,16 @@
 #include "TSpectrum.h"
 
 /**
- * @brief Uses the 'new_geometry_mini_eTPC.dat' file to dind the strip and plane
- * from the chip and channel, thus bringing it to the UVW format. Is also used
- * to smooth the signal and remove the baseline, but that can be moved to
- * another class in the future.
- *
+ * @brief Uses the '' file to find the strip and plane
+ * from the chip and channel, thus bringing it to the UVW format.
+ * It can also normalize the channels.
  */
 class convertUVW_elitpc {
 
   public:
-    convertUVW_elitpc(){};
+    /* convertUVW_elitpc(){};
     convertUVW_elitpc(std::vector<rawData> data_vec);
-    ~convertUVW_elitpc(){};
+    ~convertUVW_elitpc(){}; */
 
     int setRawData(std::vector<rawData> data_vec);
 
@@ -39,7 +37,7 @@ class convertUVW_elitpc {
     int makeConversion(const bool opt_norm = true,
                        const bool opt_verbose = false);
 
-    std::vector<dataUVW> returnDataUVW();
+    std::vector<dataUVW> returnDataUVW() const;
 
   private:
     /// @brief The map used to make the conversion. Built from

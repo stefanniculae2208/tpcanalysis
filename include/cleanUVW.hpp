@@ -25,15 +25,15 @@ class cleanUVW {
                                             // needs to be done once.
         computeSavitzkyGolayCoefficients();
     };
-    cleanUVW(std::vector<dataUVW> uvw_vec);
-    ~cleanUVW(){};
+    // cleanUVW(std::vector<dataUVW> uvw_vec);
+    //~cleanUVW(){};
 
     int setUVWData(std::vector<dataUVW> uvw_vec);
 
     template <typename pI> int substractBl(bool smooth_opt = false);
     template <typename pI> int getChargeHist(TH1D *&charge_hist);
 
-    std::vector<dataUVW> returnDataUVW();
+    std::vector<dataUVW> returnDataUVW() const;
 
     /**
      * @brief The struct contains information regarding the U plane.

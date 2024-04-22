@@ -7,7 +7,7 @@
  *
  * @param uvw_vec The vector containing the UVW data to be cleaned.
  */
-cleanUVW::cleanUVW(std::vector<dataUVW> uvw_vec)
+/* cleanUVW::cleanUVW(std::vector<dataUVW> uvw_vec)
     : m_coefficients(m_window_size) {
 
     // Compute the Savitzky-Golay coefficients for smoothing.
@@ -19,7 +19,7 @@ cleanUVW::cleanUVW(std::vector<dataUVW> uvw_vec)
     m_uvw_vec.clear();
 
     m_uvw_vec = std::move(uvw_vec);
-}
+} */
 
 /**
  * @brief Sets the UVW data vector to a new vector.
@@ -284,4 +284,4 @@ cleanUVW::savitzkyGolayFilter(const std::vector<double> &signal) {
  *
  * @return std::vector<dataUVW> The vector with the data in the UVW format.
  */
-std::vector<dataUVW> cleanUVW::returnDataUVW() { return m_uvw_vec; }
+std::vector<dataUVW> cleanUVW::returnDataUVW() const { return m_uvw_vec; }
