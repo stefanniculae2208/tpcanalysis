@@ -10,6 +10,7 @@
 #include "src/cleanUVW.cpp"
 #include "src/convertUVW_elitpc.cpp"
 #include "src/loadData.cpp"
+#include "src/miscFunc_elitpc.cpp"
 
 #include "include/generalDataStorage.hpp"
 
@@ -269,9 +270,10 @@ void viewUVWdata_elitpc(std::initializer_list<TString> fileName,
     for (const auto &file_entry : fileName) {
         try {
 
-            // data_vec = funcUtil::getAllEntries(file_entry, true, true);
+            // data_vec = miscFunc_elitpc::getAllEntries(file_entry, true,
+            // true);
             std::vector<generalDataStorage> temp_data =
-                funcUtil::getAllEntries(file_entry, true, opt_norm);
+                miscFunc_elitpc::getAllEntries(file_entry, true, opt_norm);
             data_vec.insert(data_vec.end(),
                             std::make_move_iterator(temp_data.begin()),
                             std::make_move_iterator(temp_data.end()));
@@ -285,13 +287,14 @@ void viewUVWdata_elitpc(std::initializer_list<TString> fileName,
 
     cleanUVW loc_clean_uvw;
 
-    data_vec = funcUtil::groupEntriesByEvent(std::move(data_vec));
+    data_vec = miscFunc_elitpc::groupEntriesByEvent(std::move(data_vec));
 
     std::cout << "New data size is " << data_vec.size() << "\n\n";
 
     for (auto &&event : data_vec) {
 
-        event.uvw_data = funcUtil::mergeSplitStrips(std::move(event.uvw_data));
+        event.uvw_data =
+            miscFunc_elitpc::mergeSplitStrips(std::move(event.uvw_data));
     }
 
     int nr_events = data_vec.size();
@@ -497,9 +500,10 @@ void drawUVWimages_elitpc(std::initializer_list<TString> fileName,
     for (const auto &file_entry : fileName) {
         try {
 
-            // data_vec = funcUtil::getAllEntries(file_entry, true, true);
+            // data_vec = miscFunc_elitpc::getAllEntries(file_entry, true,
+            // true);
             std::vector<generalDataStorage> temp_data =
-                funcUtil::getAllEntries(file_entry, true, opt_norm);
+                miscFunc_elitpc::getAllEntries(file_entry, true, opt_norm);
             data_vec.insert(data_vec.end(),
                             std::make_move_iterator(temp_data.begin()),
                             std::make_move_iterator(temp_data.end()));
@@ -513,13 +517,14 @@ void drawUVWimages_elitpc(std::initializer_list<TString> fileName,
 
     cleanUVW loc_clean_uvw;
 
-    data_vec = funcUtil::groupEntriesByEvent(std::move(data_vec));
+    data_vec = miscFunc_elitpc::groupEntriesByEvent(std::move(data_vec));
 
     std::cout << "New data size is " << data_vec.size() << "\n\n";
 
     for (auto &&event : data_vec) {
 
-        event.uvw_data = funcUtil::mergeSplitStrips(std::move(event.uvw_data));
+        event.uvw_data =
+            miscFunc_elitpc::mergeSplitStrips(std::move(event.uvw_data));
     }
 
     int nr_events = data_vec.size();
