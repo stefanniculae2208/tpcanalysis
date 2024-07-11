@@ -408,7 +408,9 @@ int drawUVWimage_mini(
     //##########################
     data_container.root_raw_data = good_data.returnRawData();
 
-    convertUVW_mini loc_conv_uvw(data_container.root_raw_data);
+    convertUVW_mini loc_conv_uvw;
+
+    loc_conv_uvw.setRawData(data_container.root_raw_data);
 
     err = loc_conv_uvw.openSpecFile();
 
@@ -422,7 +424,9 @@ int drawUVWimage_mini(
     data_container.uvw_data = loc_conv_uvw.returnDataUVW();
 
     if (opt_clean) {
-        cleanUVW loc_clean_uvw(data_container.uvw_data);
+        cleanUVW loc_clean_uvw;
+
+        loc_clean_uvw.setUVWData(data_container.uvw_data);
 
         err = loc_clean_uvw.substractBl<cleanUVW::miniPlaneInfoU>();
         if (err != 0)
