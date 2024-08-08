@@ -522,14 +522,17 @@ int drawUVWimage_mini(
     }
 
     u_hists->Draw("COL");
+    loc_canv->SetWindowSize(512, (3 * 72));
     loc_canv->Update();
     loc_canv->Print(outfolder + Form("%d", entry_nr) + "_u" + ".png");
 
     v_hists->Draw("COL");
+    loc_canv->SetWindowSize(512, (3 * 92));
     loc_canv->Update();
     loc_canv->Print(outfolder + Form("%d", entry_nr) + "_v" + ".png");
 
     w_hists->Draw("COL");
+    loc_canv->SetWindowSize(512, (3 * 92));
     loc_canv->Update();
     loc_canv->Print(outfolder + Form("%d", entry_nr) + "_w" + ".png");
 
