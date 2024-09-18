@@ -34,8 +34,8 @@
 /// @param fileName
 /// @param opt_norm
 /// @param opt_clean
-void viewUVWdata_elitpc(std::initializer_list<TString> fileName,
-                        bool opt_norm = false, bool opt_clean = false) {
+void viewUVWdata_elitpc(std::vector<TString> fileName, bool opt_norm = false,
+                        bool opt_clean = false) {
 
     std::vector<generalDataStorage> data_vec;
 
@@ -43,6 +43,8 @@ void viewUVWdata_elitpc(std::initializer_list<TString> fileName,
     // have to combine them.
     for (const auto &file_entry : fileName) {
         try {
+
+            std::cout << "File " << file_entry << std::endl;
 
             // data_vec = miscFunc_elitpc::getAllEntries(file_entry, true,
             // true);
@@ -107,7 +109,7 @@ void viewUVWdata_elitpc(std::initializer_list<TString> fileName,
 
         if (key_val == 'e') {
 
-            break;
+            return;
 
         } else if (key_val == 'd') {
 
@@ -259,9 +261,8 @@ void viewUVWdata_elitpc(std::initializer_list<TString> fileName,
 /// @param outfolder The loction where the images are created.
 /// @param opt_norm Enables the normalization of the channels.
 /// @param opt_clean Enables further cleaning and smoothing of the signal.
-void drawUVWimages_elitpc(std::initializer_list<TString> fileName,
-                          TString outfolder, bool opt_norm = false,
-                          bool opt_clean = false)
+void drawUVWimages_elitpc(std::vector<TString> fileName, TString outfolder,
+                          bool opt_norm = false, bool opt_clean = false)
 
 {
 
@@ -467,13 +468,11 @@ void drawUVWimages_elitpc(std::initializer_list<TString> fileName,
 /// @brief Creates clean images from the specified root files.
 /// @param fileList The list of strings of the root files.
 /// @param zip_opt Choose if you want to zip the images.
-void mass_create_clean_images_elitpc(std::initializer_list<TString> fileList,
-                                     bool zip_opt = false) {
+void mass_create_clean_images_elitpc(std::vector<TString> fileList,
+                                     bool zip_opt = false, bool opt_norm = true,
+                                     bool opt_clean = false) {
 
     TString dirandfileName = *(fileList.begin());
-
-    bool opt_norm = false;
-    bool opt_clean = false;
 
     TString out_dir_name = "images_default";
 
@@ -500,6 +499,7 @@ void mass_create_clean_images_elitpc(std::initializer_list<TString> fileList,
     fileName.Remove(fileName.Sizeof() - 6, fileName.Sizeof());   // remove .root
 
     TString mkdirCommand = ".! mkdir ";
+
     mkdirCommand.Append(dir);
     mkdirCommand.Append(out_dir_name);
 
@@ -528,14 +528,19 @@ void mass_create_clean_images_elitpc(std::initializer_list<TString> fileList,
     }
 }
 
-// root -q "runmacro_elitpc.cpp(\"a\")"
-void runmacro_elitpc(TString lin_arg) {
+// root -q
+// "runmacro_elitpc.cpp({\"/media/gant/Expansion/elitpcraw/CoBo0_AsAd0_2022-04-12T08_03_44.531_0000.root\",
+// \"/media/gant/Expansion/elitpcraw/CoBo0_AsAd1_2022-04-12T08_03_44.533_0000.root\",
+// \"/media/gant/Expansion/elitpcraw/CoBo0_AsAd2_2022-04-12T08_03_44.536_0000.root\",
+// \"/media/gant/Expansion/elitpcraw/CoBo0_AsAd3_2022-04-12T08_03_44.540_0000.root\"})"
+// root -q "runmacro_elitpc.cpp({\"a\"})"
+void runmacro_elitpc(std::initializer_list<TString> lin_arg) {
+
+    /* viewUVWdata_elitpc(
+        {"/media/gant/Cracow_IGN14_Run/20210710_extTrg_CO2_80mbar/"
+         "CoBo_ALL_AsAd_ALL_2021-07-10T17:29:59.700_0000.root"}); */
 
     /* viewUVWdata_elitpc({"/media/gant/Expansion/elitpcraw/"
-                        "CoBo_ALL_AsAd_ALL_2021-07-12T11 36 07.452_0000.root"});
-     */
-
-    viewUVWdata_elitpc({"/media/gant/Expansion/elitpcraw/"
                         "CoBo0_AsAd0_2022-04-12T08_03_44.531_0000.root",
                         "/media/gant/Expansion/elitpcraw/"
                         "CoBo0_AsAd1_2022-04-12T08_03_44.533_0000.root",
@@ -543,7 +548,7 @@ void runmacro_elitpc(TString lin_arg) {
                         "CoBo0_AsAd2_2022-04-12T08_03_44.536_0000.root",
                         "/media/gant/Expansion/elitpcraw/"
                         "CoBo0_AsAd3_2022-04-12T08_03_44.540_0000.root"},
-                       false, false);
+                       false, false); */
 
     /* mass_create_clean_images_elitpc(
         {"/media/gant/Expansion/elitpcraw/"
@@ -562,4 +567,90 @@ void runmacro_elitpc(TString lin_arg) {
     /* mass_create_raw_images_elitpc(
         "/media/gant/Expansion/elitpcraw/"
         "CoBo_ALL_AsAd_ALL_2021-07-12T11 36 07.452_0000.root"); */
+
+    // mass_create_clean_images_elitpc(lin_arg, true);
+
+    if (lin_arg.size() == 0) {
+
+        std::cerr << "Error: The command line argument cannot be empty.";
+
+        return;
+    }
+
+    auto lin_arg_it = lin_arg.begin();
+
+    // First argument must be the chosen function.
+    auto function_option = (*lin_arg_it);
+
+    // Second argument is the normalization option.
+    ++lin_arg_it;
+
+    bool norm_option = false;
+
+    if ((*lin_arg_it) == "-norm0") {
+
+        norm_option = false;
+    } else if ((*lin_arg_it) == "-norm1") {
+
+        norm_option = true;
+    } else {
+
+        std::cerr << "Error: Invalid normalization option.";
+        return;
+    }
+
+    // Third argument is the clean option.
+    ++lin_arg_it;
+
+    bool clean_option = false;
+
+    if ((*lin_arg_it) == "-clean0") {
+
+        clean_option = false;
+    } else if ((*lin_arg_it) == "-clean1") {
+
+        clean_option = true;
+    } else {
+
+        std::cerr << "Error: Invalid clean option.";
+        return;
+    }
+
+    // Fourth argument is the clean option.
+    ++lin_arg_it;
+
+    bool zip_option = false;
+
+    if ((*lin_arg_it) == "-zip0") {
+
+        zip_option = false;
+    } else if ((*lin_arg_it) == "-zip1") {
+
+        zip_option = true;
+    } else {
+
+        std::cerr << "Error: Invalid zip option.";
+        return;
+    }
+
+    ++lin_arg_it;
+
+    std::cout << "Running with options: " << norm_option << " " << clean_option
+              << " " << zip_option << std::endl;
+
+    // The last arguments should be the files.
+    std::vector<TString> selected_files(lin_arg_it, lin_arg.end());
+
+    if (function_option == "-view") {
+
+        viewUVWdata_elitpc(selected_files, norm_option, clean_option);
+    } else if (function_option == "-convert") {
+
+        mass_create_clean_images_elitpc(selected_files, zip_option, norm_option,
+                                        clean_option);
+    } else {
+
+        std::cerr << "Error: Invalid view/convert option.";
+        return;
+    }
 }

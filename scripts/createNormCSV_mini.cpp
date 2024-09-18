@@ -60,17 +60,19 @@ void createNormCSV_mini(bool lin_arg = true) {
 
     generalDataStorage data_container;
 
+    const int sample_size = 20;
+
     // we always use 20 entries
-    std::array<std::array<double, 20>, 3> entry_mean = {{}};
+    std::array<std::array<double, sample_size>, 3> entry_mean = {{}};
 
     std::array<double, 3> total_mean = {};
 
     // Entries have been manually selected and should be mostly noise.
-    std::array<int, 20> entry_nrs = {7,  15,  22,  36,  37,  40, 49,
-                                     52, 53,  55,  56,  61,  65, 68,
-                                     78, 102, 103, 143, 152, 161};
+    std::array<int, sample_size> entry_nrs = {7,  15,  22,  36,  37,  40, 49,
+                                              52, 53,  55,  56,  61,  65, 68,
+                                              78, 102, 103, 143, 152, 161};
 
-    for (auto i = 0; i < 20; i++) {
+    for (auto i = 0; i < sample_size; i++) {
 
         auto err = good_data.decodeData(entry_nrs[i], opt_fpn);
         if (err != 0) {
@@ -140,12 +142,12 @@ void createNormCSV_mini(bool lin_arg = true) {
         std::accumulate(entry_mean[2].begin(), entry_mean[2].end(), 0.0) /
         entry_mean[2].size();
 
-    std::array<std::array<std::array<double, 20>, 93>, 3> entry_ch_ratio = {
-        {{}}};
+    std::array<std::array<std::array<double, sample_size>, 93>, 3>
+        entry_ch_ratio = {{{}}};
 
     std::array<std::array<double, 93>, 3> total_ch_ratio = {{}};
 
-    for (auto i = 0; i < 20; i++) {
+    for (auto i = 0; i < sample_size; i++) {
 
         auto err = good_data.decodeData(entry_nrs.at(i), opt_fpn);
 

@@ -29,7 +29,7 @@
 #include "dict/src/GDataSample.cpp"
 #include "dict/src/GFrameHeader.cpp"
 
-void viewUVWdata_mini(TString fileName) {
+void viewUVWdata_mini(TString fileName, bool opt_norm = true) {
 
     int entry_nr = -1;
     int max_entries;
@@ -137,7 +137,7 @@ void viewUVWdata_mini(TString fileName) {
 
         loc_conv_uvw.setRawData(data_container.root_raw_data);
 
-        err = loc_conv_uvw.makeConversion(true, false);
+        err = loc_conv_uvw.makeConversion(opt_norm, false);
         if (err != 0)
             std::cout << "Make conversion error code " << err << std::endl;
 
@@ -380,7 +380,7 @@ int drawUVWimage_mini(
     TString filename = "./rootdata/data2.root",
     TString outfolder =
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/rawimages/",
-    int entry_nr = 0, bool opt_clean = false) {
+    int entry_nr = 0, bool opt_norm = false, bool opt_clean = false) {
 
     gROOT->SetBatch(kTRUE);
 
@@ -417,7 +417,7 @@ int drawUVWimage_mini(
     if (err != 0)
         return -2;
 
-    err = loc_conv_uvw.makeConversion(opt_clean);
+    err = loc_conv_uvw.makeConversion(opt_norm, false);
     if (err != 0)
         std::cout << "Make conversion error code " << err << std::endl;
 
@@ -544,6 +544,7 @@ int drawUVWimage_mini(
 }
 
 void mass_create_clean_images_mini(TString lin_arg, bool zip_opt = false,
+                                   bool opt_norm = true, bool opt_clean = false,
                                    int nr_entries = 10000) {
     TString dirandfileName = lin_arg;
 
@@ -574,7 +575,8 @@ void mass_create_clean_images_mini(TString lin_arg, bool zip_opt = false,
 
     for (auto i = 0; i < nr_entries; i++) {
 
-        if (drawUVWimage_mini(dirandfileName, imagePath, i, true) != 0) {
+        if (drawUVWimage_mini(dirandfileName, imagePath, i, opt_norm,
+                              opt_clean) != 0) {
 
             break;
         }
@@ -594,7 +596,7 @@ void mass_create_clean_images_mini(TString lin_arg, bool zip_opt = false,
 }
 
 // root -q "runmacro_mini.cpp(\"a\")"
-void runmacro_mini(TString lin_arg) {
+void runmacro_mini(std::initializer_list<TString> lin_arg) {
 
     /* viewUVWdata_mini("/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
                      "CoBo_2018-06-20T10-51-39.459_0000.root"); */
@@ -618,4 +620,87 @@ void runmacro_mini(TString lin_arg) {
     mass_create_clean_images_mini(
         "/media/gant/Expansion/tpc_root_raw/DATA_ROOT/"
         "CoBo_2018-06-20T10-51-39.459_0005.root"); */
+
+    if (lin_arg.size() == 0) {
+
+        std::cerr << "Error: The command line argument cannot be empty.";
+
+        return;
+    }
+
+    auto lin_arg_it = lin_arg.begin();
+
+    // First argument must be the chosen function.
+    auto function_option = (*lin_arg_it);
+
+    // Second argument is the normalization option.
+    ++lin_arg_it;
+
+    bool norm_option = false;
+
+    if ((*lin_arg_it) == "-norm0") {
+
+        norm_option = false;
+    } else if ((*lin_arg_it) == "-norm1") {
+
+        norm_option = true;
+    } else {
+
+        std::cerr << "Error: Invalid normalization option.";
+        return;
+    }
+
+    // Third argument is the clean option.
+    ++lin_arg_it;
+
+    bool clean_option = false;
+
+    if ((*lin_arg_it) == "-clean0") {
+
+        clean_option = false;
+    } else if ((*lin_arg_it) == "-clean1") {
+
+        clean_option = true;
+    } else {
+
+        std::cerr << "Error: Invalid clean option.";
+        return;
+    }
+
+    // Fourth argument is the clean option.
+    ++lin_arg_it;
+
+    bool zip_option = false;
+
+    if ((*lin_arg_it) == "-zip0") {
+
+        zip_option = false;
+    } else if ((*lin_arg_it) == "-zip1") {
+
+        zip_option = true;
+    } else {
+
+        std::cerr << "Error: Invalid zip option.";
+        return;
+    }
+
+    ++lin_arg_it;
+
+    std::cout << "Running with options: " << norm_option << " " << clean_option
+              << " " << zip_option << std::endl;
+
+    // The last arguments should be the files.
+
+    if (function_option == "-view") {
+
+        viewUVWdata_mini((*lin_arg_it), norm_option);
+    } else if (function_option == "-convert") {
+
+        mass_create_clean_images_mini((*lin_arg_it), zip_option, norm_option,
+                                      clean_option);
+    } else {
+
+        std::cerr << "Error: Invalid view/convert option.";
+        return;
+    }
 }

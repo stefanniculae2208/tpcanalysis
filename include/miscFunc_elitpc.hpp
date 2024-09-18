@@ -3,9 +3,9 @@
 
 #include <vector>
 
-#include "../src/convertUVW_elitpc.cpp"
-#include "../src/loadData.cpp"
+#include "convertUVW_elitpc.hpp"
 #include "generalDataStorage.hpp"
+#include "loadData.hpp"
 
 /// @brief Contains verious functions used for the processing of data taken from
 /// the ELITPC detector.

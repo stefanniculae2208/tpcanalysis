@@ -197,6 +197,7 @@ void loadData::removeFPN() {
             const auto &signal_vec = (*itr1).second.get();
 
             for (std::size_t i = 0; i < mean_fpn[key].size(); i++) {
+
                 mean_fpn[key][i] += signal_vec[i];
             }
 
