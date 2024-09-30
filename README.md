@@ -20,6 +20,6 @@ When running a root script the string are encased in \"My string\".
 root -q "runmacro_elitpc.cpp({\"-view\",\"-norm1\",\"-clean0\",\"-zip0\",\"./test_data/CoBo0_AsAd0_2022-04-12T08_03_44.531_0000.root\",\"./test_data/CoBo0_AsAd1_2022-04-12T08_03_44.533_0000.root\",\"./test_data/CoBo0_AsAd2_2022-04-12T08_03_44.536_0000.root\",\"./test_data/CoBo0_AsAd3_2022-04-12T08_03_44.540_0000.root\"})"
 
 # The zip option only works for conversion. Does nothing for view.
-# The clean option only works for conversion. Does nothing for view. The view shows the clean and non clean images.
+# The clean option only works for conversion. Does nothing for view. The view shows the clean and non clean images by default.
 root -q "runmacro_elitpc.cpp({\"-convert\",\"-norm1\",\"-clean0\",\"-zip0\",\"./test_data/CoBo0_AsAd0_2022-04-12T08_03_44.531_0000.root\",\"./test_data/CoBo0_AsAd1_2022-04-12T08_03_44.533_0000.root\",\"./test_data/CoBo0_AsAd2_2022-04-12T08_03_44.536_0000.root\",\"./test_data/CoBo0_AsAd3_2022-04-12T08_03_44.540_0000.root\"})"
 

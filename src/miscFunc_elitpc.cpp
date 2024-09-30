@@ -18,7 +18,23 @@ std::vector<generalDataStorage> miscFunc_elitpc::getAllEntries(TString fileName,
     loadData good_data(goodFile, goodTree);
 
     auto err = good_data.openFile();
+
+    if (err != 0) {
+
+        std::cerr << "Error at openFile code: " << err << std::endl;
+
+        throw std::runtime_error("Could not open the file.\n");
+    }
+
     err = good_data.readData();
+
+    if (err != 0) {
+
+        std::cerr << "Error at readData code: " << err << std::endl;
+
+        throw std::runtime_error("Could not read the data.\n");
+    }
+
     nr_entries = good_data.returnNEntries();
 
     if (opt_verbose) {
@@ -49,6 +65,7 @@ std::vector<generalDataStorage> miscFunc_elitpc::getAllEntries(TString fileName,
         generalDataStorage data_container;
 
         err = good_data.decodeData(entry_nr, true);
+
         if (err != 0) {
 
             std::cout << "Error decode data code " << err << " at entry "

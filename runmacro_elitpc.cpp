@@ -55,8 +55,8 @@ void viewUVWdata_elitpc(std::vector<TString> fileName, bool opt_norm = false,
                             std::make_move_iterator(temp_data.end()));
         } catch (const std::exception &e) {
 
-            std::cout << "Encountered error when getting all entries."
-                      << std::endl;
+            std::cout << "Encountered error when getting all entries: "
+                      << e.what() << std::endl;
             return;
         }
     }
@@ -284,8 +284,8 @@ void drawUVWimages_elitpc(std::vector<TString> fileName, TString outfolder,
                             std::make_move_iterator(temp_data.end()));
         } catch (const std::exception &e) {
 
-            std::cout << "Encountered error when getting all entries."
-                      << std::endl;
+            std::cout << "Encountered error when getting all entries: "
+                      << e.what() << std::endl;
             return;
         }
     }
