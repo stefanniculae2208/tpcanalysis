@@ -105,7 +105,7 @@ template <typename pI> int cleanUVW::substractBl(bool smooth_opt) {
         data_el.baseline_val = m_baseline;
 
         // Extract the baseline from the signal. Make any elements lower
-        // than 0 equal to 10 so we don't have negative signal values.
+        // than 10 equal to 10 so we don't have negative signal values.
         // I didn't make them 0 because I have a problem with empty vectors.
         std::transform(data_el.signal_val.begin(), data_el.signal_val.end(),
                        data_el.signal_val.begin(),

@@ -460,17 +460,17 @@ int drawUVWimage_mini(
     auto w_hists =
         new TH2D(Form("w_hists_%d", entry_nr), "", 512, 1, 512, 92, 1, 92);
 
-    gStyle->SetPalette(kGreyScale);
+    // gStyle->SetPalette(kGreyScale);
 
-    /* u_hists->SetMinimum(-100);
+    u_hists->SetMinimum(-1);
     u_hists->SetMaximum(1000);
 
-    v_hists->SetMinimum(-100);
+    v_hists->SetMinimum(-1);
     v_hists->SetMaximum(1000);
 
-    w_hists->SetMinimum(-100);
+    w_hists->SetMinimum(-1);
     w_hists->SetMaximum(1000);
- */
+
     u_hists->SetTickLength(0);
     TAxis *u_axis = u_hists->GetYaxis();
     u_axis->SetTickLength(0);
@@ -548,6 +548,19 @@ void mass_create_clean_images_mini(TString lin_arg, bool zip_opt = false,
                                    int nr_entries = 10000) {
     TString dirandfileName = lin_arg;
 
+    TString out_dir_name = "images_default";
+
+    if (opt_clean && opt_norm) {
+
+        out_dir_name = "images_aggressive";
+    } else if (!opt_clean && opt_norm) {
+
+        out_dir_name = "images_mild";
+    } else if (!opt_clean && !opt_norm) {
+
+        out_dir_name = "images_none";
+    }
+
     TString fileName = dirandfileName;
 
     TString dir = dirandfileName;
@@ -561,7 +574,7 @@ void mass_create_clean_images_mini(TString lin_arg, bool zip_opt = false,
 
     TString mkdirCommand = ".! mkdir ";
     mkdirCommand.Append(dir);
-    mkdirCommand.Append("cleanimages_bw");
+    mkdirCommand.Append(out_dir_name);
 
     gROOT->ProcessLine(mkdirCommand);
 
@@ -571,7 +584,7 @@ void mass_create_clean_images_mini(TString lin_arg, bool zip_opt = false,
 
     gROOT->ProcessLine(mkdirCommand);
 
-    TString imagePath = dir + "cleanimages_bw/" + fileName + "/";
+    TString imagePath = dir + out_dir_name + "/" + fileName + "/";
 
     for (auto i = 0; i < nr_entries; i++) {
 
@@ -584,7 +597,7 @@ void mass_create_clean_images_mini(TString lin_arg, bool zip_opt = false,
 
     if (zip_opt) {
 
-        TString zipCommand = ".! zip -j -r -m " + dir + "cleanimages_bw/" +
+        TString zipCommand = ".! zip -j -r -m " + dir + out_dir_name + "/" +
                              fileName + ".zip " + imagePath;
 
         gROOT->ProcessLine(zipCommand);

@@ -12,6 +12,7 @@ Contains 2 macros for viewing and converting the data for the 2 different detect
 
 # NOTE:
 When running a root script the string are encased in \"My string\".
+Works with ROOT Version: 6.24/02.
 
 
 # Example:

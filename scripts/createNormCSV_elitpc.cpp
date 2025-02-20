@@ -28,6 +28,11 @@
 #include "../dict/src/GDataSample.cpp"
 #include "../dict/src/GFrameHeader.cpp"
 
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// To be removed when funtion is added to src. If it is still here it
+/// means I didn't have tome to remove it and replace it,
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 namespace funcUtil {
 
 /// @brief
@@ -245,6 +250,11 @@ std::vector<dataUVW> mergeSplitStrips(std::vector<dataUVW> &&data_vec) {
 /**
  * @brief Creates the .csv file used to normalize the channels.
  * The file and channels used have been pre selected.
+ * If you need to generate a new ratio csv file then follow the steps:
+ * - Choose some entries that contain only noise.
+ * - Edit the sample_size variable with the correct number of samples.
+ * - Edit entry_nrs with the correct entries. Make sure the number is exactly
+ * the number specified by sample size.
  *
  */
 void createNormCSV_elitpc(bool lin_arg = true) {

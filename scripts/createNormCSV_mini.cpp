@@ -32,6 +32,11 @@
 /**
  * @brief Creates the .csv file used to normalize the channels.
  * The file and channels used have been pre selected.
+ * If you need to generate a new ratio csv file then follow the steps:
+ * - Choose some entries that contain only noise.
+ * - Edit the sample_size variable with the correct number of samples.
+ * - Edit entry_nrs with the correct entries. Make sure the number is exactly
+ * the number specified by sample size.
  *
  */
 void createNormCSV_mini(bool lin_arg = true) {

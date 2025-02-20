@@ -1,10 +1,12 @@
 #include "../include/miscFunc_elitpc.hpp"
 
-/// @brief
-/// @param fileName
-/// @param opt_verbose
-/// @param opt_norm
-/// @return
+/// @brief Reads all of the entries from a file and returns a vector with it in
+/// the UVW format. The raw data is deleted to save space.
+/// @param fileName Name of the '.root' file.
+/// @param opt_verbose Prints aditional info in the console.
+/// @param opt_norm Set normalization to true or false.
+/// @return a generalDataStorage vector containing the UVW events. The raw data
+/// is deleted from it to save space.
 std::vector<generalDataStorage> miscFunc_elitpc::getAllEntries(TString fileName,
                                                                bool opt_verbose,
                                                                bool opt_norm) {
@@ -103,7 +105,7 @@ std::vector<generalDataStorage> miscFunc_elitpc::getAllEntries(TString fileName,
             std::fill(data_el.signal_val.begin() + 500,
                       data_el.signal_val.begin() + 512, 0);
 
-            // Bring all values that are close to 0 to 1 in order to not have
+            // Bring all values that are close to 0 to 10 in order to not have
             // empty bins.
             std::transform(
                 data_el.signal_val.begin(), data_el.signal_val.end(),
@@ -135,9 +137,12 @@ std::vector<generalDataStorage> miscFunc_elitpc::getAllEntries(TString fileName,
     return data_vec;
 }
 
-/// @brief
-/// @param entries_vec
-/// @return
+/// @brief Some ELITPC data contains separate files from each AsAd boards. This
+/// function groups the entries with the same event_id from different files.
+/// @param entries_vec The vector containing the data. We only care about the
+/// UVW data from it.
+/// @return A new vector containing entries from all of the '.root' files
+/// combined into one.
 std::vector<generalDataStorage> miscFunc_elitpc::groupEntriesByEvent(
     std::vector<generalDataStorage> &&entries_vec) {
 
@@ -180,9 +185,13 @@ std::vector<generalDataStorage> miscFunc_elitpc::groupEntriesByEvent(
     return result;
 }
 
-/// @brief
-/// @param data_vec
-/// @return
+/// @brief Some strips in the ELITPC detector are split due to it's size. From
+/// what I understood we should handle these split strips as one since we don;t
+/// care on which half of the stip the event happens.
+/// At the moment we just add the signals for these strips since it seems to
+/// work best, but it may be more correct to average the signals instead.
+/// @param data_vec The UVW data with split strips.
+/// @return The UVW data with the split strips merged.
 std::vector<dataUVW>
 miscFunc_elitpc::mergeSplitStrips(std::vector<dataUVW> &&data_vec) {
 
